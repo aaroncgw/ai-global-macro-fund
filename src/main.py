@@ -44,7 +44,7 @@ def parse_hedge_fund_response(response):
 
 ##### Run the Hedge Fund #####
 def run_hedge_fund(
-    tickers: list[str],
+    etfs: list[str],
     start_date: str,
     end_date: str,
     portfolio: dict,
@@ -69,7 +69,7 @@ def run_hedge_fund(
                     )
                 ],
                 "data": {
-                    "tickers": tickers,
+                    "etfs": etfs,
                     "portfolio": portfolio,
                     "start_date": start_date,
                     "end_date": end_date,
@@ -139,7 +139,7 @@ if __name__ == "__main__":
         include_reasoning_flag=True,
     )
 
-    tickers = inputs.tickers
+    etfs = inputs.tickers
     selected_analysts = inputs.selected_analysts
 
     # Construct portfolio here
@@ -148,26 +148,26 @@ if __name__ == "__main__":
         "margin_requirement": inputs.margin_requirement,
         "margin_used": 0.0,
         "positions": {
-            ticker: {
+            etf: {
                 "long": 0,
                 "short": 0,
                 "long_cost_basis": 0.0,
                 "short_cost_basis": 0.0,
                 "short_margin_used": 0.0,
             }
-            for ticker in tickers
+            for etf in etfs
         },
         "realized_gains": {
-            ticker: {
+            etf: {
                 "long": 0.0,
                 "short": 0.0,
             }
-            for ticker in tickers
+            for etf in etfs
         },
     }
 
     result = run_hedge_fund(
-        tickers=tickers,
+        etfs=etfs,
         start_date=inputs.start_date,
         end_date=inputs.end_date,
         portfolio=portfolio,

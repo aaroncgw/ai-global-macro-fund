@@ -18,23 +18,23 @@ class PortfolioDecision(BaseModel):
 
 
 class PortfolioManagerOutput(BaseModel):
-    decisions: dict[str, PortfolioDecision] = Field(description="Dictionary of ticker to trading decisions")
+    decisions: dict[str, PortfolioDecision] = Field(description="Dictionary of etf to trading decisions")
 
 
 ##### Portfolio Management Agent #####
 def portfolio_management_agent(state: AgentState, agent_id: str = "portfolio_manager"):
-    """Makes final trading decisions and generates orders for multiple tickers"""
+    """Makes final trading decisions and generates orders for multiple etfs"""
 
     portfolio = state["data"]["portfolio"]
     analyst_signals = state["data"]["analyst_signals"]
-    tickers = state["data"]["tickers"]
+    etfs = state["data"]["etfs"]
 
     position_limits = {}
     current_prices = {}
     max_shares = {}
-    signals_by_ticker = {}
-    for ticker in tickers:
-        progress.update_status(agent_id, ticker, "Processing analyst signals")
+    signals_by_etf = {}
+    for etf in etfs:
+        progress.update_status(agent_id, etf, "Processing analyst signals")
 
         # Find the corresponding risk manager for this portfolio manager
         if agent_id.startswith("portfolio_manager_"):
@@ -43,33 +43,33 @@ def portfolio_management_agent(state: AgentState, agent_id: str = "portfolio_man
         else:
             risk_manager_id = "risk_management_agent"  # Fallback for CLI
 
-        risk_data = analyst_signals.get(risk_manager_id, {}).get(ticker, {})
-        position_limits[ticker] = risk_data.get("remaining_position_limit", 0.0)
-        current_prices[ticker] = float(risk_data.get("current_price", 0.0))
+        risk_data = analyst_signals.get(risk_manager_id, {}).get(etf, {})
+        position_limits[etf] = risk_data.get("remaining_position_limit", 0.0)
+        current_prices[etf] = float(risk_data.get("current_price", 0.0))
 
         # Calculate maximum shares allowed based on position limit and price
-        if current_prices[ticker] > 0:
-            max_shares[ticker] = int(position_limits[ticker] // current_prices[ticker])
+        if current_prices[etf] > 0:
+            max_shares[etf] = int(position_limits[etf] // current_prices[etf])
         else:
-            max_shares[ticker] = 0
+            max_shares[etf] = 0
 
         # Compress analyst signals to {sig, conf}
-        ticker_signals = {}
+        etf_signals = {}
         for agent, signals in analyst_signals.items():
-            if not agent.startswith("risk_management_agent") and ticker in signals:
-                sig = signals[ticker].get("signal")
-                conf = signals[ticker].get("confidence")
+            if not agent.startswith("risk_management_agent") and etf in signals:
+                sig = signals[etf].get("signal")
+                conf = signals[etf].get("confidence")
                 if sig is not None and conf is not None:
-                    ticker_signals[agent] = {"sig": sig, "conf": conf}
-        signals_by_ticker[ticker] = ticker_signals
+                    etf_signals[agent] = {"sig": sig, "conf": conf}
+        signals_by_etf[etf] = etf_signals
 
     state["data"]["current_prices"] = current_prices
 
     progress.update_status(agent_id, None, "Generating trading decisions")
 
     result = generate_trading_decision(
-        tickers=tickers,
-        signals_by_ticker=signals_by_ticker,
+        etfs=etfs,
+        signals_by_etf=signals_by_etf,
         current_prices=current_prices,
         max_shares=max_shares,
         portfolio=portfolio,
@@ -77,12 +77,12 @@ def portfolio_management_agent(state: AgentState, agent_id: str = "portfolio_man
         state=state,
     )
     message = HumanMessage(
-        content=json.dumps({ticker: decision.model_dump() for ticker, decision in result.decisions.items()}),
+        content=json.dumps({etf: decision.model_dump() for etf, decision in result.decisions.items()}),
         name=agent_id,
     )
 
     if state["metadata"]["show_reasoning"]:
-        show_agent_reasoning({ticker: decision.model_dump() for ticker, decision in result.decisions.items()},
+        show_agent_reasoning({etf: decision.model_dump() for etf, decision in result.decisions.items()},
                              "Portfolio Manager")
 
     progress.update_status(agent_id, None, "Done")
@@ -94,12 +94,12 @@ def portfolio_management_agent(state: AgentState, agent_id: str = "portfolio_man
 
 
 def compute_allowed_actions(
-        tickers: list[str],
+        etfs: list[str],
         current_prices: dict[str, float],
         max_shares: dict[str, int],
         portfolio: dict[str, float],
 ) -> dict[str, dict[str, int]]:
-    """Compute allowed actions and max quantities for each ticker deterministically."""
+    """Compute allowed actions and max quantities for each etf deterministically."""
     allowed = {}
     cash = float(portfolio.get("cash", 0.0))
     positions = portfolio.get("positions", {}) or {}
@@ -107,15 +107,15 @@ def compute_allowed_actions(
     margin_used = float(portfolio.get("margin_used", 0.0))
     equity = float(portfolio.get("equity", cash))
 
-    for ticker in tickers:
-        price = float(current_prices.get(ticker, 0.0))
+    for etf in etfs:
+        price = float(current_prices.get(etf, 0.0))
         pos = positions.get(
-            ticker,
+            etf,
             {"long": 0, "long_cost_basis": 0.0, "short": 0, "short_cost_basis": 0.0},
         )
         long_shares = int(pos.get("long", 0) or 0)
         short_shares = int(pos.get("short", 0) or 0)
-        max_qty = int(max_shares.get(ticker, 0) or 0)
+        max_qty = int(max_shares.get(etf, 0) or 0)
 
         # Start with zeros
         actions = {"buy": 0, "sell": 0, "short": 0, "cover": 0, "hold": 0}
@@ -152,15 +152,15 @@ def compute_allowed_actions(
             if k != "hold" and v > 0:
                 pruned[k] = v
 
-        allowed[ticker] = pruned
+        allowed[etf] = pruned
 
     return allowed
 
 
-def _compact_signals(signals_by_ticker: dict[str, dict]) -> dict[str, dict]:
+def _compact_signals(signals_by_etf: dict[str, dict]) -> dict[str, dict]:
     """Keep only {agent: {sig, conf}} and drop empty agents."""
     out = {}
-    for t, agents in signals_by_ticker.items():
+    for t, agents in signals_by_etf.items():
         if not agents:
             out[t] = {}
             continue
@@ -175,8 +175,8 @@ def _compact_signals(signals_by_ticker: dict[str, dict]) -> dict[str, dict]:
 
 
 def generate_trading_decision(
-        tickers: list[str],
-        signals_by_ticker: dict[str, dict],
+        etfs: list[str],
+        signals_by_etf: dict[str, dict],
         current_prices: dict[str, float],
         max_shares: dict[str, int],
         portfolio: dict[str, float],
@@ -186,12 +186,12 @@ def generate_trading_decision(
     """Get decisions from the LLM with deterministic constraints and a minimal prompt."""
 
     # Deterministic constraints
-    allowed_actions_full = compute_allowed_actions(tickers, current_prices, max_shares, portfolio)
+    allowed_actions_full = compute_allowed_actions(etfs, current_prices, max_shares, portfolio)
 
     # Pre-fill pure holds to avoid sending them to the LLM at all
     prefilled_decisions: dict[str, PortfolioDecision] = {}
-    tickers_for_llm: list[str] = []
-    for t in tickers:
+    etfs_for_llm: list[str] = []
+    for t in etfs:
         aa = allowed_actions_full.get(t, {"hold": 0})
         # If only 'hold' key exists, there is no trade possible
         if set(aa.keys()) == {"hold"}:
@@ -199,14 +199,14 @@ def generate_trading_decision(
                 action="hold", quantity=0, confidence=100.0, reasoning="No valid trade available"
             )
         else:
-            tickers_for_llm.append(t)
+            etfs_for_llm.append(t)
 
-    if not tickers_for_llm:
+    if not etfs_for_llm:
         return PortfolioManagerOutput(decisions=prefilled_decisions)
 
-    # Build compact payloads only for tickers sent to LLM
-    compact_signals = _compact_signals({t: signals_by_ticker.get(t, {}) for t in tickers_for_llm})
-    compact_allowed = {t: allowed_actions_full[t] for t in tickers_for_llm}
+    # Build compact payloads only for etfs sent to LLM
+    compact_signals = _compact_signals({t: signals_by_etf.get(t, {}) for t in etfs_for_llm})
+    compact_allowed = {t: allowed_actions_full[t] for t in etfs_for_llm}
 
     # Minimal prompt template
     template = ChatPromptTemplate.from_messages(
@@ -214,8 +214,8 @@ def generate_trading_decision(
             (
                 "system",
                 "You are a portfolio manager.\n"
-                "Inputs per ticker: analyst signals and allowed actions with max qty (already validated).\n"
-                "Pick one allowed action per ticker and a quantity ≤ the max. "
+                "Inputs per etf: analyst signals and allowed actions with max qty (already validated).\n"
+                "Pick one allowed action per etf and a quantity ≤ the max. "
                 "Keep reasoning very concise (max 100 chars). No cash or margin math. Return JSON only."
             ),
             (
@@ -238,11 +238,11 @@ def generate_trading_decision(
     }
     prompt = template.invoke(prompt_data)
 
-    # Default factory fills remaining tickers as hold if the LLM fails
+    # Default factory fills remaining etfs as hold if the LLM fails
     def create_default_portfolio_output():
         # start from prefilled
         decisions = dict(prefilled_decisions)
-        for t in tickers_for_llm:
+        for t in etfs_for_llm:
             decisions[t] = PortfolioDecision(
                 action="hold", quantity=0, confidence=0.0, reasoning="Default decision: hold"
             )

@@ -25,34 +25,36 @@ class StanleyDruckenmillerSignal(BaseModel):
 
 def stanley_druckenmiller_agent(state: AgentState, agent_id: str = "stanley_druckenmiller_agent"):
     """
-    Analyzes stocks using Stanley Druckenmiller's investing principles:
-      - Seeking asymmetric risk-reward opportunities
-      - Emphasizing growth, momentum, and sentiment
-      - Willing to be aggressive if conditions are favorable
-      - Focus on preserving capital by avoiding high-risk, low-reward bets
+    Analyzes global macro ETFs using Stanley Druckenmiller's macro investing principles:
+      - Focus on macroeconomic trends and policy shifts
+      - Analyze currency movements, interest rates, and commodity cycles
+      - Seek asymmetric risk-reward opportunities in macro themes
+      - Emphasize top-down analysis of economic indicators
+      - Willing to be aggressive on macro convictions
+      - Focus on preserving capital through macro risk management
 
     Returns a bullish/bearish/neutral signal with confidence and reasoning.
     """
     data = state["data"]
     start_date = data["start_date"]
     end_date = data["end_date"]
-    tickers = data["tickers"]
+    etfs = data["etfs"]
     api_key = get_api_key_from_state(state, "FINANCIAL_DATASETS_API_KEY")
     analysis_data = {}
     druck_analysis = {}
 
-    for ticker in tickers:
-        progress.update_status(agent_id, ticker, "Fetching financial metrics")
-        metrics = get_financial_metrics(ticker, end_date, period="annual", limit=5, api_key=api_key)
+    for etf in etfs:
+        progress.update_status(agent_id, etf, "Fetching financial metrics")
+        metrics = get_financial_metrics(etf, end_date, period="annual", limit=5, api_key=api_key)
 
-        progress.update_status(agent_id, ticker, "Gathering financial line items")
+        progress.update_status(agent_id, etf, "Gathering financial line items")
         # Include relevant line items for Stan Druckenmiller's approach:
         #   - Growth & momentum: revenue, EPS, operating_income, ...
         #   - Valuation: net_income, free_cash_flow, ebit, ebitda
         #   - Leverage: total_debt, shareholders_equity
         #   - Liquidity: cash_and_equivalents
         financial_line_items = search_line_items(
-            ticker,
+            etf,
             [
                 "revenue",
                 "earnings_per_share",
@@ -75,42 +77,42 @@ def stanley_druckenmiller_agent(state: AgentState, agent_id: str = "stanley_druc
             api_key=api_key,
         )
 
-        progress.update_status(agent_id, ticker, "Getting market cap")
-        market_cap = get_market_cap(ticker, end_date, api_key=api_key)
+        progress.update_status(agent_id, etf, "Getting market cap")
+        market_cap = get_market_cap(etf, end_date, api_key=api_key)
 
-        progress.update_status(agent_id, ticker, "Fetching insider trades")
-        insider_trades = get_insider_trades(ticker, end_date, limit=50, api_key=api_key)
+        progress.update_status(agent_id, etf, "Fetching insider trades")
+        insider_trades = get_insider_trades(etf, end_date, limit=50, api_key=api_key)
 
-        progress.update_status(agent_id, ticker, "Fetching company news")
-        company_news = get_company_news(ticker, end_date, limit=50, api_key=api_key)
+        progress.update_status(agent_id, etf, "Fetching company news")
+        company_news = get_company_news(etf, end_date, limit=50, api_key=api_key)
 
-        progress.update_status(agent_id, ticker, "Fetching recent price data for momentum")
-        prices = get_prices(ticker, start_date=start_date, end_date=end_date, api_key=api_key)
+        progress.update_status(agent_id, etf, "Fetching recent price data for momentum")
+        prices = get_prices(etf, start_date=start_date, end_date=end_date, api_key=api_key)
 
-        progress.update_status(agent_id, ticker, "Analyzing growth & momentum")
-        growth_momentum_analysis = analyze_growth_and_momentum(financial_line_items, prices)
+        progress.update_status(agent_id, etf, "Analyzing macro trends")
+        macro_trends_analysis = analyze_macro_trends(financial_line_items, prices)
 
-        progress.update_status(agent_id, ticker, "Analyzing sentiment")
-        sentiment_analysis = analyze_sentiment(company_news)
+        progress.update_status(agent_id, etf, "Analyzing economic indicators")
+        economic_indicators_analysis = analyze_economic_indicators(financial_line_items, company_news)
 
-        progress.update_status(agent_id, ticker, "Analyzing insider activity")
-        insider_activity = analyze_insider_activity(insider_trades)
+        progress.update_status(agent_id, etf, "Analyzing policy environment")
+        policy_analysis = analyze_policy_environment(company_news, insider_trades)
 
-        progress.update_status(agent_id, ticker, "Analyzing risk-reward")
-        risk_reward_analysis = analyze_risk_reward(financial_line_items, prices)
+        progress.update_status(agent_id, etf, "Analyzing macro risk-reward")
+        macro_risk_reward_analysis = analyze_macro_risk_reward(financial_line_items, prices)
 
-        progress.update_status(agent_id, ticker, "Performing Druckenmiller-style valuation")
-        valuation_analysis = analyze_druckenmiller_valuation(financial_line_items, market_cap)
+        progress.update_status(agent_id, etf, "Performing macro valuation")
+        macro_valuation_analysis = analyze_macro_valuation(financial_line_items, market_cap)
 
-        # Combine partial scores with weights typical for Druckenmiller:
-        #   35% Growth/Momentum, 20% Risk/Reward, 20% Valuation,
-        #   15% Sentiment, 10% Insider Activity = 100%
+        # Combine partial scores with weights typical for Druckenmiller macro analysis:
+        #   35% Macro Trends, 25% Economic Indicators, 20% Policy Environment,
+        #   15% Macro Risk/Reward, 5% Macro Valuation = 100%
         total_score = (
-            growth_momentum_analysis["score"] * 0.35
-            + risk_reward_analysis["score"] * 0.20
-            + valuation_analysis["score"] * 0.20
-            + sentiment_analysis["score"] * 0.15
-            + insider_activity["score"] * 0.10
+            macro_trends_analysis["score"] * 0.35
+            + economic_indicators_analysis["score"] * 0.25
+            + policy_analysis["score"] * 0.20
+            + macro_risk_reward_analysis["score"] * 0.15
+            + macro_valuation_analysis["score"] * 0.05
         )
 
         max_possible_score = 10
@@ -123,32 +125,32 @@ def stanley_druckenmiller_agent(state: AgentState, agent_id: str = "stanley_druc
         else:
             signal = "neutral"
 
-        analysis_data[ticker] = {
+        analysis_data[etf] = {
             "signal": signal,
             "score": total_score,
             "max_score": max_possible_score,
-            "growth_momentum_analysis": growth_momentum_analysis,
-            "sentiment_analysis": sentiment_analysis,
-            "insider_activity": insider_activity,
-            "risk_reward_analysis": risk_reward_analysis,
-            "valuation_analysis": valuation_analysis,
+            "macro_trends_analysis": macro_trends_analysis,
+            "economic_indicators_analysis": economic_indicators_analysis,
+            "policy_analysis": policy_analysis,
+            "macro_risk_reward_analysis": macro_risk_reward_analysis,
+            "macro_valuation_analysis": macro_valuation_analysis,
         }
 
-        progress.update_status(agent_id, ticker, "Generating Stanley Druckenmiller analysis")
+        progress.update_status(agent_id, etf, "Generating Stanley Druckenmiller analysis")
         druck_output = generate_druckenmiller_output(
-            ticker=ticker,
+            etf=etf,
             analysis_data=analysis_data,
             state=state,
             agent_id=agent_id,
         )
 
-        druck_analysis[ticker] = {
+        druck_analysis[etf] = {
             "signal": druck_output.signal,
             "confidence": druck_output.confidence,
             "reasoning": druck_output.reasoning,
         }
 
-        progress.update_status(agent_id, ticker, "Done", analysis=druck_output.reasoning)
+        progress.update_status(agent_id, etf, "Done", analysis=druck_output.reasoning)
 
     # Wrap results in a single message
     message = HumanMessage(content=json.dumps(druck_analysis), name=agent_id)
@@ -163,18 +165,34 @@ def stanley_druckenmiller_agent(state: AgentState, agent_id: str = "stanley_druc
     return {"messages": [message], "data": state["data"]}
 
 
-def analyze_growth_and_momentum(financial_line_items: list, prices: list) -> dict:
+def analyze_macro_trends(financial_line_items: list, prices: list) -> dict:
     """
-    Evaluate:
-      - Revenue Growth (YoY)
-      - EPS Growth (YoY)
-      - Price Momentum
+    Evaluate macro trends affecting the ETF:
+      - Economic growth indicators
+      - Inflation trends
+      - Interest rate environment
+      - Currency strength
+      - Commodity cycles
     """
-    if not financial_line_items or len(financial_line_items) < 2:
-        return {"score": 0, "details": "Insufficient financial data for growth analysis"}
-
-    details = []
-    raw_score = 0  # We'll sum up a maximum of 9 raw points, then scale to 0–10
+    # Placeholder for macro trend analysis
+    # In a real implementation, this would analyze:
+    # - GDP growth rates
+    # - Inflation data
+    # - Interest rate trends
+    # - Currency movements
+    # - Commodity price cycles
+    
+    details = ["Macro trend analysis - placeholder for economic indicators"]
+    raw_score = 5  # Neutral score for now
+    
+    # Scale to 0-10
+    score = min(10, max(0, raw_score))
+    
+    return {
+        "score": score,
+        "details": details,
+        "macro_indicators": "Placeholder for GDP, inflation, rates analysis"
+    }
 
     #
     # 1. Revenue Growth (annualized CAGR)
@@ -270,12 +288,13 @@ def analyze_growth_and_momentum(financial_line_items: list, prices: list) -> dic
     return {"score": final_score, "details": "; ".join(details)}
 
 
-def analyze_insider_activity(insider_trades: list) -> dict:
+def analyze_economic_indicators(financial_line_items: list, company_news: list) -> dict:
     """
-    Simple insider-trade analysis:
-      - If there's heavy insider buying, we nudge the score up.
-      - If there's mostly selling, we reduce it.
-      - Otherwise, neutral.
+    Analyze economic indicators affecting the ETF:
+      - GDP growth rates
+      - Employment data
+      - Consumer spending
+      - Manufacturing indicators
     """
     # Default is neutral (5/10).
     score = 5
@@ -527,7 +546,7 @@ def analyze_druckenmiller_valuation(financial_line_items: list, market_cap: floa
 
 
 def generate_druckenmiller_output(
-    ticker: str,
+    etf: str,
     analysis_data: dict[str, any],
     state: AgentState,
     agent_id: str,
@@ -539,38 +558,39 @@ def generate_druckenmiller_output(
         [
             (
               "system",
-              """You are a Stanley Druckenmiller AI agent, making investment decisions using his principles:
+              """You are a Stanley Druckenmiller AI agent, making macro investment decisions using his principles:
             
-              1. Seek asymmetric risk-reward opportunities (large upside, limited downside).
-              2. Emphasize growth, momentum, and market sentiment.
-              3. Preserve capital by avoiding major drawdowns.
-              4. Willing to pay higher valuations for true growth leaders.
-              5. Be aggressive when conviction is high.
-              6. Cut losses quickly if the thesis changes.
+              1. Focus on macroeconomic trends and policy shifts that drive markets.
+              2. Analyze currency movements, interest rates, and commodity cycles.
+              3. Seek asymmetric risk-reward opportunities in macro themes.
+              4. Emphasize top-down analysis of economic indicators.
+              5. Be aggressive when macro conviction is high.
+              6. Cut losses quickly if the macro thesis changes.
                             
               Rules:
-              - Reward companies showing strong revenue/earnings growth and positive stock momentum.
-              - Evaluate sentiment and insider activity as supportive or contradictory signals.
-              - Watch out for high leverage or extreme volatility that threatens capital.
+              - Analyze global macro trends affecting the ETF's underlying assets.
+              - Evaluate economic indicators, central bank policies, and geopolitical factors.
+              - Consider currency strength, interest rate cycles, and commodity trends.
+              - Assess risk-reward from a macro perspective with specific economic data.
               - Output a JSON object with signal, confidence, and a reasoning string.
               
               When providing your reasoning, be thorough and specific by:
-              1. Explaining the growth and momentum metrics that most influenced your decision
-              2. Highlighting the risk-reward profile with specific numerical evidence
-              3. Discussing market sentiment and catalysts that could drive price action
-              4. Addressing both upside potential and downside risks
-              5. Providing specific valuation context relative to growth prospects
-              6. Using Stanley Druckenmiller's decisive, momentum-focused, and conviction-driven voice
+              1. Explaining the macro trends and economic indicators that most influenced your decision
+              2. Highlighting the macro risk-reward profile with specific economic evidence
+              3. Discussing policy changes and catalysts that could drive macro performance
+              4. Addressing both upside potential and downside risks from a macro perspective
+              5. Providing specific context about economic cycles and policy impacts
+              6. Using Stanley Druckenmiller's decisive, macro-focused, and conviction-driven voice
               
-              For example, if bullish: "The company shows exceptional momentum with revenue accelerating from 22% to 35% YoY and the stock up 28% over the past three months. Risk-reward is highly asymmetric with 70% upside potential based on FCF multiple expansion and only 15% downside risk given the strong balance sheet with 3x cash-to-debt. Insider buying and positive market sentiment provide additional tailwinds..."
-              For example, if bearish: "Despite recent stock momentum, revenue growth has decelerated from 30% to 12% YoY, and operating margins are contracting. The risk-reward proposition is unfavorable with limited 10% upside potential against 40% downside risk. The competitive landscape is intensifying, and insider selling suggests waning confidence. I'm seeing better opportunities elsewhere with more favorable setups..."
+              For example, if bullish: "The ETF benefits from strong macro tailwinds with GDP growth accelerating to 3.2% and inflation moderating to 2.1%. The Fed's dovish pivot suggests rate cuts ahead, which historically drives this asset class 25-40% higher. Risk-reward is highly asymmetric with 60% upside potential based on historical macro cycles and only 15% downside risk given the supportive policy environment. The currency backdrop is favorable with DXY weakening, providing additional tailwinds..."
+              For example, if bearish: "Despite recent momentum, the macro environment is deteriorating with leading indicators pointing to recession risk. The Fed's hawkish stance and rising rates create headwinds for this asset class. Risk-reward is unfavorable with limited 10% upside potential against 35% downside risk. The economic cycle is turning, and policy support is waning. I'm seeing better macro opportunities elsewhere with more favorable setups..."
               """,
             ),
             (
               "human",
-              """Based on the following analysis, create a Druckenmiller-style investment signal.
+              """Based on the following macro analysis, create a Druckenmiller-style investment signal.
 
-              Analysis Data for {ticker}:
+              Macro Analysis Data for {etf}:
               {analysis_data}
 
               Return the trading signal in this JSON format:
@@ -584,7 +604,7 @@ def generate_druckenmiller_output(
         ]
     )
 
-    prompt = template.invoke({"analysis_data": json.dumps(analysis_data, indent=2), "ticker": ticker})
+    prompt = template.invoke({"analysis_data": json.dumps(analysis_data, indent=2), "etf": etf})
 
     def create_default_signal():
         return StanleyDruckenmillerSignal(
@@ -600,3 +620,40 @@ def generate_druckenmiller_output(
         state=state,
         default_factory=create_default_signal,
     )
+
+
+# New macro analysis functions
+def analyze_economic_indicators(financial_line_items: list, company_news: list) -> dict:
+    """Analyze economic indicators affecting the ETF."""
+    return {
+        "score": 5,
+        "details": ["Economic indicators analysis - placeholder"],
+        "indicators": "GDP, employment, consumer spending analysis"
+    }
+
+
+def analyze_policy_environment(company_news: list, insider_trades: list) -> dict:
+    """Analyze policy environment and central bank actions."""
+    return {
+        "score": 5,
+        "details": ["Policy environment analysis - placeholder"],
+        "policy_indicators": "Central bank policy, fiscal policy analysis"
+    }
+
+
+def analyze_macro_risk_reward(financial_line_items: list, prices: list) -> dict:
+    """Analyze macro risk-reward profile."""
+    return {
+        "score": 5,
+        "details": ["Macro risk-reward analysis - placeholder"],
+        "risk_factors": "Economic cycle, policy risk, geopolitical risk"
+    }
+
+
+def analyze_macro_valuation(financial_line_items: list, market_cap: float | None) -> dict:
+    """Analyze macro valuation metrics."""
+    return {
+        "score": 5,
+        "details": ["Macro valuation analysis - placeholder"],
+        "valuation_metrics": "Relative valuation, macro multiples"
+    }

@@ -18,21 +18,21 @@ def rakesh_jhunjhunwala_agent(state: AgentState, agent_id: str = "rakesh_jhunjhu
     """Analyzes stocks using Rakesh Jhunjhunwala's principles and LLM reasoning."""
     data = state["data"]
     end_date = data["end_date"]
-    tickers = data["tickers"]
+    etfs = data["etfs"]
     api_key = get_api_key_from_state(state, "FINANCIAL_DATASETS_API_KEY")
     # Collect all analysis for LLM reasoning
     analysis_data = {}
     jhunjhunwala_analysis = {}
 
-    for ticker in tickers:
+    for etf in etfs:
 
         # Core Data
-        progress.update_status(agent_id, ticker, "Fetching financial metrics")
-        metrics = get_financial_metrics(ticker, end_date, period="ttm", limit=5, api_key=api_key)
+        progress.update_status(agent_id, etf, "Fetching financial metrics")
+        metrics = get_financial_metrics(etf, end_date, period="ttm", limit=5, api_key=api_key)
 
-        progress.update_status(agent_id, ticker, "Fetching financial line items")
+        progress.update_status(agent_id, etf, "Fetching financial line items")
         financial_line_items = search_line_items(
-            ticker,
+            etf,
             [
                 "net_income",
                 "earnings_per_share",
@@ -52,26 +52,26 @@ def rakesh_jhunjhunwala_agent(state: AgentState, agent_id: str = "rakesh_jhunjhu
             api_key=api_key,
         )
 
-        progress.update_status(agent_id, ticker, "Getting market cap")
-        market_cap = get_market_cap(ticker, end_date, api_key=api_key)
+        progress.update_status(agent_id, etf, "Getting market cap")
+        market_cap = get_market_cap(etf, end_date, api_key=api_key)
 
         # ─── Analyses ───────────────────────────────────────────────────────────
-        progress.update_status(agent_id, ticker, "Analyzing growth")
+        progress.update_status(agent_id, etf, "Analyzing growth")
         growth_analysis = analyze_growth(financial_line_items)
 
-        progress.update_status(agent_id, ticker, "Analyzing profitability")
+        progress.update_status(agent_id, etf, "Analyzing profitability")
         profitability_analysis = analyze_profitability(financial_line_items)
         
-        progress.update_status(agent_id, ticker, "Analyzing balance sheet")
+        progress.update_status(agent_id, etf, "Analyzing balance sheet")
         balancesheet_analysis = analyze_balance_sheet(financial_line_items)
         
-        progress.update_status(agent_id, ticker, "Analyzing cash flow")
+        progress.update_status(agent_id, etf, "Analyzing cash flow")
         cashflow_analysis = analyze_cash_flow(financial_line_items)
         
-        progress.update_status(agent_id, ticker, "Analyzing management actions")
+        progress.update_status(agent_id, etf, "Analyzing management actions")
         management_analysis = analyze_management_actions(financial_line_items)
         
-        progress.update_status(agent_id, ticker, "Calculating intrinsic value")
+        progress.update_status(agent_id, etf, "Calculating intrinsic value")
         # Calculate intrinsic value once
         intrinsic_value = calculate_intrinsic_value(financial_line_items, market_cap)
 
@@ -119,7 +119,7 @@ def rakesh_jhunjhunwala_agent(state: AgentState, agent_id: str = "rakesh_jhunjhu
             current_price=market_cap
         )
 
-        analysis_data[ticker] = {
+        analysis_data[etf] = {
             "signal": signal,
             "score": total_score,
             "max_score": max_score,
@@ -135,17 +135,17 @@ def rakesh_jhunjhunwala_agent(state: AgentState, agent_id: str = "rakesh_jhunjhu
         }
 
         # ─── LLM: craft Jhunjhunwala‑style narrative ──────────────────────────────
-        progress.update_status(agent_id, ticker, "Generating Jhunjhunwala analysis")
+        progress.update_status(agent_id, etf, "Generating Jhunjhunwala analysis")
         jhunjhunwala_output = generate_jhunjhunwala_output(
-            ticker=ticker,
-            analysis_data=analysis_data[ticker],
+            etf=etf,
+            analysis_data=analysis_data[etf],
             state=state,
             agent_id=agent_id,
         )
 
-        jhunjhunwala_analysis[ticker] = jhunjhunwala_output.model_dump()
+        jhunjhunwala_analysis[etf] = jhunjhunwala_output.model_dump()
 
-        progress.update_status(agent_id, ticker, "Done", analysis=jhunjhunwala_output.reasoning)
+        progress.update_status(agent_id, etf, "Done", analysis=jhunjhunwala_output.reasoning)
 
     # ─── Push message back to graph state ──────────────────────────────────────
     message = HumanMessage(content=json.dumps(jhunjhunwala_analysis), name=agent_id)
@@ -642,7 +642,7 @@ def analyze_rakesh_jhunjhunwala_style(
 # LLM generation
 # ────────────────────────────────────────────────────────────────────────────────
 def generate_jhunjhunwala_output(
-    ticker: str,
+    etf: str,
     analysis_data: dict[str, any],
     state: AgentState,
     agent_id: str,
@@ -679,7 +679,7 @@ def generate_jhunjhunwala_output(
                 "human",
                 """Based on the following data, create the investment signal as Rakesh Jhunjhunwala would:
 
-                Analysis Data for {ticker}:
+                Analysis Data for {etf}:
                 {analysis_data}
 
                 Return the trading signal in the following JSON format exactly:
@@ -693,7 +693,7 @@ def generate_jhunjhunwala_output(
         ]
     )
 
-    prompt = template.invoke({"analysis_data": json.dumps(analysis_data, indent=2), "ticker": ticker})
+    prompt = template.invoke({"analysis_data": json.dumps(analysis_data, indent=2), "etf": etf})
 
     # Default fallback signal in case parsing fails
     def create_default_rakesh_jhunjhunwala_signal():

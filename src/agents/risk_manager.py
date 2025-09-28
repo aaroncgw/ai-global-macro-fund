@@ -1,317 +1,224 @@
-from langchain_core.messages import HumanMessage
-from src.graph.state import AgentState, show_agent_reasoning
-from src.utils.progress import progress
-from src.tools.api import get_prices, prices_to_df
+"""
+Risk Manager Agent for ETF Allocation Risk Assessment
+"""
+
+from src.agents.base_agent import BaseAgent
 import json
-import numpy as np
-import pandas as pd
-from src.utils.api_key import get_api_key_from_state
+import logging
 
-##### Risk Management Agent #####
-def risk_management_agent(state: AgentState, agent_id: str = "risk_management_agent"):
-    """Controls position sizing based on volatility-adjusted risk factors for multiple etfs."""
-    portfolio = state["data"]["portfolio"]
-    data = state["data"]
-    etfs = data["etfs"]
-    api_key = get_api_key_from_state(state, "FINANCIAL_DATASETS_API_KEY")
+logger = logging.getLogger(__name__)
+
+
+class RiskManagerAgent(BaseAgent):
+    """Risk Manager Agent that assesses and adjusts ETF allocations for risk."""
     
-    # Initialize risk analysis for each etf
-    risk_analysis = {}
-    current_prices = {}  # Store prices here to avoid redundant API calls
-    volatility_data = {}  # Store volatility metrics
-    returns_by_etf: dict[str, pd.Series] = {}  # For correlation analysis
-
-    # First, fetch prices and calculate volatility for all relevant etfs
-    all_etfs = set(etfs) | set(portfolio.get("positions", {}).keys())
+    def __init__(self, agent_name: str = "RiskManagerAgent"):
+        super().__init__(agent_name)
+        self.specialization = "risk_management"
+        self.analysis_focus = "risk_assessment"
+        self.role = "risk_manager"
     
-    for etf in all_etfs:
-        progress.update_status(agent_id, etf, "Fetching price data and calculating volatility")
-        
-        prices = get_prices(
-            etf=etf,
-            start_date=data["start_date"],
-            end_date=data["end_date"],
-            api_key=api_key,
-        )
-
-        if not prices:
-            progress.update_status(agent_id, etf, "Warning: No price data found")
-            volatility_data[etf] = {
-                "daily_volatility": 0.05,  # Default fallback volatility (5% daily)
-                "annualized_volatility": 0.05 * np.sqrt(252),
-                "volatility_percentile": 100,  # Assume high risk if no data
-                "data_points": 0
-            }
-            continue
-
-        prices_df = prices_to_df(prices)
-        
-        if not prices_df.empty and len(prices_df) > 1:
-            current_price = prices_df["close"].iloc[-1]
-            current_prices[etf] = current_price
-            
-            # Calculate volatility metrics
-            volatility_metrics = calculate_volatility_metrics(prices_df)
-            volatility_data[etf] = volatility_metrics
-
-            # Store returns for correlation analysis (use close-to-close returns)
-            daily_returns = prices_df["close"].pct_change().dropna()
-            if len(daily_returns) > 0:
-                returns_by_etf[etf] = daily_returns
-            
-            progress.update_status(
-                agent_id, 
-                etf, 
-                f"Price: {current_price:.2f}, Ann. Vol: {volatility_metrics['annualized_volatility']:.1%}"
-            )
-        else:
-            progress.update_status(agent_id, etf, "Warning: Insufficient price data")
-            current_prices[etf] = 0
-            volatility_data[etf] = {
-                "daily_volatility": 0.05,
-                "annualized_volatility": 0.05 * np.sqrt(252),
-                "volatility_percentile": 100,
-                "data_points": len(prices_df) if not prices_df.empty else 0
-            }
-
-    # Build returns DataFrame aligned across etfs for correlation analysis
-    correlation_matrix = None
-    if len(returns_by_etf) >= 2:
+    def analyze(self, data: dict) -> dict:
+        """Analyze data and assess risk-adjusted allocations."""
         try:
-            returns_df = pd.DataFrame(returns_by_etf).dropna(how="any")
-            if returns_df.shape[1] >= 2 and returns_df.shape[0] >= 5:
-                correlation_matrix = returns_df.corr()
-        except Exception:
-            correlation_matrix = None
-
-    # Determine which etfs currently have exposure (non-zero absolute position)
-    active_positions = {
-        t for t, pos in portfolio.get("positions", {}).items()
-        if abs(pos.get("long", 0) - pos.get("short", 0)) > 0
-    }
-
-    # Calculate total portfolio value based on current market prices (Net Liquidation Value)
-    total_portfolio_value = portfolio.get("cash", 0.0)
-    
-    for etf, position in portfolio.get("positions", {}).items():
-        if etf in current_prices:
-            # Add market value of long positions
-            total_portfolio_value += position.get("long", 0) * current_prices[etf]
-            # Subtract market value of short positions
-            total_portfolio_value -= position.get("short", 0) * current_prices[etf]
-    
-    progress.update_status(agent_id, None, f"Total portfolio value: {total_portfolio_value:.2f}")
-
-    # Calculate volatility- and correlation-adjusted risk limits for each etf
-    for etf in etfs:
-        progress.update_status(agent_id, etf, "Calculating volatility- and correlation-adjusted limits")
-        
-        if etf not in current_prices or current_prices[etf] <= 0:
-            progress.update_status(agent_id, etf, "Failed: No valid price data")
-            risk_analysis[etf] = {
-                "remaining_position_limit": 0.0,
-                "current_price": 0.0,
-                "reasoning": {
-                    "error": "Missing price data for risk calculation"
-                }
-            }
-            continue
+            proposed_allocations = data.get('proposed_allocations', {})
+            macro_data = data.get('macro_data', {})
+            risk_factors = data.get('risk_factors', {})
             
-        current_price = current_prices[etf]
-        vol_data = volatility_data.get(etf, {})
+            prompt = self._create_risk_assessment_prompt(proposed_allocations, macro_data, risk_factors)
+            response = self.llm(prompt)
+            risk_adjusted_allocations = self._parse_allocations(response, list(proposed_allocations.keys()))
+            
+            return {
+                'agent_name': self.agent_name,
+                'specialization': self.specialization,
+                'role': self.role,
+                'risk_adjusted_allocations': risk_adjusted_allocations,
+                'llm_response': response,
+                'timestamp': data.get('timestamp', 'unknown')
+            }
+            
+        except Exception as e:
+            logger.error(f"Risk manager analysis failed: {e}")
+            return {
+                'agent_name': self.agent_name,
+                'specialization': self.specialization,
+                'role': self.role,
+                'error': str(e),
+                'status': 'failed'
+            }
+    
+    def assess(self, state: dict) -> dict:
+        """Assess and adjust ETF allocations for risk."""
+        try:
+            proposed_allocations = state.get('proposed_allocations', {})
+            macro_data = state.get('macro_data', {})
+            risk_factors = state.get('risk_factors', {})
+            
+            prompt = self._create_risk_assessment_prompt(proposed_allocations, macro_data, risk_factors)
+            response = self.llm(prompt)
+            risk_adjusted_allocations = self._parse_allocations(response, list(proposed_allocations.keys()))
+            
+            state['risk_adjusted_allocations'] = risk_adjusted_allocations
+            logger.info(f"Risk manager assessed allocations for {len(proposed_allocations)} ETFs")
+            return state
+            
+        except Exception as e:
+            logger.error(f"Risk manager assessment failed: {e}")
+            state['risk_adjusted_allocations'] = state.get('proposed_allocations', {})
+            return state
+    
+    def _create_risk_assessment_prompt(self, proposed_allocations: dict, macro_data: dict, risk_factors: dict) -> str:
+        """Create a prompt for risk assessment and allocation adjustment."""
+        allocations_summary = self._format_allocations(proposed_allocations)
+        macro_summary = self._format_macro_data(macro_data)
+        risk_summary = self._format_risk_factors(risk_factors)
         
-        # Calculate current market value of this position
-        position = portfolio.get("positions", {}).get(etf, {})
-        long_value = position.get("long", 0) * current_price
-        short_value = position.get("short", 0) * current_price
-        current_position_value = abs(long_value - short_value)  # Use absolute exposure
+        prompt = f"""
+        As a risk manager, assess and adjust the following ETF allocations for macro risks and volatility:
         
-        # Volatility-adjusted limit pct
-        vol_adjusted_limit_pct = calculate_volatility_adjusted_limit(
-            vol_data.get("annualized_volatility", 0.25)
-        )
+        PROPOSED ALLOCATIONS:
+        {allocations_summary}
+        
+        MACRO ECONOMIC DATA:
+        {macro_summary}
+        
+        RISK FACTORS:
+        {risk_summary}
+        
+        RISK ASSESSMENT REQUIREMENTS:
+        1. Adjust allocations based on macro risk factors
+        2. Cap volatile ETFs if inflation is high
+        3. Reduce exposure to risky assets during economic uncertainty
+        4. Increase defensive positioning during market stress
+        5. Consider correlation risks and concentration
+        6. Account for liquidity and market depth
+        7. Balance risk and return objectives
+        8. Provide specific reasons for adjustments
+        
+        Return ONLY a JSON object with risk-adjusted ETF allocations as percentages:
+        {{"SPY": 20.0, "QQQ": 15.0, "TLT": 25.0, "GLD": 10.0, ...}}
+        """
+        return prompt
+    
+    def _format_allocations(self, allocations: dict) -> str:
+        """Format proposed allocations for the prompt."""
+        if not allocations:
+            return "No proposed allocations available"
+        
+        formatted = []
+        for etf, allocation in allocations.items():
+            formatted.append(f"  {etf}: {allocation:.1f}%")
+        
+        return '\n'.join(formatted)
+    
+    def _format_macro_data(self, macro_data: dict) -> str:
+        """Format macro data for the prompt."""
+        if not macro_data:
+            return "No macro data available"
+        
+        formatted = []
+        for indicator, data in macro_data.items():
+            if 'error' not in data and data.get('latest_value') is not None:
+                latest_value = data.get('latest_value', 'N/A')
+                trend = data.get('trend', 'unknown')
+                formatted.append(f"- {indicator}: {latest_value} (trend: {trend})")
+            else:
+                formatted.append(f"- {indicator}: Error - {data.get('error', 'No data')}")
+        
+        return '\n'.join(formatted) if formatted else "No macro data available"
+    
+    def _format_risk_factors(self, risk_factors: dict) -> str:
+        """Format risk factors for the prompt."""
+        if not risk_factors:
+            return "No additional risk factors specified"
+        
+        formatted = []
+        for factor, value in risk_factors.items():
+            formatted.append(f"- {factor}: {value}")
+        
+        return '\n'.join(formatted)
+    
+    def _parse_allocations(self, response: str, universe: list) -> dict:
+        """Parse risk-adjusted ETF allocations from LLM response."""
+        try:
+            if '{' in response and '}' in response:
+                start = response.find('{')
+                end = response.rfind('}') + 1
+                json_str = response[start:end]
+                
+                allocations = json.loads(json_str)
+                
+                validated_allocations = {}
+                total_allocation = 0.0
+                
+                for etf in universe:
+                    if etf in allocations:
+                        allocation = float(allocations[etf])
+                        allocation = max(0.0, allocation)
+                        validated_allocations[etf] = allocation
+                        total_allocation += allocation
+                    else:
+                        validated_allocations[etf] = 0.0
+                
+                if total_allocation > 0:
+                    for etf in validated_allocations:
+                        validated_allocations[etf] = (validated_allocations[etf] / total_allocation) * 100.0
+                else:
+                    equal_allocation = 100.0 / len(universe)
+                    for etf in universe:
+                        validated_allocations[etf] = equal_allocation
+                
+                return validated_allocations
+            else:
+                logger.warning("No JSON found in LLM response")
+                equal_allocation = 100.0 / len(universe)
+                return {etf: equal_allocation for etf in universe}
+                
+        except (json.JSONDecodeError, ValueError, KeyError) as e:
+            logger.error(f"Failed to parse risk-adjusted allocations from response: {e}")
+            equal_allocation = 100.0 / len(universe)
+            return {etf: equal_allocation for etf in universe}
 
-        # Correlation adjustment
-        corr_metrics = {
-            "avg_correlation_with_active": None,
-            "max_correlation_with_active": None,
-            "top_correlated_etfs": [],
-        }
-        corr_multiplier = 1.0
-        if correlation_matrix is not None and etf in correlation_matrix.columns:
-            # Compute correlations with active positions (exclude self)
-            comparable = [t for t in active_positions if t in correlation_matrix.columns and t != etf]
-            if not comparable:
-                # If no active positions, compare with all other available etfs
-                comparable = [t for t in correlation_matrix.columns if t != etf]
-            if comparable:
-                series = correlation_matrix.loc[etf, comparable]
-                # Drop NaNs just in case
-                series = series.dropna()
-                if len(series) > 0:
-                    avg_corr = float(series.mean())
-                    max_corr = float(series.max())
-                    corr_metrics["avg_correlation_with_active"] = avg_corr
-                    corr_metrics["max_correlation_with_active"] = max_corr
-                    # Top 3 most correlated etfs
-                    top_corr = series.sort_values(ascending=False).head(3)
-                    corr_metrics["top_correlated_etfs"] = [
-                        {"etf": idx, "correlation": float(val)} for idx, val in top_corr.items()
-                    ]
-                    corr_multiplier = calculate_correlation_multiplier(avg_corr)
+
+if __name__ == "__main__":
+    print("Risk Manager Agent Test")
+    print("="*30)
+    
+    try:
+        risk_manager = RiskManagerAgent("TestRiskManager")
+        print(f"✓ Risk manager agent initialized")
+        print(f"  Specialization: {risk_manager.specialization}")
+        print(f"  Provider: {risk_manager.get_provider_info()['provider']}")
         
-        # Combine volatility and correlation adjustments
-        combined_limit_pct = vol_adjusted_limit_pct * corr_multiplier
-        # Convert to dollar position limit
-        position_limit = total_portfolio_value * combined_limit_pct
-        
-        # Calculate remaining limit for this position
-        remaining_position_limit = position_limit - current_position_value
-        
-        # Ensure we don't exceed available cash
-        max_position_size = min(remaining_position_limit, portfolio.get("cash", 0))
-        
-        risk_analysis[etf] = {
-            "remaining_position_limit": float(max_position_size),
-            "current_price": float(current_price),
-            "volatility_metrics": {
-                "daily_volatility": float(vol_data.get("daily_volatility", 0.05)),
-                "annualized_volatility": float(vol_data.get("annualized_volatility", 0.25)),
-                "volatility_percentile": float(vol_data.get("volatility_percentile", 100)),
-                "data_points": int(vol_data.get("data_points", 0))
+        sample_state = {
+            'proposed_allocations': {
+                'SPY': 30.0,
+                'QQQ': 25.0,
+                'TLT': 20.0,
+                'GLD': 15.0,
+                'EWJ': 10.0
             },
-            "correlation_metrics": corr_metrics,
-            "reasoning": {
-                "portfolio_value": float(total_portfolio_value),
-                "current_position_value": float(current_position_value),
-                "base_position_limit_pct": float(vol_adjusted_limit_pct),
-                "correlation_multiplier": float(corr_multiplier),
-                "combined_position_limit_pct": float(combined_limit_pct),
-                "position_limit": float(position_limit),
-                "remaining_limit": float(remaining_position_limit),
-                "available_cash": float(portfolio.get("cash", 0)),
-                "risk_adjustment": f"Volatility x Correlation adjusted: {combined_limit_pct:.1%} (base {vol_adjusted_limit_pct:.1%})"
+            'macro_data': {
+                'CPIAUCSL': {'latest_value': 300.0, 'trend': 'increasing'},
+                'UNRATE': {'latest_value': 3.5, 'trend': 'stable'},
+                'FEDFUNDS': {'latest_value': 5.25, 'trend': 'increasing'}
             },
+            'risk_factors': {
+                'volatility_regime': 'high',
+                'geopolitical_risk': 'elevated',
+                'liquidity_conditions': 'normal'
+            }
         }
         
-        progress.update_status(
-            agent_id, 
-            etf, 
-            f"Adj. limit: {combined_limit_pct:.1%}, Available: ${max_position_size:.0f}"
-        )
-
-    progress.update_status(agent_id, None, "Done")
-
-    message = HumanMessage(
-        content=json.dumps(risk_analysis),
-        name=agent_id,
-    )
-
-    if state["metadata"]["show_reasoning"]:
-        show_agent_reasoning(risk_analysis, "Volatility-Adjusted Risk Management Agent")
-
-    # Add the signal to the analyst_signals list
-    state["data"]["analyst_signals"][agent_id] = risk_analysis
-
-    return {
-        "messages": state["messages"] + [message],
-        "data": data,
-    }
-
-
-def calculate_volatility_metrics(prices_df: pd.DataFrame, lookback_days: int = 60) -> dict:
-    """Calculate comprehensive volatility metrics from price data."""
-    if len(prices_df) < 2:
-        return {
-            "daily_volatility": 0.05,
-            "annualized_volatility": 0.05 * np.sqrt(252),
-            "volatility_percentile": 100,
-            "data_points": len(prices_df)
-        }
+        result_state = risk_manager.assess(sample_state)
+        print(f"✓ Risk assessment completed")
+        print(f"  Risk-adjusted allocations: {result_state.get('risk_adjusted_allocations', {})}")
+        
+    except Exception as e:
+        print(f"❌ Test failed: {e}")
+        import traceback
+        traceback.print_exc()
     
-    # Calculate daily returns
-    daily_returns = prices_df["close"].pct_change().dropna()
-    
-    if len(daily_returns) < 2:
-        return {
-            "daily_volatility": 0.05,
-            "annualized_volatility": 0.05 * np.sqrt(252),
-            "volatility_percentile": 100,
-            "data_points": len(daily_returns)
-        }
-    
-    # Use the most recent lookback_days for volatility calculation
-    recent_returns = daily_returns.tail(min(lookback_days, len(daily_returns)))
-    
-    # Calculate volatility metrics
-    daily_vol = recent_returns.std()
-    annualized_vol = daily_vol * np.sqrt(252)  # Annualize assuming 252 trading days
-    
-    # Calculate percentile rank of recent volatility vs historical volatility
-    if len(daily_returns) >= 30:  # Need sufficient history for percentile calculation
-        # Calculate 30-day rolling volatility for the full history
-        rolling_vol = daily_returns.rolling(window=30).std().dropna()
-        if len(rolling_vol) > 0:
-            # Compare current volatility against historical rolling volatilities
-            current_vol_percentile = (rolling_vol <= daily_vol).mean() * 100
-        else:
-            current_vol_percentile = 50  # Default to median
-    else:
-        current_vol_percentile = 50  # Default to median if insufficient data
-    
-    return {
-        "daily_volatility": float(daily_vol) if not np.isnan(daily_vol) else 0.025,
-        "annualized_volatility": float(annualized_vol) if not np.isnan(annualized_vol) else 0.25,
-        "volatility_percentile": float(current_vol_percentile) if not np.isnan(current_vol_percentile) else 50.0,
-        "data_points": len(recent_returns)
-    }
-
-
-def calculate_volatility_adjusted_limit(annualized_volatility: float) -> float:
-    """
-    Calculate position limit as percentage of portfolio based on volatility.
-    
-    Logic:
-    - Low volatility (<15%): Up to 25% allocation
-    - Medium volatility (15-30%): 15-20% allocation  
-    - High volatility (>30%): 10-15% allocation
-    - Very high volatility (>50%): Max 10% allocation
-    """
-    base_limit = 0.20  # 20% baseline
-    
-    if annualized_volatility < 0.15:  # Low volatility
-        # Allow higher allocation for stable stocks
-        vol_multiplier = 1.25  # Up to 25%
-    elif annualized_volatility < 0.30:  # Medium volatility  
-        # Standard allocation with slight adjustment based on volatility
-        vol_multiplier = 1.0 - (annualized_volatility - 0.15) * 0.5  # 20% -> 12.5%
-    elif annualized_volatility < 0.50:  # High volatility
-        # Reduce allocation significantly
-        vol_multiplier = 0.75 - (annualized_volatility - 0.30) * 0.5  # 15% -> 5%
-    else:  # Very high volatility (>50%)
-        # Minimum allocation for very risky stocks
-        vol_multiplier = 0.50  # Max 10%
-    
-    # Apply bounds to ensure reasonable limits
-    vol_multiplier = max(0.25, min(1.25, vol_multiplier))  # 5% to 25% range
-    
-    return base_limit * vol_multiplier
-
-
-def calculate_correlation_multiplier(avg_correlation: float) -> float:
-    """Map average correlation to an adjustment multiplier.
-    - Very high correlation (>= 0.8): reduce limit sharply (0.7x)
-    - High correlation (0.6-0.8): reduce (0.85x)
-    - Moderate correlation (0.4-0.6): neutral (1.0x)
-    - Low correlation (0.2-0.4): slight increase (1.05x)
-    - Very low correlation (< 0.2): increase (1.10x)
-    """
-    if avg_correlation >= 0.80:
-        return 0.70
-    if avg_correlation >= 0.60:
-        return 0.85
-    if avg_correlation >= 0.40:
-        return 1.00
-    if avg_correlation >= 0.20:
-        return 1.05
-    return 1.10
+    print("\n" + "="*30)
+    print("Risk manager test completed!")

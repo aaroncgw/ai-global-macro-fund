@@ -9,34 +9,34 @@ from src.utils.api_key import get_api_key_from_state
 
 ##### Risk Management Agent #####
 def risk_management_agent(state: AgentState, agent_id: str = "risk_management_agent"):
-    """Controls position sizing based on volatility-adjusted risk factors for multiple tickers."""
+    """Controls position sizing based on volatility-adjusted risk factors for multiple etfs."""
     portfolio = state["data"]["portfolio"]
     data = state["data"]
-    tickers = data["tickers"]
+    etfs = data["etfs"]
     api_key = get_api_key_from_state(state, "FINANCIAL_DATASETS_API_KEY")
     
-    # Initialize risk analysis for each ticker
+    # Initialize risk analysis for each etf
     risk_analysis = {}
     current_prices = {}  # Store prices here to avoid redundant API calls
     volatility_data = {}  # Store volatility metrics
-    returns_by_ticker: dict[str, pd.Series] = {}  # For correlation analysis
+    returns_by_etf: dict[str, pd.Series] = {}  # For correlation analysis
 
-    # First, fetch prices and calculate volatility for all relevant tickers
-    all_tickers = set(tickers) | set(portfolio.get("positions", {}).keys())
+    # First, fetch prices and calculate volatility for all relevant etfs
+    all_etfs = set(etfs) | set(portfolio.get("positions", {}).keys())
     
-    for ticker in all_tickers:
-        progress.update_status(agent_id, ticker, "Fetching price data and calculating volatility")
+    for etf in all_etfs:
+        progress.update_status(agent_id, etf, "Fetching price data and calculating volatility")
         
         prices = get_prices(
-            ticker=ticker,
+            etf=etf,
             start_date=data["start_date"],
             end_date=data["end_date"],
             api_key=api_key,
         )
 
         if not prices:
-            progress.update_status(agent_id, ticker, "Warning: No price data found")
-            volatility_data[ticker] = {
+            progress.update_status(agent_id, etf, "Warning: No price data found")
+            volatility_data[etf] = {
                 "daily_volatility": 0.05,  # Default fallback volatility (5% daily)
                 "annualized_volatility": 0.05 * np.sqrt(252),
                 "volatility_percentile": 100,  # Assume high risk if no data
@@ -48,43 +48,43 @@ def risk_management_agent(state: AgentState, agent_id: str = "risk_management_ag
         
         if not prices_df.empty and len(prices_df) > 1:
             current_price = prices_df["close"].iloc[-1]
-            current_prices[ticker] = current_price
+            current_prices[etf] = current_price
             
             # Calculate volatility metrics
             volatility_metrics = calculate_volatility_metrics(prices_df)
-            volatility_data[ticker] = volatility_metrics
+            volatility_data[etf] = volatility_metrics
 
             # Store returns for correlation analysis (use close-to-close returns)
             daily_returns = prices_df["close"].pct_change().dropna()
             if len(daily_returns) > 0:
-                returns_by_ticker[ticker] = daily_returns
+                returns_by_etf[etf] = daily_returns
             
             progress.update_status(
                 agent_id, 
-                ticker, 
+                etf, 
                 f"Price: {current_price:.2f}, Ann. Vol: {volatility_metrics['annualized_volatility']:.1%}"
             )
         else:
-            progress.update_status(agent_id, ticker, "Warning: Insufficient price data")
-            current_prices[ticker] = 0
-            volatility_data[ticker] = {
+            progress.update_status(agent_id, etf, "Warning: Insufficient price data")
+            current_prices[etf] = 0
+            volatility_data[etf] = {
                 "daily_volatility": 0.05,
                 "annualized_volatility": 0.05 * np.sqrt(252),
                 "volatility_percentile": 100,
                 "data_points": len(prices_df) if not prices_df.empty else 0
             }
 
-    # Build returns DataFrame aligned across tickers for correlation analysis
+    # Build returns DataFrame aligned across etfs for correlation analysis
     correlation_matrix = None
-    if len(returns_by_ticker) >= 2:
+    if len(returns_by_etf) >= 2:
         try:
-            returns_df = pd.DataFrame(returns_by_ticker).dropna(how="any")
+            returns_df = pd.DataFrame(returns_by_etf).dropna(how="any")
             if returns_df.shape[1] >= 2 and returns_df.shape[0] >= 5:
                 correlation_matrix = returns_df.corr()
         except Exception:
             correlation_matrix = None
 
-    # Determine which tickers currently have exposure (non-zero absolute position)
+    # Determine which etfs currently have exposure (non-zero absolute position)
     active_positions = {
         t for t, pos in portfolio.get("positions", {}).items()
         if abs(pos.get("long", 0) - pos.get("short", 0)) > 0
@@ -93,22 +93,22 @@ def risk_management_agent(state: AgentState, agent_id: str = "risk_management_ag
     # Calculate total portfolio value based on current market prices (Net Liquidation Value)
     total_portfolio_value = portfolio.get("cash", 0.0)
     
-    for ticker, position in portfolio.get("positions", {}).items():
-        if ticker in current_prices:
+    for etf, position in portfolio.get("positions", {}).items():
+        if etf in current_prices:
             # Add market value of long positions
-            total_portfolio_value += position.get("long", 0) * current_prices[ticker]
+            total_portfolio_value += position.get("long", 0) * current_prices[etf]
             # Subtract market value of short positions
-            total_portfolio_value -= position.get("short", 0) * current_prices[ticker]
+            total_portfolio_value -= position.get("short", 0) * current_prices[etf]
     
     progress.update_status(agent_id, None, f"Total portfolio value: {total_portfolio_value:.2f}")
 
-    # Calculate volatility- and correlation-adjusted risk limits for each ticker
-    for ticker in tickers:
-        progress.update_status(agent_id, ticker, "Calculating volatility- and correlation-adjusted limits")
+    # Calculate volatility- and correlation-adjusted risk limits for each etf
+    for etf in etfs:
+        progress.update_status(agent_id, etf, "Calculating volatility- and correlation-adjusted limits")
         
-        if ticker not in current_prices or current_prices[ticker] <= 0:
-            progress.update_status(agent_id, ticker, "Failed: No valid price data")
-            risk_analysis[ticker] = {
+        if etf not in current_prices or current_prices[etf] <= 0:
+            progress.update_status(agent_id, etf, "Failed: No valid price data")
+            risk_analysis[etf] = {
                 "remaining_position_limit": 0.0,
                 "current_price": 0.0,
                 "reasoning": {
@@ -117,11 +117,11 @@ def risk_management_agent(state: AgentState, agent_id: str = "risk_management_ag
             }
             continue
             
-        current_price = current_prices[ticker]
-        vol_data = volatility_data.get(ticker, {})
+        current_price = current_prices[etf]
+        vol_data = volatility_data.get(etf, {})
         
         # Calculate current market value of this position
-        position = portfolio.get("positions", {}).get(ticker, {})
+        position = portfolio.get("positions", {}).get(etf, {})
         long_value = position.get("long", 0) * current_price
         short_value = position.get("short", 0) * current_price
         current_position_value = abs(long_value - short_value)  # Use absolute exposure
@@ -135,17 +135,17 @@ def risk_management_agent(state: AgentState, agent_id: str = "risk_management_ag
         corr_metrics = {
             "avg_correlation_with_active": None,
             "max_correlation_with_active": None,
-            "top_correlated_tickers": [],
+            "top_correlated_etfs": [],
         }
         corr_multiplier = 1.0
-        if correlation_matrix is not None and ticker in correlation_matrix.columns:
+        if correlation_matrix is not None and etf in correlation_matrix.columns:
             # Compute correlations with active positions (exclude self)
-            comparable = [t for t in active_positions if t in correlation_matrix.columns and t != ticker]
+            comparable = [t for t in active_positions if t in correlation_matrix.columns and t != etf]
             if not comparable:
-                # If no active positions, compare with all other available tickers
-                comparable = [t for t in correlation_matrix.columns if t != ticker]
+                # If no active positions, compare with all other available etfs
+                comparable = [t for t in correlation_matrix.columns if t != etf]
             if comparable:
-                series = correlation_matrix.loc[ticker, comparable]
+                series = correlation_matrix.loc[etf, comparable]
                 # Drop NaNs just in case
                 series = series.dropna()
                 if len(series) > 0:
@@ -153,10 +153,10 @@ def risk_management_agent(state: AgentState, agent_id: str = "risk_management_ag
                     max_corr = float(series.max())
                     corr_metrics["avg_correlation_with_active"] = avg_corr
                     corr_metrics["max_correlation_with_active"] = max_corr
-                    # Top 3 most correlated tickers
+                    # Top 3 most correlated etfs
                     top_corr = series.sort_values(ascending=False).head(3)
-                    corr_metrics["top_correlated_tickers"] = [
-                        {"ticker": idx, "correlation": float(val)} for idx, val in top_corr.items()
+                    corr_metrics["top_correlated_etfs"] = [
+                        {"etf": idx, "correlation": float(val)} for idx, val in top_corr.items()
                     ]
                     corr_multiplier = calculate_correlation_multiplier(avg_corr)
         
@@ -171,7 +171,7 @@ def risk_management_agent(state: AgentState, agent_id: str = "risk_management_ag
         # Ensure we don't exceed available cash
         max_position_size = min(remaining_position_limit, portfolio.get("cash", 0))
         
-        risk_analysis[ticker] = {
+        risk_analysis[etf] = {
             "remaining_position_limit": float(max_position_size),
             "current_price": float(current_price),
             "volatility_metrics": {
@@ -196,7 +196,7 @@ def risk_management_agent(state: AgentState, agent_id: str = "risk_management_ag
         
         progress.update_status(
             agent_id, 
-            ticker, 
+            etf, 
             f"Adj. limit: {combined_limit_pct:.1%}, Available: ${max_position_size:.0f}"
         )
 

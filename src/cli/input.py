@@ -24,7 +24,7 @@ def add_common_args(
         "--tickers",
         type=str,
         required=require_tickers,
-        help="Comma-separated list of stock ticker symbols (e.g., AAPL,MSFT,GOOGL)",
+        help="Comma-separated list of ETF symbols (e.g., SPY,QQQ,IWM)",
     )
     if include_analyst_flags:
         parser.add_argument(

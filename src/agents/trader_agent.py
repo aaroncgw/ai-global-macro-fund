@@ -60,6 +60,8 @@ class TraderAgent(BaseAgent):
                 'specialization': self.specialization,
                 'role': self.role,
                 'proposed_allocations': allocations,
+                'reasoning': f"Trader proposal based on {len(debate_output)} debate rounds and {len(analyst_scores)} analyst scores",
+                'key_factors': list(analyst_scores.keys()) if analyst_scores else ['No analyst scores available'],
                 'llm_response': response,
                 'timestamp': data.get('timestamp', 'unknown')
             }

@@ -67,6 +67,15 @@ class MacroEconomistAgent(BaseAgent):
             # Store scores in state
             state['analyst_scores']['macro'] = scores
             
+            # Store detailed reasoning
+            state['agent_reasoning'] = state.get('agent_reasoning', {})
+            state['agent_reasoning']['macro_economist'] = {
+                'scores': scores,
+                'reasoning': f"Macro economist analysis based on {len(macro_data)} indicators and {len(universe)} ETFs",
+                'key_factors': list(macro_data.keys()) if macro_data else ['No macro data available'],
+                'timestamp': pd.Timestamp.now().isoformat()
+            }
+            
             logger.info(f"Macro economist analysis completed for {len(universe)} ETFs")
             return state
             

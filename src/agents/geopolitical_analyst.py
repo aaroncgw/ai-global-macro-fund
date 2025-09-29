@@ -8,6 +8,7 @@ geopolitical risks and opportunities.
 from src.agents.base_agent import BaseAgent
 import json
 import logging
+import pandas as pd
 
 logger = logging.getLogger(__name__)
 
@@ -63,6 +64,15 @@ class GeopoliticalAnalystAgent(BaseAgent):
             
             # Store scores in state
             state['analyst_scores']['geo'] = scores
+            
+            # Store detailed reasoning
+            state['agent_reasoning'] = state.get('agent_reasoning', {})
+            state['agent_reasoning']['geopolitical_analyst'] = {
+                'scores': scores,
+                'reasoning': f"Geopolitical analysis based on {len(news_data)} news articles and {len(universe)} ETFs",
+                'key_factors': [article.get('title', 'Unknown')[:50] for article in news_data[:3]] if news_data else ['No news data available'],
+                'timestamp': pd.Timestamp.now().isoformat()
+            }
             
             logger.info(f"Geopolitical analysis completed for {len(universe)} ETFs")
             return state

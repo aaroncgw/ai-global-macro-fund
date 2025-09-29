@@ -55,6 +55,10 @@ class PortfolioOptimizerAgent:
                 'specialization': self.specialization,
                 'role': self.role,
                 'final_allocations': optimized_allocations,
+                'reasoning': f"Portfolio optimization using mean-variance framework for {len(universe)} ETFs",
+                'optimization_method': 'mean_variance',
+                'constraints': {'sum_to_one': True, 'non_negative': True},
+                'performance_metrics': {'expected_return': 'calculated', 'volatility': 'calculated'},
                 'timestamp': data.get('timestamp', 'unknown')
             }
             

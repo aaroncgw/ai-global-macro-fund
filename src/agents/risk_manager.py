@@ -34,6 +34,9 @@ class RiskManagerAgent(BaseAgent):
                 'specialization': self.specialization,
                 'role': self.role,
                 'risk_adjusted_allocations': risk_adjusted_allocations,
+                'reasoning': f"Risk assessment based on {len(proposed_allocations)} proposed allocations and macro data",
+                'risk_factors': list(risk_factors.keys()) if risk_factors else ['No specific risk factors identified'],
+                'adjustments': {etf: risk_adjusted_allocations.get(etf, 0) - proposed_allocations.get(etf, 0) for etf in proposed_allocations.keys()},
                 'llm_response': response,
                 'timestamp': data.get('timestamp', 'unknown')
             }

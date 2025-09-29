@@ -1,158 +1,539 @@
-# AI Hedge Fund
+# Global Macro ETF Trading System
 
-This is a proof of concept for an AI-powered hedge fund.  The goal of this project is to explore the use of AI to make trading decisions.  This project is for **educational** purposes only and is not intended for real trading or investment.
+A sophisticated AI-powered trading system that uses multiple specialized agents to analyze macroeconomic data, geopolitical events, and market correlations to generate optimal ETF portfolio allocations. The system employs LangGraph for agent orchestration and provides comprehensive reasoning for all investment decisions.
 
-This system employs several agents working together:
+## 🎯 System Overview
 
-1. Aswath Damodaran Agent - The Dean of Valuation, focuses on story, numbers, and disciplined valuation
-2. Ben Graham Agent - The godfather of value investing, only buys hidden gems with a margin of safety
-3. Bill Ackman Agent - An activist investor, takes bold positions and pushes for change
-4. Cathie Wood Agent - The queen of growth investing, believes in the power of innovation and disruption
-5. Charlie Munger Agent - Warren Buffett's partner, only buys wonderful businesses at fair prices
-6. Michael Burry Agent - The Big Short contrarian who hunts for deep value
-7. Mohnish Pabrai Agent - The Dhandho investor, who looks for doubles at low risk
-8. Peter Lynch Agent - Practical investor who seeks "ten-baggers" in everyday businesses
-9. Phil Fisher Agent - Meticulous growth investor who uses deep "scuttlebutt" research 
-10. Rakesh Jhunjhunwala Agent - The Big Bull of India
-11. Stanley Druckenmiller Agent - Macro legend who hunts for asymmetric opportunities with growth potential
-12. Warren Buffett Agent - The oracle of Omaha, seeks wonderful companies at a fair price
-13. Valuation Agent - Calculates the intrinsic value of a stock and generates trading signals
-14. Sentiment Agent - Analyzes market sentiment and generates trading signals
-15. Fundamentals Agent - Analyzes fundamental data and generates trading signals
-16. Technicals Agent - Analyzes technical indicators and generates trading signals
-17. Risk Manager - Calculates risk metrics and sets position limits
-18. Portfolio Manager - Makes final trading decisions and generates orders
+This system transforms traditional portfolio management by using multiple AI agents that specialize in different aspects of macro analysis:
 
-<img width="1042" alt="Screenshot 2025-03-22 at 6 19 07 PM" src="https://github.com/user-attachments/assets/cbae3dcf-b571-490d-b0ad-3f0f035ac0d4" />
+- **Macro Economist**: Analyzes economic indicators (GDP, inflation, unemployment, interest rates)
+- **Geopolitical Analyst**: Assesses geopolitical risks and opportunities from news and events
+- **Correlation Specialist**: Evaluates diversification benefits and portfolio balance
+- **Debate Researchers**: Bullish and bearish researchers engage in structured debates
+- **Trader Agent**: Converts analysis into initial allocation proposals
+- **Risk Manager**: Adjusts allocations based on risk factors and volatility
+- **Portfolio Optimizer**: Uses mathematical optimization for final allocations
 
-Note: the system does not actually make any trades.
+## 🏗️ System Architecture
 
-[![Twitter Follow](https://img.shields.io/twitter/follow/virattt?style=social)](https://twitter.com/virattt)
-
-## Disclaimer
-
-This project is for **educational and research purposes only**.
-
-- Not intended for real trading or investment
-- No investment advice or guarantees provided
-- Creator assumes no liability for financial losses
-- Consult a financial advisor for investment decisions
-- Past performance does not indicate future results
-
-By using this software, you agree to use it solely for learning purposes.
-
-## Table of Contents
-- [How to Install](#how-to-install)
-- [How to Run](#how-to-run)
-  - [⌨️ Command Line Interface](#️-command-line-interface)
-  - [🖥️ Web Application](#️-web-application)
-- [How to Contribute](#how-to-contribute)
-- [Feature Requests](#feature-requests)
-- [License](#license)
-
-## How to Install
-
-Before you can run the AI Hedge Fund, you'll need to install it and set up your API keys. These steps are common to both the full-stack web application and command line interface.
-
-### 1. Clone the Repository
-
-```bash
-git clone https://github.com/virattt/ai-hedge-fund.git
-cd ai-hedge-fund
+```
+┌─────────────────┐    ┌──────────────────┐    ┌─────────────────┐
+│   Data Sources  │    │   LangGraph      │    │   Output        │
+│                 │    │   Workflow       │    │                 │
+├─────────────────┤    ├──────────────────┤    ├─────────────────┤
+│ • FRED API      │───▶│ • Data Fetching  │───▶│ • Final         │
+│ • yfinance      │    │ • Macro Analysis │    │   Allocations   │
+│ • Finlight.me   │    │ • Geo Analysis   │    │ • Reasoning     │
+│ • News APIs     │    │ • Correlation    │    │ • Rationale     │
+└─────────────────┘    │ • Debate         │    │ • Insights     │
+                       │ • Trading        │    └─────────────────┘
+                       │ • Risk Mgmt      │
+                       │ • Optimization   │
+                       └──────────────────┘
 ```
 
-### 2. Set up API keys
+## 🚀 Quick Start
 
-Create a `.env` file for your API keys:
-```bash
-# Create .env file for your API keys (in the root directory)
-cp .env.example .env
+### Prerequisites
+
+- Python 3.11+
+- Poetry (for dependency management)
+- API Keys (see Configuration section)
+
+### Installation
+
+1. **Clone the repository:**
+   ```bash
+   git clone <repository-url>
+   cd ai-hedge-fund
+   ```
+
+2. **Install dependencies:**
+   ```bash
+   poetry install
+   ```
+
+3. **Set up environment variables:**
+   ```bash
+   cp .env.example .env
+   # Edit .env with your API keys
+   ```
+
+4. **Run the system:**
+   ```bash
+   poetry run python src/main.py --universe SPY QQQ TLT GLD
+   ```
+
+## ⚙️ Configuration
+
+### Environment Variables
+
+Create a `.env` file with the following API keys:
+
+```env
+# Required API Keys
+FRED_API_KEY=your_fred_api_key_here
+DEEPSEEK_API_KEY=your_deepseek_api_key_here
+
+# Optional API Keys
+FINLIGHT_API_KEY=your_finlight_api_key_here
+OPENAI_API_KEY=your_openai_api_key_here
+ANTHROPIC_API_KEY=your_anthropic_api_key_here
 ```
 
-Open and edit the `.env` file to add your API keys:
-```bash
-# For running LLMs hosted by openai (gpt-4o, gpt-4o-mini, etc.)
-OPENAI_API_KEY=your-openai-api-key
+### ETF Universe Configuration
 
-# For getting financial data to power the hedge fund
-FINANCIAL_DATASETS_API_KEY=your-financial-datasets-api-key
+The system uses a configurable ETF universe defined in `src/config.py`:
+
+```python
+ETF_UNIVERSE = [
+    # Country/Region ETFs
+    'EWJ', 'EWG', 'EWU', 'EWA', 'EWC', 'EWZ', 'INDA', 'FXI', 'EZA', 'TUR', 'RSX', 'EWW',
+    # Currency ETFs
+    'UUP', 'FXE', 'FXY', 'FXB', 'FXC', 'FXA', 'FXF', 'CYB',
+    # Bond ETFs
+    'TLT', 'IEF', 'BND', 'TIP', 'LQD', 'HYG', 'EMB', 'PCY',
+    # Stock Index ETFs
+    'SPY', 'QQQ', 'VEU', 'VWO', 'VGK', 'VPL', 'ACWI',
+    # Commodity ETFs
+    'GLD', 'SLV', 'USO', 'UNG', 'DBC', 'CORN', 'WEAT', 'DBA', 'PDBC', 'GSG'
+]
 ```
 
-**Important**: You must set at least one LLM API key (e.g. `OPENAI_API_KEY`, `GROQ_API_KEY`, `ANTHROPIC_API_KEY`, or `DEEPSEEK_API_KEY`) for the hedge fund to work. 
+### LLM Provider Configuration
 
-**Financial Data**: Data for AAPL, GOOGL, MSFT, NVDA, and TSLA is free and does not require an API key. For any other ticker, you will need to set the `FINANCIAL_DATASETS_API_KEY` in the .env file.
+Switch between different LLM providers by editing `src/config.py`:
 
-## How to Run
-
-### ⌨️ Command Line Interface
-
-You can run the AI Hedge Fund directly via terminal. This approach offers more granular control and is useful for automation, scripting, and integration purposes.
-
-<img width="992" alt="Screenshot 2025-01-06 at 5 50 17 PM" src="https://github.com/user-attachments/assets/e8ca04bf-9989-4a7d-a8b4-34e04666663b" />
-
-#### Quick Start
-
-1. Install Poetry (if not already installed):
-```bash
-curl -sSL https://install.python-poetry.org | python3 -
+```python
+LLM_CONFIG = {
+    'provider': 'deepseek',  # Options: 'openai', 'anthropic', 'deepseek', 'groq'
+    'model': 'deepseek-chat',
+    'api_key_env': 'DEEPSEEK_API_KEY',
+    'base_url': 'https://api.deepseek.com/v1'
+}
 ```
 
-2. Install dependencies:
-```bash
-poetry install
-```
+## 📖 Usage Examples
 
-#### Run the AI Hedge Fund
-```bash
-poetry run python src/main.py --ticker AAPL,MSFT,NVDA
-```
-
-You can also specify a `--ollama` flag to run the AI hedge fund using local LLMs.
+### Basic Usage
 
 ```bash
-poetry run python src/main.py --ticker AAPL,MSFT,NVDA --ollama
+# Use default ETF universe
+poetry run python src/main.py
+
+# Use custom ETF universe
+poetry run python src/main.py --universe SPY QQQ TLT GLD UUP
+
+# Use specific date
+poetry run python src/main.py --universe SPY QQQ --date 2024-01-01
+
+# Enable debug logging
+poetry run python src/main.py --universe SPY QQQ --debug
 ```
 
-You can optionally specify the start and end dates to make decisions over a specific time period.
+### Advanced Usage
 
 ```bash
-poetry run python src/main.py --ticker AAPL,MSFT,NVDA --start-date 2024-01-01 --end-date 2024-03-01
+# Full workflow with comprehensive reasoning
+poetry run python src/main.py --universe SPY QQQ TLT GLD EWJ EWG FXI --debug
+
+# Test with commodity-focused portfolio
+poetry run python src/main.py --universe GLD SLV USO UNG DBC
+
+# Test with global diversified portfolio
+poetry run python src/main.py --universe SPY EWJ EWG FXI GLD TLT
 ```
 
-#### Run the Backtester
+## 🧠 Agent System Details
+
+### 1. Macro Economist Agent (`src/agents/macro_economist.py`)
+
+**Purpose**: Analyzes macroeconomic indicators and their impact on different asset classes.
+
+**Key Responsibilities**:
+- Fetches and analyzes FRED economic indicators (CPI, unemployment, Fed funds rate, GDP)
+- Scores ETFs based on macro trends and economic cycles
+- Considers inflation impact on bonds vs commodities
+- Evaluates interest rate environment effects
+
+**Input**: Macro economic data, ETF price data
+**Output**: ETF scores from -1 (strong sell) to 1 (strong buy)
+
+### 2. Geopolitical Analyst Agent (`src/agents/geopolitical_analyst.py`)
+
+**Purpose**: Assesses geopolitical risks and opportunities from news and events.
+
+**Key Responsibilities**:
+- Analyzes geopolitical news and events
+- Evaluates regional risks and opportunities
+- Considers currency and trade impacts
+- Scores country-specific and regional ETFs
+
+**Input**: News data, geopolitical events
+**Output**: ETF scores based on geopolitical factors
+
+### 3. Correlation Specialist Agent (`src/agents/correlation_specialist.py`)
+
+**Purpose**: Analyzes ETF correlations and suggests diversification scores.
+
+**Key Responsibilities**:
+- Calculates correlation matrices between ETFs
+- Identifies diversification opportunities
+- Suggests portfolio balance improvements
+- Scores ETFs based on correlation benefits
+
+**Input**: ETF price data, correlation matrices
+**Output**: Diversification-focused ETF scores
+
+### 4. Debate Researchers (`src/agents/debate_researchers.py`)
+
+**Purpose**: Conducts structured debates between bullish and bearish perspectives.
+
+**Key Components**:
+- **BullishMacroResearcher**: Presents bullish macro opportunities
+- **BearishMacroResearcher**: Presents bearish macro risks
+- **Debate Function**: Orchestrates multi-round debates
+
+**Input**: Analyst scores, market data
+**Output**: Structured debate results and consensus
+
+### 5. Trader Agent (`src/agents/trader_agent.py`)
+
+**Purpose**: Converts analysis into actionable allocation proposals.
+
+**Key Responsibilities**:
+- Synthesizes analyst scores and debate results
+- Proposes initial buy/sell allocations
+- Balances risk and return objectives
+- Creates actionable trading decisions
+
+**Input**: Debate results, analyst scores
+**Output**: Proposed ETF allocations (percentages)
+
+### 6. Risk Manager Agent (`src/agents/risk_manager.py`)
+
+**Purpose**: Assesses and adjusts allocations for macro risks and volatility.
+
+**Key Responsibilities**:
+- Adjusts allocations based on risk factors
+- Caps volatile ETFs during high inflation
+- Reduces exposure during economic uncertainty
+- Applies risk management constraints
+
+**Input**: Proposed allocations, macro data, risk factors
+**Output**: Risk-adjusted allocations with reasoning
+
+### 7. Portfolio Optimizer Agent (`src/agents/portfolio_optimizer.py`)
+
+**Purpose**: Uses mathematical optimization for final allocation decisions.
+
+**Key Responsibilities**:
+- Performs mean-variance optimization
+- Considers correlation matrices
+- Applies portfolio constraints
+- Generates mathematically optimal allocations
+
+**Input**: Risk-adjusted allocations, correlation data
+**Output**: Final optimized allocations
+
+## 🔄 Workflow Process
+
+The system follows a structured LangGraph workflow:
+
+```
+1. Data Fetching
+   ├── FRED macro indicators
+   ├── ETF price data (yfinance)
+   └── Geopolitical news (Finlight.me)
+
+2. Analysis Phase
+   ├── Macro Economist → Scores ETFs based on macro trends
+   ├── Geopolitical Analyst → Scores ETFs based on geo risks
+   └── Correlation Specialist → Scores ETFs for diversification
+
+3. Debate Phase
+   ├── Bullish Researcher → Presents bullish arguments
+   └── Bearish Researcher → Presents bearish counterarguments
+
+4. Allocation Phase
+   ├── Trader Agent → Proposes initial allocations
+   ├── Risk Manager → Adjusts for risk factors
+   └── Portfolio Optimizer → Final mathematical optimization
+
+5. Output
+   ├── Final allocations
+   ├── Comprehensive reasoning
+   └── Actionable insights
+```
+
+## 📊 Data Sources
+
+### FRED (Federal Reserve Economic Data)
+- **Indicators**: CPI, Unemployment Rate, Fed Funds Rate, GDP
+- **API**: `fredapi` Python package
+- **Usage**: Macro economic analysis
+
+### yfinance
+- **Data**: ETF price data, returns, correlations
+- **API**: `yfinance` Python package
+- **Usage**: Historical analysis and correlation calculations
+
+### Finlight.me
+- **Data**: Geopolitical news and events
+- **API**: REST API with API key
+- **Usage**: Geopolitical risk assessment
+
+## 🛠️ Development Guide
+
+### Adding New Agents
+
+1. **Create agent file** in `src/agents/`:
+   ```python
+   from src.agents.base_agent import BaseAgent
+   
+   class NewAgent(BaseAgent):
+       def __init__(self, agent_name: str = "NewAgent"):
+           super().__init__(agent_name)
+           self.specialization = "new_analysis"
+       
+       def analyze(self, state: dict) -> dict:
+           # Implementation here
+           pass
+   ```
+
+2. **Add to workflow** in `src/graph/macro_trading_graph.py`:
+   ```python
+   # Add node
+   self.graph.add_node('new_agent', NewAgent().analyze)
+   
+   # Add edges
+   self.graph.add_edge('previous_node', 'new_agent')
+   self.graph.add_edge('new_agent', 'next_node')
+   ```
+
+3. **Update reasoning capture**:
+   ```python
+   state['agent_reasoning']['new_agent'] = {
+       'scores': scores,
+       'reasoning': 'Detailed reasoning here',
+       'key_factors': ['factor1', 'factor2'],
+       'timestamp': pd.Timestamp.now().isoformat()
+   }
+   ```
+
+### Adding New Data Sources
+
+1. **Create fetcher** in `src/data_fetchers/`:
+   ```python
+   class NewDataFetcher:
+       def fetch_new_data(self, params):
+           # Implementation here
+           pass
+   ```
+
+2. **Integrate with MacroFetcher**:
+   ```python
+   def fetch_comprehensive_data(self, ...):
+       # Add new data source
+       new_data = self.new_fetcher.fetch_new_data(params)
+       all_data["new_data"] = new_data
+   ```
+
+3. **Update agents** to use new data source
+
+### Modifying LLM Providers
+
+1. **Update BaseAgent** in `src/agents/base_agent.py`:
+   ```python
+   def _initialize_llm(self):
+       if LLM_CONFIG['provider'] == 'new_provider':
+           # Add new provider initialization
+           pass
+   ```
+
+2. **Update config** in `src/config.py`:
+   ```python
+   LLM_CONFIG = {
+       'provider': 'new_provider',
+       'model': 'new_model',
+       'api_key_env': 'NEW_PROVIDER_API_KEY',
+       'base_url': 'https://api.newprovider.com/v1'
+   }
+   ```
+
+## 🧪 Testing
+
+### Run Individual Agent Tests
+
 ```bash
-poetry run python src/backtester.py --ticker AAPL,MSFT,NVDA
+# Test macro economist
+poetry run python src/agents/macro_economist.py
+
+# Test geopolitical analyst
+poetry run python src/agents/geopolitical_analyst.py
+
+# Test correlation specialist
+poetry run python src/agents/correlation_specialist.py
 ```
 
-**Example Output:**
-<img width="941" alt="Screenshot 2025-01-06 at 5 47 52 PM" src="https://github.com/user-attachments/assets/00e794ea-8628-44e6-9a84-8f8a31ad3b47" />
+### Run Complete Workflow Tests
 
+```bash
+# Test complete workflow
+poetry run python src/graph/test_complete_workflow.py
 
-Note: The `--ollama`, `--start-date`, and `--end-date` flags work for the backtester, as well!
+# Test individual components
+poetry run python src/agents/test_allocation_agents.py
+```
 
-### 🖥️ Web Application
+### Run Integration Tests
 
-The new way to run the AI Hedge Fund is through our web application that provides a user-friendly interface. This is recommended for users who prefer visual interfaces over command line tools.
+```bash
+# Test with different ETF universes
+poetry run python src/graph/test_complete_workflow.py
 
-Please see detailed instructions on how to install and run the web application [here](https://github.com/virattt/ai-hedge-fund/tree/main/app).
+# Test error handling
+poetry run python src/main.py --universe INVALID1 INVALID2
+```
 
-<img width="1721" alt="Screenshot 2025-06-28 at 6 41 03 PM" src="https://github.com/user-attachments/assets/b95ab696-c9f4-416c-9ad1-51feb1f5374b" />
+## 📈 Performance Optimization
 
+### Caching
+- FRED data is cached for 24 hours
+- ETF data is cached for 1 hour
+- News data is cached for 6 hours
 
-## How to Contribute
+### Parallel Processing
+- Agents can run in parallel where possible
+- Use `ray` for distributed processing (optional)
 
+### Memory Management
+- Large datasets are processed in chunks
+- Correlation matrices are computed efficiently
+- State is cleaned up after each workflow run
+
+## 🔧 Troubleshooting
+
+### Common Issues
+
+1. **API Key Errors**:
+   ```bash
+   # Check environment variables
+   echo $FRED_API_KEY
+   echo $DEEPSEEK_API_KEY
+   ```
+
+2. **Import Errors**:
+   ```bash
+   # Reinstall dependencies
+   poetry install --no-cache
+   ```
+
+3. **Data Fetching Errors**:
+   ```bash
+   # Check network connectivity
+   # Verify API keys are valid
+   # Check rate limits
+   ```
+
+4. **LLM Response Errors**:
+   ```bash
+   # Check LLM API key
+   # Verify model availability
+   # Check rate limits
+   ```
+
+### Debug Mode
+
+Enable debug logging for detailed troubleshooting:
+
+```bash
+poetry run python src/main.py --universe SPY QQQ --debug
+```
+
+## 📚 API Reference
+
+### Main Entry Point
+
+```python
+from src.graph.macro_trading_graph import MacroTradingGraph
+
+# Initialize graph
+graph = MacroTradingGraph(debug=True)
+
+# Run workflow
+result = graph.propagate(['SPY', 'QQQ', 'TLT'], '2024-01-01')
+```
+
+### Agent Interface
+
+```python
+from src.agents.base_agent import BaseAgent
+
+class CustomAgent(BaseAgent):
+    def analyze(self, state: dict) -> dict:
+        # Must return updated state
+        return state
+```
+
+### Data Fetcher Interface
+
+```python
+from src.data_fetchers.macro_fetcher import MacroFetcher
+
+fetcher = MacroFetcher()
+data = fetcher.fetch_comprehensive_data(etfs, indicators)
+```
+
+## 🤝 Contributing
+
+### Code Style
+- Follow PEP 8 guidelines
+- Use type hints
+- Add comprehensive docstrings
+- Include unit tests
+
+### Pull Request Process
 1. Fork the repository
 2. Create a feature branch
-3. Commit your changes
-4. Push to the branch
-5. Create a Pull Request
+3. Make changes with tests
+4. Submit pull request with description
 
-**Important**: Please keep your pull requests small and focused.  This will make it easier to review and merge.
+### Development Setup
+```bash
+# Install development dependencies
+poetry install --with dev
 
-## Feature Requests
+# Run tests
+poetry run pytest
 
-If you have a feature request, please open an [issue](https://github.com/virattt/ai-hedge-fund/issues) and make sure it is tagged with `enhancement`.
+# Run linting
+poetry run flake8 src/
+```
 
-## License
+## 📄 License
 
 This project is licensed under the MIT License - see the LICENSE file for details.
+
+## 🙏 Acknowledgments
+
+- **LangGraph** for agent orchestration
+- **FRED** for economic data
+- **yfinance** for financial data
+- **DeepSeek** for LLM capabilities
+- **Finlight.me** for geopolitical news
+
+## 📞 Support
+
+For questions, issues, or contributions:
+
+1. Check the troubleshooting section
+2. Review existing issues
+3. Create a new issue with detailed description
+4. Contact the development team
+
+---
+
+**Last Updated**: September 2024  
+**Version**: 1.0.0  
+**Python**: 3.11+

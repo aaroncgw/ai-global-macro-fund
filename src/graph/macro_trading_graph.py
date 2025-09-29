@@ -66,8 +66,9 @@ class MacroTradingGraph:
                 )
                 state['news'] = news_data
                 
-                # Initialize analyst scores
+                # Initialize analyst scores and reasoning
                 state['analyst_scores'] = {}
+                state['agent_reasoning'] = {}
                 
                 logger.info(f"Data fetch completed for {len(universe)} ETFs")
                 return state
@@ -79,6 +80,7 @@ class MacroTradingGraph:
                 state['etf_data'] = pd.DataFrame()
                 state['news'] = []
                 state['analyst_scores'] = {}
+                state['agent_reasoning'] = {}
                 return state
         
         # Analysis nodes
@@ -88,6 +90,12 @@ class MacroTradingGraph:
                 logger.info("Running macro economist analysis...")
                 result = self.macro_analyst.analyze(state)
                 state['analyst_scores']['macro'] = result.get('proposed_allocations', {})
+                state['agent_reasoning']['macro_economist'] = {
+                    'scores': result.get('proposed_allocations', {}),
+                    'reasoning': result.get('reasoning', 'No detailed reasoning provided'),
+                    'key_factors': result.get('key_factors', []),
+                    'timestamp': result.get('timestamp', 'unknown')
+                }
                 logger.info("Macro economist analysis completed")
                 return state
             except Exception as e:
@@ -100,6 +108,12 @@ class MacroTradingGraph:
                 logger.info("Running geopolitical analyst analysis...")
                 result = self.geo_analyst.analyze(state)
                 state['analyst_scores']['geo'] = result.get('proposed_allocations', {})
+                state['agent_reasoning']['geopolitical_analyst'] = {
+                    'scores': result.get('proposed_allocations', {}),
+                    'reasoning': result.get('reasoning', 'No detailed reasoning provided'),
+                    'key_factors': result.get('key_factors', []),
+                    'timestamp': result.get('timestamp', 'unknown')
+                }
                 logger.info("Geopolitical analyst analysis completed")
                 return state
             except Exception as e:
@@ -112,6 +126,12 @@ class MacroTradingGraph:
                 logger.info("Running correlation specialist analysis...")
                 result = self.corr_analyst.analyze(state)
                 state['analyst_scores']['correlation'] = result.get('proposed_allocations', {})
+                state['agent_reasoning']['correlation_specialist'] = {
+                    'scores': result.get('proposed_allocations', {}),
+                    'reasoning': result.get('reasoning', 'No detailed reasoning provided'),
+                    'key_factors': result.get('key_factors', []),
+                    'timestamp': result.get('timestamp', 'unknown')
+                }
                 logger.info("Correlation specialist analysis completed")
                 return state
             except Exception as e:
@@ -124,6 +144,11 @@ class MacroTradingGraph:
             try:
                 logger.info("Starting debate...")
                 state = debate(state, rounds=DEFAULT_CONFIG.get('max_debate_rounds', 2))
+                state['agent_reasoning']['debate'] = {
+                    'rounds': state.get('debate_output', []),
+                    'summary': state.get('debate_summary', 'No debate summary available'),
+                    'timestamp': pd.Timestamp.now().isoformat()
+                }
                 logger.info("Debate completed")
                 return state
             except Exception as e:
@@ -135,7 +160,13 @@ class MacroTradingGraph:
             """Run trader agent for initial allocations."""
             try:
                 logger.info("Running trader agent...")
-                state = self.trader.propose(state)
+                result = self.trader.propose(state)
+                state['agent_reasoning']['trader'] = {
+                    'proposed_allocations': result.get('proposed_allocations', {}),
+                    'reasoning': result.get('reasoning', 'No detailed reasoning provided'),
+                    'key_factors': result.get('key_factors', []),
+                    'timestamp': result.get('timestamp', 'unknown')
+                }
                 logger.info("Trader agent completed")
                 return state
             except Exception as e:
@@ -146,7 +177,14 @@ class MacroTradingGraph:
             """Run risk manager for risk adjustments."""
             try:
                 logger.info("Running risk manager...")
-                state = self.risk_manager.assess(state)
+                result = self.risk_manager.assess(state)
+                state['agent_reasoning']['risk_manager'] = {
+                    'risk_adjusted_allocations': result.get('risk_adjusted_allocations', {}),
+                    'reasoning': result.get('reasoning', 'No detailed reasoning provided'),
+                    'risk_factors': result.get('risk_factors', []),
+                    'adjustments': result.get('adjustments', {}),
+                    'timestamp': result.get('timestamp', 'unknown')
+                }
                 logger.info("Risk manager completed")
                 return state
             except Exception as e:
@@ -157,7 +195,15 @@ class MacroTradingGraph:
             """Run portfolio optimizer for final allocations."""
             try:
                 logger.info("Running portfolio optimizer...")
-                state = self.optimizer.optimize(state)
+                result = self.optimizer.optimize(state)
+                state['agent_reasoning']['portfolio_optimizer'] = {
+                    'final_allocations': result.get('final_allocations', {}),
+                    'reasoning': result.get('reasoning', 'No detailed reasoning provided'),
+                    'optimization_method': result.get('optimization_method', 'mean_variance'),
+                    'constraints': result.get('constraints', {}),
+                    'performance_metrics': result.get('performance_metrics', {}),
+                    'timestamp': result.get('timestamp', 'unknown')
+                }
                 logger.info("Portfolio optimizer completed")
                 return state
             except Exception as e:
@@ -212,13 +258,14 @@ class MacroTradingGraph:
             # Run the workflow
             result = self.compiled.invoke(initial_state)
             
-            # Extract final allocations
+            # Extract final allocations and complete state
             final_allocations = result.get('final_allocations', {})
+            complete_state = result
             
             logger.info("Macro trading workflow completed successfully")
             logger.info(f"Final allocations: {final_allocations}")
             
-            return final_allocations
+            return complete_state
             
         except Exception as e:
             logger.error(f"Macro trading workflow failed: {e}")

@@ -68,6 +68,15 @@ class CorrelationSpecialistAgent(BaseAgent):
             # Store scores in state
             state['analyst_scores']['correlation'] = scores
             
+            # Store detailed reasoning
+            state['agent_reasoning'] = state.get('agent_reasoning', {})
+            state['agent_reasoning']['correlation_specialist'] = {
+                'scores': scores,
+                'reasoning': f"Correlation analysis based on {len(universe)} ETFs and correlation matrix",
+                'key_factors': ['correlation_matrix', 'diversification_benefits', 'portfolio_balance'],
+                'timestamp': pd.Timestamp.now().isoformat()
+            }
+            
             logger.info(f"Correlation analysis completed for {len(universe)} ETFs")
             return state
             

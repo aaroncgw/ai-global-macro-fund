@@ -27,7 +27,7 @@ const generateUniqueIdSuffix = (): string => {
  */
 export const extractBaseAgentKey = (uniqueId: string): string => {
   // For agent nodes, remove the last underscore and 6-character suffix
-  // For other nodes like portfolio_manager, also remove the suffix
+  // For other nodes, also remove the suffix
   const parts = uniqueId.split('_');
   if (parts.length >= 2) {
     const lastPart = parts[parts.length - 1];
@@ -53,14 +53,14 @@ const baseNodeTypeDefinitions: Record<string, NodeTypeDefinition> = {
       },
     }),
   },
-  "Portfolio Manager": {
+  "Portfolio Optimizer": {
     createNode: (position: { x: number, y: number }): AppNode => ({
-      id: `portfolio_manager_${generateUniqueIdSuffix()}`,
-      type: "portfolio-manager-node",
+      id: `portfolio_optimizer_${generateUniqueIdSuffix()}`,
+      type: "portfolio-optimizer-node",
       position,
       data: {
-        name: "Portfolio Manager",
-        description: "Generates investment decisions based on input from Analysts.",
+        name: "Portfolio Optimizer",
+        description: "Uses mathematical optimization for final ETF allocations.",
         status: "Idle",
       },
     }),

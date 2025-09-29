@@ -159,16 +159,20 @@ DATA_CONFIG = {
 # Agent configuration for the macro trading system
 AGENT_CONFIG = {
     'enabled_agents': [
-        'stanley_druckenmiller',
-        'rakesh_jhunjhunwala',
+        'macro_economist',
+        'geopolitical_analyst',
+        'correlation_specialist',
+        'trader_agent',
         'risk_manager',
-        'portfolio_manager'
+        'portfolio_optimizer'
     ],
     'agent_weights': {
-        'stanley_druckenmiller': 0.40,  # Macro analysis
-        'rakesh_jhunjhunwala': 0.30,    # Emerging markets
-        'risk_manager': 0.20,            # Risk management
-        'portfolio_manager': 0.10,       # Portfolio construction
+        'macro_economist': 0.25,         # Macro economic analysis
+        'geopolitical_analyst': 0.20,    # Geopolitical risk assessment
+        'correlation_specialist': 0.15,  # Diversification analysis
+        'trader_agent': 0.20,            # Allocation proposals
+        'risk_manager': 0.15,             # Risk management
+        'portfolio_optimizer': 0.05,     # Mathematical optimization
     },
     'consensus_threshold': 0.60,  # Minimum consensus for signal execution
 }

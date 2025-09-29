@@ -1,179 +1,143 @@
-import sys
+"""
+Global Macro ETF Trading System
 
-from dotenv import load_dotenv
-from langchain_core.messages import HumanMessage
-from langgraph.graph import END, StateGraph
-from colorama import Fore, Style, init
-import questionary
-from src.agents.portfolio_manager import portfolio_management_agent
-from src.agents.risk_manager import risk_management_agent
-from src.graph.state import AgentState
-from src.utils.display import print_trading_output
-from src.utils.analysts import ANALYST_ORDER, get_analyst_nodes
-from src.utils.progress import progress
-from src.utils.visualize import save_graph_as_png
-from src.cli.input import (
-    parse_cli_inputs,
-)
+This is the main entry point for the global macro ETF trading system.
+It runs the complete LangGraph workflow from data fetching to portfolio optimization.
+"""
 
 import argparse
+import logging
 from datetime import datetime
-from dateutil.relativedelta import relativedelta
-import json
+from dotenv import load_dotenv
 
-# Load environment variables from .env file
+from src.graph.macro_trading_graph import MacroTradingGraph
+from src.config import ETF_UNIVERSE
+
+# Load environment variables
 load_dotenv()
 
-init(autoreset=True)
+# Configure logging
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+)
+logger = logging.getLogger(__name__)
 
 
-def parse_hedge_fund_response(response):
-    """Parses a JSON string and returns a dictionary."""
+def main():
+    """Main entry point for the global macro ETF trading system."""
+    
+    # Parse command line arguments
+    parser = argparse.ArgumentParser(
+        description="Run the global macro ETF trading system",
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+        epilog="""
+Examples:
+  python src/main.py                                    # Use default ETF universe
+  python src/main.py --universe SPY QQQ TLT GLD        # Custom ETF universe
+  python src/main.py --universe SPY QQQ --date 2024-01-01  # Custom date
+        """
+    )
+    
+    parser.add_argument(
+        '--universe', 
+        default=ETF_UNIVERSE, 
+        nargs='+', 
+        help=f'List of ETFs for batch analysis (default: {ETF_UNIVERSE[:5]}...)'
+    )
+    
+    parser.add_argument(
+        '--date', 
+        default='today',
+        help='Date for analysis (default: today)'
+    )
+    
+    parser.add_argument(
+        '--debug',
+        action='store_true',
+        help='Enable debug logging'
+    )
+    
+    args = parser.parse_args()
+    
+    # Set debug logging if requested
+    if args.debug:
+        logging.getLogger().setLevel(logging.DEBUG)
+        logger.debug("Debug logging enabled")
+    
     try:
-        return json.loads(response)
-    except json.JSONDecodeError as e:
-        print(f"JSON decoding error: {e}\nResponse: {repr(response)}")
-        return None
-    except TypeError as e:
-        print(f"Invalid response type (expected string, got {type(response).__name__}): {e}")
-        return None
+        # Initialize the macro trading graph
+        logger.info("Initializing global macro ETF trading system...")
+        graph = MacroTradingGraph(debug=args.debug)
+        logger.info("✓ Macro trading graph initialized successfully")
+        
+        # Display configuration
+        logger.info(f"ETF Universe: {', '.join(args.universe)}")
+        logger.info(f"Analysis Date: {args.date}")
+        logger.info(f"Number of ETFs: {len(args.universe)}")
+        
+        # Run the complete workflow
+        logger.info("Starting macro trading workflow...")
+        start_time = datetime.now()
+        
+        allocations = graph.propagate(args.universe, args.date)
+        
+        end_time = datetime.now()
+        duration = (end_time - start_time).total_seconds()
+        
+        # Display results
+        print("\n" + "="*60)
+        print("GLOBAL MACRO ETF TRADING SYSTEM - RESULTS")
+        print("="*60)
+        print(f"Analysis completed in {duration:.1f} seconds")
+        print(f"Date: {args.date}")
+        print(f"Universe: {', '.join(args.universe)}")
+        print()
+        
+        if allocations:
+            print("Final Macro Allocations (buy percentages):")
+            print("-" * 45)
+            
+            # Sort allocations by percentage (descending)
+            sorted_allocations = sorted(allocations.items(), key=lambda x: x[1], reverse=True)
+            
+            for i, (etf, allocation) in enumerate(sorted_allocations, 1):
+                print(f"{i:2d}. {etf:6s}: {allocation:6.1f}%")
+            
+            # Verify allocations sum to 100%
+            total_allocation = sum(allocations.values())
+            print("-" * 45)
+            print(f"Total: {total_allocation:.1f}%")
+            
+            if abs(total_allocation - 100.0) < 0.1:
+                print("✓ Allocations properly normalized")
+            else:
+                print("⚠ Warning: Allocations may not be properly normalized")
+            
+            # Show top recommendations
+            print("\nTop Recommendations:")
+            top_3 = sorted_allocations[:3]
+            for i, (etf, allocation) in enumerate(top_3, 1):
+                print(f"  {i}. {etf}: {allocation:.1f}%")
+            
+        else:
+            print("❌ No allocations generated")
+            print("This may indicate an error in the workflow")
+        
+        print("\n" + "="*60)
+        print("Analysis completed successfully!")
+        
+    except KeyboardInterrupt:
+        print("\n⚠ Analysis interrupted by user")
+        logger.info("Analysis interrupted by user")
+        
     except Exception as e:
-        print(f"Unexpected error while parsing response: {e}\nResponse: {repr(response)}")
-        return None
-
-
-##### Run the Hedge Fund #####
-def run_hedge_fund(
-    etfs: list[str],
-    start_date: str,
-    end_date: str,
-    portfolio: dict,
-    show_reasoning: bool = False,
-    selected_analysts: list[str] = [],
-    model_name: str = "gpt-4.1",
-    model_provider: str = "OpenAI",
-):
-    # Start progress tracking
-    progress.start()
-
-    try:
-        # Build workflow (default to all analysts when none provided)
-        workflow = create_workflow(selected_analysts if selected_analysts else None)
-        agent = workflow.compile()
-
-        final_state = agent.invoke(
-            {
-                "messages": [
-                    HumanMessage(
-                        content="Make trading decisions based on the provided data.",
-                    )
-                ],
-                "data": {
-                    "etfs": etfs,
-                    "portfolio": portfolio,
-                    "start_date": start_date,
-                    "end_date": end_date,
-                    "analyst_signals": {},
-                },
-                "metadata": {
-                    "show_reasoning": show_reasoning,
-                    "model_name": model_name,
-                    "model_provider": model_provider,
-                },
-            },
-        )
-
-        return {
-            "decisions": parse_hedge_fund_response(final_state["messages"][-1].content),
-            "analyst_signals": final_state["data"]["analyst_signals"],
-        }
-    finally:
-        # Stop progress tracking
-        progress.stop()
-
-
-def start(state: AgentState):
-    """Initialize the workflow with the input message."""
-    return state
-
-
-def create_workflow(selected_analysts=None):
-    """Create the workflow with selected analysts."""
-    workflow = StateGraph(AgentState)
-    workflow.add_node("start_node", start)
-
-    # Get analyst nodes from the configuration
-    analyst_nodes = get_analyst_nodes()
-
-    # Default to all analysts if none selected
-    if selected_analysts is None:
-        selected_analysts = list(analyst_nodes.keys())
-    # Add selected analyst nodes
-    for analyst_key in selected_analysts:
-        node_name, node_func = analyst_nodes[analyst_key]
-        workflow.add_node(node_name, node_func)
-        workflow.add_edge("start_node", node_name)
-
-    # Always add risk and portfolio management
-    workflow.add_node("risk_management_agent", risk_management_agent)
-    workflow.add_node("portfolio_manager", portfolio_management_agent)
-
-    # Connect selected analysts to risk management
-    for analyst_key in selected_analysts:
-        node_name = analyst_nodes[analyst_key][0]
-        workflow.add_edge(node_name, "risk_management_agent")
-
-    workflow.add_edge("risk_management_agent", "portfolio_manager")
-    workflow.add_edge("portfolio_manager", END)
-
-    workflow.set_entry_point("start_node")
-    return workflow
+        print(f"\n❌ Analysis failed: {e}")
+        logger.error(f"Analysis failed: {e}", exc_info=True)
+        return 1
+    
+    return 0
 
 
 if __name__ == "__main__":
-    inputs = parse_cli_inputs(
-        description="Run the hedge fund trading system",
-        require_tickers=True,
-        default_months_back=None,
-        include_graph_flag=True,
-        include_reasoning_flag=True,
-    )
-
-    etfs = inputs.tickers
-    selected_analysts = inputs.selected_analysts
-
-    # Construct portfolio here
-    portfolio = {
-        "cash": inputs.initial_cash,
-        "margin_requirement": inputs.margin_requirement,
-        "margin_used": 0.0,
-        "positions": {
-            etf: {
-                "long": 0,
-                "short": 0,
-                "long_cost_basis": 0.0,
-                "short_cost_basis": 0.0,
-                "short_margin_used": 0.0,
-            }
-            for etf in etfs
-        },
-        "realized_gains": {
-            etf: {
-                "long": 0.0,
-                "short": 0.0,
-            }
-            for etf in etfs
-        },
-    }
-
-    result = run_hedge_fund(
-        etfs=etfs,
-        start_date=inputs.start_date,
-        end_date=inputs.end_date,
-        portfolio=portfolio,
-        show_reasoning=inputs.show_reasoning,
-        selected_analysts=inputs.selected_analysts,
-        model_name=inputs.model_name,
-        model_provider=inputs.model_provider,
-    )
-    print_trading_output(result)
+    exit(main())

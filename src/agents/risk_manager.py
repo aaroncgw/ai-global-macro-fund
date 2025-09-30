@@ -5,6 +5,7 @@ Risk Manager Agent for ETF Allocation Risk Assessment
 from src.agents.base_agent import BaseAgent
 import json
 import logging
+import pandas as pd
 
 logger = logging.getLogger(__name__)
 
@@ -63,6 +64,18 @@ class RiskManagerAgent(BaseAgent):
             risk_adjusted_allocations = self._parse_allocations(response, list(proposed_allocations.keys()))
             
             state['risk_adjusted_allocations'] = risk_adjusted_allocations
+            
+            # Store detailed reasoning
+            state['agent_reasoning'] = state.get('agent_reasoning', {})
+            state['agent_reasoning']['risk_manager'] = {
+                'risk_adjusted_allocations': risk_adjusted_allocations,
+                'reasoning': f"Risk assessment based on {len(proposed_allocations)} proposed allocations and macro data",
+                'risk_factors': list(risk_factors.keys()) if risk_factors else ['No specific risk factors identified'],
+                'adjustments': {etf: risk_adjusted_allocations.get(etf, 0) - proposed_allocations.get(etf, 0) for etf in proposed_allocations.keys()},
+                'llm_response': response,
+                'timestamp': pd.Timestamp.now().isoformat()
+            }
+            
             logger.info(f"Risk manager assessed allocations for {len(proposed_allocations)} ETFs")
             return state
             

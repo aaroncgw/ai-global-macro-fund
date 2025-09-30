@@ -89,7 +89,7 @@ class MacroTradingGraph:
                 logger.info("Running macro economist analysis...")
                 result = self.macro_analyst.analyze(state)
                 logger.info("Macro economist analysis completed")
-                return state
+                return result
             except Exception as e:
                 logger.error(f"Macro economist analysis failed: {e}")
                 return state
@@ -100,7 +100,7 @@ class MacroTradingGraph:
                 logger.info("Running geopolitical analyst analysis...")
                 result = self.geo_analyst.analyze(state)
                 logger.info("Geopolitical analyst analysis completed")
-                return state
+                return result
             except Exception as e:
                 logger.error(f"Geopolitical analyst analysis failed: {e}")
                 return state
@@ -111,7 +111,7 @@ class MacroTradingGraph:
                 logger.info("Running correlation specialist analysis...")
                 result = self.corr_analyst.analyze(state)
                 logger.info("Correlation specialist analysis completed")
-                return state
+                return result
             except Exception as e:
                 logger.error(f"Correlation specialist analysis failed: {e}")
                 return state
@@ -140,7 +140,7 @@ class MacroTradingGraph:
                 logger.info("Running trader agent...")
                 result = self.trader.propose(state)
                 logger.info("Trader agent completed")
-                return state
+                return result
             except Exception as e:
                 logger.error(f"Trader agent failed: {e}")
                 return state
@@ -151,7 +151,7 @@ class MacroTradingGraph:
                 logger.info("Running risk manager...")
                 result = self.risk_manager.assess(state)
                 logger.info("Risk manager completed")
-                return state
+                return result
             except Exception as e:
                 logger.error(f"Risk manager failed: {e}")
                 return state
@@ -162,7 +162,7 @@ class MacroTradingGraph:
                 logger.info("Running portfolio optimizer...")
                 result = self.optimizer.optimize(state)
                 logger.info("Portfolio optimizer completed")
-                return state
+                return result
             except Exception as e:
                 logger.error(f"Portfolio optimizer failed: {e}")
                 return state

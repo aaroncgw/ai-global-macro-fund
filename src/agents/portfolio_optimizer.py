@@ -97,6 +97,21 @@ class PortfolioOptimizerAgent:
             # Store final allocations in state
             state['final_allocations'] = optimized_allocations
             
+            # Store detailed reasoning
+            state['agent_reasoning'] = state.get('agent_reasoning', {})
+            state['agent_reasoning']['portfolio_optimizer'] = {
+                'final_allocations': optimized_allocations,
+                'reasoning': f"Portfolio optimization based on risk-adjusted allocations and correlation analysis for {len(universe)} ETFs",
+                'optimization_method': 'Mathematical optimization with risk constraints',
+                'performance_metrics': {
+                    'total_allocation': sum(optimized_allocations.values()),
+                    'number_of_etfs': len([etf for etf, alloc in optimized_allocations.items() if alloc > 0]),
+                    'max_allocation': max(optimized_allocations.values()) if optimized_allocations else 0,
+                    'min_allocation': min([alloc for alloc in optimized_allocations.values() if alloc > 0]) if any(alloc > 0 for alloc in optimized_allocations.values()) else 0
+                },
+                'timestamp': pd.Timestamp.now().isoformat()
+            }
+            
             logger.info(f"Portfolio optimizer completed for {len(universe)} ETFs")
             return state
             

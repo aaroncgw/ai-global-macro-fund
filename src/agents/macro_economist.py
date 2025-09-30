@@ -99,7 +99,7 @@ class MacroEconomistAgent(BaseAgent):
             Formatted prompt string
         """
         # Calculate ETF returns for analysis
-        etf_returns = etf_data.pct_change().tail(252) if not etf_data.empty else pd.DataFrame()
+        etf_returns = etf_data.pct_change().tail(252) if etf_data is not None and not etf_data.empty else pd.DataFrame()
         
         # Format macro indicators
         macro_summary = self._format_macro_indicators(macro_data)
@@ -161,8 +161,8 @@ class MacroEconomistAgent(BaseAgent):
             if etf in etf_returns.columns:
                 returns = etf_returns[etf].dropna()
                 if not returns.empty:
-                    recent_return = returns.iloc[-1] if len(returns) > 0 else 0
-                    avg_return = returns.mean()
+                    recent_return = float(returns.iloc[-1]) if len(returns) > 0 else 0.0
+                    avg_return = float(returns.mean())
                     formatted.append(f"- {etf}: Recent: {recent_return:.3f}, Avg: {avg_return:.3f}")
                 else:
                     formatted.append(f"- {etf}: No returns data")

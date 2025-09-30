@@ -119,7 +119,7 @@ class PortfolioOptimizerAgent:
             Dictionary with optimized ETF allocations
         """
         try:
-            if not risk_adjusted_allocations or not etf_data.empty:
+            if not risk_adjusted_allocations or etf_data.empty:
                 logger.warning("Insufficient data for optimization, returning risk-adjusted allocations")
                 return risk_adjusted_allocations
             

@@ -61,8 +61,7 @@ class MacroTradingGraph:
                 
                 # Fetch news data
                 news_data = self.fetcher.fetch_geopolitical_news(
-                    query='global macro trends geopolitical events',
-                    limit=20
+                    query='global macro trends geopolitical events'
                 )
                 state['news'] = news_data
                 
@@ -89,13 +88,6 @@ class MacroTradingGraph:
             try:
                 logger.info("Running macro economist analysis...")
                 result = self.macro_analyst.analyze(state)
-                state['analyst_scores']['macro'] = result.get('proposed_allocations', {})
-                state['agent_reasoning']['macro_economist'] = {
-                    'scores': result.get('proposed_allocations', {}),
-                    'reasoning': result.get('reasoning', 'No detailed reasoning provided'),
-                    'key_factors': result.get('key_factors', []),
-                    'timestamp': result.get('timestamp', 'unknown')
-                }
                 logger.info("Macro economist analysis completed")
                 return state
             except Exception as e:
@@ -107,13 +99,6 @@ class MacroTradingGraph:
             try:
                 logger.info("Running geopolitical analyst analysis...")
                 result = self.geo_analyst.analyze(state)
-                state['analyst_scores']['geo'] = result.get('proposed_allocations', {})
-                state['agent_reasoning']['geopolitical_analyst'] = {
-                    'scores': result.get('proposed_allocations', {}),
-                    'reasoning': result.get('reasoning', 'No detailed reasoning provided'),
-                    'key_factors': result.get('key_factors', []),
-                    'timestamp': result.get('timestamp', 'unknown')
-                }
                 logger.info("Geopolitical analyst analysis completed")
                 return state
             except Exception as e:
@@ -125,13 +110,6 @@ class MacroTradingGraph:
             try:
                 logger.info("Running correlation specialist analysis...")
                 result = self.corr_analyst.analyze(state)
-                state['analyst_scores']['correlation'] = result.get('proposed_allocations', {})
-                state['agent_reasoning']['correlation_specialist'] = {
-                    'scores': result.get('proposed_allocations', {}),
-                    'reasoning': result.get('reasoning', 'No detailed reasoning provided'),
-                    'key_factors': result.get('key_factors', []),
-                    'timestamp': result.get('timestamp', 'unknown')
-                }
                 logger.info("Correlation specialist analysis completed")
                 return state
             except Exception as e:
@@ -161,12 +139,6 @@ class MacroTradingGraph:
             try:
                 logger.info("Running trader agent...")
                 result = self.trader.propose(state)
-                state['agent_reasoning']['trader'] = {
-                    'proposed_allocations': result.get('proposed_allocations', {}),
-                    'reasoning': result.get('reasoning', 'No detailed reasoning provided'),
-                    'key_factors': result.get('key_factors', []),
-                    'timestamp': result.get('timestamp', 'unknown')
-                }
                 logger.info("Trader agent completed")
                 return state
             except Exception as e:
@@ -178,13 +150,6 @@ class MacroTradingGraph:
             try:
                 logger.info("Running risk manager...")
                 result = self.risk_manager.assess(state)
-                state['agent_reasoning']['risk_manager'] = {
-                    'risk_adjusted_allocations': result.get('risk_adjusted_allocations', {}),
-                    'reasoning': result.get('reasoning', 'No detailed reasoning provided'),
-                    'risk_factors': result.get('risk_factors', []),
-                    'adjustments': result.get('adjustments', {}),
-                    'timestamp': result.get('timestamp', 'unknown')
-                }
                 logger.info("Risk manager completed")
                 return state
             except Exception as e:
@@ -196,14 +161,6 @@ class MacroTradingGraph:
             try:
                 logger.info("Running portfolio optimizer...")
                 result = self.optimizer.optimize(state)
-                state['agent_reasoning']['portfolio_optimizer'] = {
-                    'final_allocations': result.get('final_allocations', {}),
-                    'reasoning': result.get('reasoning', 'No detailed reasoning provided'),
-                    'optimization_method': result.get('optimization_method', 'mean_variance'),
-                    'constraints': result.get('constraints', {}),
-                    'performance_metrics': result.get('performance_metrics', {}),
-                    'timestamp': result.get('timestamp', 'unknown')
-                }
                 logger.info("Portfolio optimizer completed")
                 return state
             except Exception as e:

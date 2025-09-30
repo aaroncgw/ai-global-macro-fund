@@ -356,6 +356,7 @@ def debate(state: dict, rounds: int = None) -> dict:
         state['debate_output'] = debate_log
         state['debate_rounds'] = rounds
         state['debate_participants'] = ['BullishMacroResearcher', 'BearishMacroResearcher']
+        state['debate_summary'] = f"Debate completed with {rounds} rounds between bullish and bearish researchers"
         
         logger.info(f"Macro debate completed with {rounds} rounds")
         return state

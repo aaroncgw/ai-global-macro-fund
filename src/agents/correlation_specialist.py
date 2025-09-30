@@ -178,14 +178,14 @@ class CorrelationSpecialistAgent(BaseAgent):
             formatted.append("")
             
             # Add header
-            etfs = list(corr_dict.keys())
+            etfs = [str(etf) for etf in corr_dict.keys()]
             header = "ETF".ljust(8) + "".join([etf.ljust(8) for etf in etfs])
             formatted.append(header)
             formatted.append("-" * len(header))
             
             # Add rows
             for etf1 in etfs:
-                row = etf1.ljust(8)
+                row = str(etf1).ljust(8)
                 for etf2 in etfs:
                     if etf1 in corr_dict and etf2 in corr_dict[etf1]:
                         corr_value = corr_dict[etf1][etf2]

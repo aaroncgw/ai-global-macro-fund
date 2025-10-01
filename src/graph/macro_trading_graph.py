@@ -59,10 +59,8 @@ class MacroTradingGraph:
                 etf_data = self.fetcher.fetch_etf_data(universe)
                 state['etf_data'] = etf_data
                 
-                # Fetch news data
-                news_data = self.fetcher.fetch_geopolitical_news(
-                    query='global macro trends geopolitical events'
-                )
+                # Fetch comprehensive news data from multiple sources
+                news_data = self.fetcher.fetch_comprehensive_geopolitical_news(days_back=30)
                 state['news'] = news_data
                 
                 # Initialize analyst scores and reasoning

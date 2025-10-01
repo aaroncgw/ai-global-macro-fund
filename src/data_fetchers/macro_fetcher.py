@@ -197,12 +197,15 @@ class MacroFetcher:
             logger.error(f"Error calculating ETF returns: {e}")
             return pd.DataFrame()
     
-    def fetch_geopolitical_news(self, query: str = 'geopolitical events macro impact') -> List[Dict]:
+    def fetch_geopolitical_news(self, query: str = 'geopolitical events macro impact', 
+                               days_back: int = 30, max_articles: int = 100) -> List[Dict]:
         """
-        Fetch geopolitical and financial news from Finlight.me API.
+        Fetch geopolitical and financial news from Finlight.me API across multiple pages.
         
         Args:
             query: Search query for news articles
+            days_back: Number of days to look back for articles (default: 30)
+            max_articles: Maximum number of articles to fetch (default: 100)
             
         Returns:
             List of news articles with sentiment and metadata
@@ -218,23 +221,52 @@ class MacroFetcher:
             'X-API-KEY': self.finlight_key
         }
         
-        body = {
-            'query': query,
-            'language': 'en',
-            'pageSize': 20,
-            'page': 1
-        }
+        # Calculate date range
+        end_date = datetime.now()
+        start_date = end_date - timedelta(days=days_back)
+        
+        all_articles = []
+        page = 1
+        page_size = 20  # Max per page for API
         
         try:
             logger.info(f"Fetching geopolitical news for query: {query}")
-            response = requests.post(url, headers=headers, json=body, timeout=30)
-            response.raise_for_status()
+            logger.info(f"Date range: {start_date.strftime('%Y-%m-%d')} to {end_date.strftime('%Y-%m-%d')}")
             
-            data = response.json()
-            articles = data.get('articles', [])
+            while len(all_articles) < max_articles:
+                body = {
+                    'query': query,
+                    'language': 'en',
+                    'pageSize': page_size,
+                    'page': page,
+                    'startDate': start_date.strftime('%Y-%m-%d'),
+                    'endDate': end_date.strftime('%Y-%m-%d')
+                }
+                
+                response = requests.post(url, headers=headers, json=body, timeout=30)
+                response.raise_for_status()
+                
+                data = response.json()
+                articles = data.get('articles', [])
+                
+                if not articles:
+                    # No more articles available
+                    break
+                
+                all_articles.extend(articles)
+                logger.info(f"Retrieved page {page}: {len(articles)} articles (total: {len(all_articles)})")
+                
+                # Check if we have enough articles or if this was the last page
+                if len(articles) < page_size or len(all_articles) >= max_articles:
+                    break
+                
+                page += 1
             
-            logger.info(f"Retrieved {len(articles)} articles from Finlight.me")
-            return articles
+            # Trim to max_articles if we got more
+            all_articles = all_articles[:max_articles]
+            
+            logger.info(f"Total articles retrieved: {len(all_articles)} from Finlight.me")
+            return all_articles
             
         except requests.exceptions.RequestException as e:
             logger.error(f"Error fetching news from Finlight.me: {e}")
@@ -242,6 +274,56 @@ class MacroFetcher:
         except Exception as e:
             logger.error(f"Unexpected error fetching news: {e}")
             return []
+    
+    def fetch_comprehensive_geopolitical_news(self, days_back: int = 30) -> List[Dict]:
+        """
+        Fetch comprehensive geopolitical news from multiple query categories.
+        
+        Args:
+            days_back: Number of days to look back for articles
+            
+        Returns:
+            Deduplicated list of news articles with sentiment and metadata
+        """
+        queries = [
+            'global macro trends geopolitical events',
+            'central bank monetary policy interest rates',
+            'trade war tariffs international trade',
+            'geopolitical risk conflict war',
+            'emerging markets crisis',
+            'china economy us relations',
+            'europe energy crisis recession',
+            'inflation federal reserve ECB',
+            'oil prices commodity markets',
+            'currency crisis exchange rates'
+        ]
+        
+        all_articles = []
+        seen_identifiers = set()
+        
+        for query in queries:
+            articles = self.fetch_geopolitical_news(query, days_back=days_back, max_articles=20)
+            
+            # Deduplicate by URL, title, or article ID
+            for article in articles:
+                # Try multiple identifiers for deduplication
+                url = article.get('url', '')
+                title = article.get('title', '')
+                article_id = article.get('id', '')
+                
+                # Create a unique identifier
+                identifier = url or article_id or title
+                
+                if identifier and identifier not in seen_identifiers:
+                    seen_identifiers.add(identifier)
+                    all_articles.append(article)
+                elif not identifier:
+                    # If no identifier, just add it (unlikely to be duplicate)
+                    all_articles.append(article)
+        
+        logger.info(f"Total unique articles after deduplication: {len(all_articles)}")
+        logger.info(f"Articles by category: {len(queries)} queries processed")
+        return all_articles
     
     def fetch_comprehensive_data(self, etfs: List[str], indicators: List[str], 
                                news_queries: List[str] = None) -> Dict:

@@ -136,81 +136,193 @@ class CorrelationSpecialistAgent(BaseAgent):
         # Format correlation matrix
         corr_summary = self._format_correlation_matrix(corr_matrix)
         
-        prompt = f"""
-        As a correlation specialist, analyze the following ETF correlations and score each ETF from -1 (strong sell) to 1 (strong buy) based on diversification value:
+        num_etfs = len(corr_matrix) if not corr_matrix.empty else len(universe)
         
-        ETF CORRELATION MATRIX:
+        prompt = f"""
+        As a correlation specialist, analyze the ETF correlations and score each ETF from -1 (strong sell) to 1 (strong buy) based on diversification value.
+        
+        You are analyzing {num_etfs} ETFs. The correlation data below shows which ETFs provide diversification vs redundancy.
+        
+        ETF CORRELATION ANALYSIS:
         {corr_summary}
         
         ANALYSIS FRAMEWORK:
-        1. High Correlation (0.7+): ETFs that move together - consider reducing exposure
-        2. Low Correlation (0.3-): ETFs that provide diversification - consider increasing exposure
-        3. Negative Correlation (-0.3-): ETFs that move opposite - excellent for hedging
-        4. Portfolio Balance: Which ETFs add unique risk/return profiles?
-        5. Sector/Region Diversification: How do correlations vary across asset classes?
+        1. **Diversification Value (POSITIVE scores):**
+           - ETFs with LOW average correlation (<0.4) add unique exposure
+           - Asset classes that are uncorrelated with equities (bonds, commodities)
+           - Currency ETFs that hedge regional risks
+           - Score range: +0.5 to +1.0 for best diversifiers
         
-        SCORING CRITERIA:
-        - Score each ETF from -1.0 (strong sell) to 1.0 (strong buy)
-        - Favor ETFs with low correlation to others (diversification value)
-        - Penalize ETFs with very high correlation (redundancy)
-        - Consider both absolute correlation and relative diversification benefit
-        - Focus on portfolio optimization and risk reduction
+        2. **Redundancy Risk (NEGATIVE scores):**
+           - ETFs with HIGH average correlation (>0.7) are redundant
+           - Asset classes that move in lockstep (all equities together)
+           - Regional ETFs highly correlated with global indices
+           - Score range: -0.5 to -1.0 for most redundant
+        
+        3. **Moderate Diversification (NEUTRAL scores):**
+           - ETFs with moderate correlation (0.4-0.7)
+           - Score range: -0.3 to +0.3
+        
+        SCORING STRATEGY FOR {num_etfs} ETFs:
+        - Review the "AVERAGE CORRELATION PER ETF" section
+        - ETFs with avg correlation < 0.3 → Score +0.7 to +1.0 (excellent diversifiers)
+        - ETFs with avg correlation 0.3-0.5 → Score +0.2 to +0.5 (good diversifiers)
+        - ETFs with avg correlation 0.5-0.7 → Score -0.2 to +0.2 (moderate)
+        - ETFs with avg correlation > 0.7 → Score -0.5 to -1.0 (redundant)
+        
+        - Bonds (TLT, IEF, BND) typically have LOW correlation with equities → POSITIVE scores
+        - Commodities (GLD, SLV, USO) often have LOW correlation → POSITIVE scores
+        - Currency ETFs (UUP, FXE, FXY) can provide unique diversification → POSITIVE scores
+        - Multiple equity ETFs from same region → NEGATIVE scores for redundancy
+        
+        IMPORTANT: Differentiate scores meaningfully. NOT all ETFs should be 0.0!
+        Use the full range from -1.0 to +1.0 based on correlation data.
         
         ETFs TO SCORE: {', '.join(universe)}
         
-        Return ONLY a JSON object with ETF scores:
-        {{"SPY": 0.2, "QQQ": -0.1, "TLT": 0.4, ...}}
+        Return ONLY a JSON object with ETF scores (use full range -1 to +1):
+        {{"SPY": -0.3, "QQQ": -0.4, "TLT": 0.8, "GLD": 0.7, "UUP": 0.5, ...}}
         """
         return prompt
     
     def _format_correlation_matrix(self, corr_matrix: pd.DataFrame) -> str:
-        """Format correlation matrix for the prompt."""
+        """
+        Format correlation matrix for the prompt.
+        For large universes (>10 ETFs), use summary statistics instead of full matrix.
+        """
         if corr_matrix.empty:
             return "No correlation data available"
         
         try:
-            # Convert to dictionary for JSON serialization
-            corr_dict = corr_matrix.to_dict()
+            num_etfs = len(corr_matrix)
             
-            # Format as readable table
-            formatted = []
-            formatted.append("Correlation Matrix (values between -1 and 1):")
-            formatted.append("")
+            # For small universes (<= 10 ETFs), show full matrix
+            if num_etfs <= 10:
+                return self._format_full_correlation_matrix(corr_matrix)
             
-            # Add header
-            etfs = [str(etf) for etf in corr_dict.keys()]
-            header = "ETF".ljust(8) + "".join([etf.ljust(8) for etf in etfs])
-            formatted.append(header)
-            formatted.append("-" * len(header))
-            
-            # Add rows
-            for etf1 in etfs:
-                row = str(etf1).ljust(8)
-                for etf2 in etfs:
-                    if etf1 in corr_dict and etf2 in corr_dict[etf1]:
-                        corr_value = corr_dict[etf1][etf2]
-                        row += f"{corr_value:.2f}".ljust(8)
-                    else:
-                        row += "N/A".ljust(8)
-                formatted.append(row)
-            
-            # Add summary statistics
-            formatted.append("")
-            formatted.append("Key Correlations:")
-            for etf1 in etfs:
-                for etf2 in etfs:
-                    if etf1 != etf2 and etf1 in corr_dict and etf2 in corr_dict[etf1]:
-                        corr_value = corr_dict[etf1][etf2]
-                        if abs(corr_value) > 0.7:  # High correlation
-                            formatted.append(f"- {etf1} vs {etf2}: {corr_value:.2f} (High correlation)")
-                        elif abs(corr_value) < 0.3:  # Low correlation
-                            formatted.append(f"- {etf1} vs {etf2}: {corr_value:.2f} (Low correlation)")
-            
-            return '\n'.join(formatted)
+            # For large universes (> 10 ETFs), use smart summary
+            return self._format_correlation_summary(corr_matrix)
             
         except Exception as e:
             logger.error(f"Failed to format correlation matrix: {e}")
             return "Error formatting correlation data"
+    
+    def _format_full_correlation_matrix(self, corr_matrix: pd.DataFrame) -> str:
+        """Format full correlation matrix for small universes."""
+        corr_dict = corr_matrix.to_dict()
+        formatted = []
+        formatted.append("Correlation Matrix (values between -1 and 1):")
+        formatted.append("")
+        
+        # Add header
+        etfs = [str(etf) for etf in corr_dict.keys()]
+        header = "ETF".ljust(8) + "".join([etf.ljust(8) for etf in etfs])
+        formatted.append(header)
+        formatted.append("-" * len(header))
+        
+        # Add rows
+        for etf1 in etfs:
+            row = str(etf1).ljust(8)
+            for etf2 in etfs:
+                if etf1 in corr_dict and etf2 in corr_dict[etf1]:
+                    corr_value = corr_dict[etf1][etf2]
+                    row += f"{corr_value:.2f}".ljust(8)
+                else:
+                    row += "N/A".ljust(8)
+            formatted.append(row)
+        
+        return '\n'.join(formatted)
+    
+    def _format_correlation_summary(self, corr_matrix: pd.DataFrame) -> str:
+        """Format correlation summary for large universes using smart analytics."""
+        formatted = []
+        formatted.append(f"=== CORRELATION ANALYSIS FOR {len(corr_matrix)} ETFs ===\n")
+        
+        # 1. Calculate average correlation for each ETF
+        formatted.append("AVERAGE CORRELATION PER ETF (lower = better diversification):")
+        avg_corr = {}
+        for etf in corr_matrix.columns:
+            # Calculate average correlation with all other ETFs
+            other_etfs = [e for e in corr_matrix.columns if e != etf]
+            avg_corr[etf] = corr_matrix.loc[etf, other_etfs].mean()
+        
+        # Sort by average correlation
+        sorted_etfs = sorted(avg_corr.items(), key=lambda x: x[1])
+        
+        for etf, avg in sorted_etfs:
+            diversification = "🟢 High Diversification" if avg < 0.3 else "🟡 Moderate" if avg < 0.6 else "🔴 Low Diversification"
+            formatted.append(f"  {etf}: {avg:.3f} {diversification}")
+        
+        # 2. Identify highly correlated pairs (redundancy risk)
+        formatted.append(f"\nHIGH CORRELATION PAIRS (>0.8) - Redundancy Risk:")
+        high_corr_pairs = []
+        for i, etf1 in enumerate(corr_matrix.columns):
+            for etf2 in corr_matrix.columns[i+1:]:
+                corr_val = corr_matrix.loc[etf1, etf2]
+                if corr_val > 0.8:
+                    high_corr_pairs.append(f"  {etf1} - {etf2}: {corr_val:.3f}")
+        
+        if high_corr_pairs:
+            formatted.extend(high_corr_pairs[:10])  # Show top 10
+            if len(high_corr_pairs) > 10:
+                formatted.append(f"  ... and {len(high_corr_pairs) - 10} more pairs")
+        else:
+            formatted.append("  None found - Good diversification")
+        
+        # 3. Identify low/negative correlation pairs (diversification opportunities)
+        formatted.append(f"\nLOW CORRELATION PAIRS (<0.3) - Diversification Benefits:")
+        low_corr_pairs = []
+        for i, etf1 in enumerate(corr_matrix.columns):
+            for etf2 in corr_matrix.columns[i+1:]:
+                corr_val = corr_matrix.loc[etf1, etf2]
+                if corr_val < 0.3:
+                    low_corr_pairs.append(f"  {etf1} - {etf2}: {corr_val:.3f}")
+        
+        if low_corr_pairs:
+            formatted.extend(low_corr_pairs[:10])  # Show top 10
+            if len(low_corr_pairs) > 10:
+                formatted.append(f"  ... and {len(low_corr_pairs) - 10} more pairs")
+        else:
+            formatted.append("  None found - Everything is correlated")
+        
+        # 4. Asset class groupings
+        formatted.append(f"\nASSET CLASS CORRELATION SUMMARY:")
+        
+        # Group ETFs by type
+        equity_etfs = [etf for etf in corr_matrix.columns if etf in ['SPY', 'QQQ', 'VEU', 'VWO', 'VGK', 'VPL', 'ACWI', 
+                                                                       'EWJ', 'EWG', 'EWU', 'EWA', 'EWC', 'EWZ', 'INDA', 'FXI', 'EZA', 'TUR', 'RSX', 'EWW']]
+        bond_etfs = [etf for etf in corr_matrix.columns if etf in ['TLT', 'IEF', 'BND', 'TIP', 'LQD', 'HYG', 'EMB', 'PCY']]
+        commodity_etfs = [etf for etf in corr_matrix.columns if etf in ['GLD', 'SLV', 'USO', 'UNG', 'DBC', 'CORN', 'WEAT', 'DBA', 'PDBC', 'GSG']]
+        currency_etfs = [etf for etf in corr_matrix.columns if etf in ['UUP', 'FXE', 'FXY', 'FXB', 'FXC', 'FXA', 'FXF', 'CYB']]
+        
+        # Calculate intra-group and inter-group correlations
+        if equity_etfs:
+            eq_avg = corr_matrix.loc[equity_etfs, equity_etfs].mean().mean()
+            formatted.append(f"  Equities (intra-group avg): {eq_avg:.3f}")
+        
+        if bond_etfs:
+            bond_avg = corr_matrix.loc[bond_etfs, bond_etfs].mean().mean()
+            formatted.append(f"  Bonds (intra-group avg): {bond_avg:.3f}")
+        
+        if commodity_etfs:
+            comm_avg = corr_matrix.loc[commodity_etfs, commodity_etfs].mean().mean()
+            formatted.append(f"  Commodities (intra-group avg): {comm_avg:.3f}")
+        
+        if equity_etfs and bond_etfs:
+            eq_bond = corr_matrix.loc[equity_etfs, bond_etfs].mean().mean()
+            formatted.append(f"  Equities vs Bonds: {eq_bond:.3f} (diversification benefit)")
+        
+        if equity_etfs and commodity_etfs:
+            eq_comm = corr_matrix.loc[equity_etfs, commodity_etfs].mean().mean()
+            formatted.append(f"  Equities vs Commodities: {eq_comm:.3f}")
+        
+        # 5. Key insights for scoring
+        formatted.append(f"\n=== SCORING GUIDANCE ===")
+        formatted.append(f"ETFs with LOW average correlation (<0.4) should receive POSITIVE scores (good diversifiers)")
+        formatted.append(f"ETFs with HIGH average correlation (>0.7) should receive NEGATIVE scores (redundancy)")
+        formatted.append(f"Bonds and Commodities typically provide best diversification vs equities")
+        
+        return '\n'.join(formatted)
     
     def _parse_scores(self, response: str, universe: list) -> dict:
         """

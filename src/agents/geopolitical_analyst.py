@@ -86,47 +86,78 @@ class GeopoliticalAnalystAgent(BaseAgent):
     
     def _create_geopolitical_analysis_prompt(self, news_data: list, universe: list) -> str:
         """
-        Create a prompt for geopolitical analysis.
+        Create a prompt for geopolitical analysis with comprehensive news coverage.
         
         Args:
-            news_data: List of news articles
+            news_data: List of news articles (can be 50-100+ articles)
             universe: List of ETFs to analyze
             
         Returns:
             Formatted prompt string
         """
-        # Format news data
-        news_summary = self._format_news_data(news_data)
+        # Categorize and format news data
+        news_summary = self._format_news_data_comprehensive(news_data)
         
         prompt = f"""
-        As a geopolitical analyst, assess the following news and events and score each ETF from -1 (strong sell) to 1 (strong buy):
+        As a geopolitical analyst, analyze the comprehensive news from the past 30 days and score each ETF from -1 (strong sell) to 1 (strong buy).
         
-        GEOPOLITICAL NEWS AND EVENTS:
+        You have access to {len(news_data)} news articles covering major global events. Synthesize the key themes and their market implications.
+        
+        COMPREHENSIVE GEOPOLITICAL NEWS (Last 30 Days):
         {news_summary}
         
-        ANALYSIS FRAMEWORK:
-        1. Regional Risks: Which countries/regions face heightened risks?
-        2. Trade Relations: Impact on international trade and supply chains
-        3. Currency Wars: Effects on currency ETFs (UUP, FXE, FXY, etc.)
-        4. Commodity Shocks: Impact on commodity ETFs (GLD, SLV, USO, etc.)
-        5. Political Stability: Effects on country-specific ETFs (EWJ, EWG, FXI, etc.)
-        6. Global Tensions: Impact on safe-haven assets vs risk assets
+        ANALYSIS FRAMEWORK - Identify Major Themes:
+        1. Regional Risks: Which countries/regions face heightened geopolitical risks?
+           - Conflicts, political instability, regime changes
+           - Regulatory crackdowns and policy shifts
+           
+        2. Trade & Supply Chains: 
+           - Trade tensions, tariffs, sanctions
+           - Supply chain disruptions
+           - Reshoring vs offshoring trends
+           
+        3. Monetary Policy Divergence:
+           - Central bank policy differences across regions
+           - Currency volatility and competitive devaluations
+           - Impact on currency ETFs (UUP, FXE, FXY, FXB, FXC, FXA, etc.)
+           
+        4. Commodity & Energy:
+           - Oil/gas supply disruptions
+           - Strategic resource competition
+           - Impact on commodity ETFs (GLD, SLV, USO, UNG, DBC, etc.)
+           
+        5. Regional Economic Outlook:
+           - China: Property sector, stimulus, US relations
+           - Europe: Energy crisis, recession risk, ECB policy
+           - Emerging Markets: Currency crises, debt stress
+           - US: Political gridlock, fiscal policy
+           - Impact on country-specific ETFs (EWJ, EWG, FXI, EWZ, INDA, etc.)
+           
+        6. Safe Haven Flows:
+           - Flight to safety vs risk-on sentiment
+           - Gold, treasuries, dollar strength
+           - Impact on TLT, IEF, BND, GLD
         
-        SCORING CRITERIA:
+        SCORING INSTRUCTIONS:
+        - Synthesize ALL {len(news_data)} articles to identify the dominant geopolitical themes
         - Score each ETF from -1.0 (strong sell) to 1.0 (strong buy)
-        - Consider geopolitical risks, opportunities, and regional impacts
-        - Focus on how news affects specific countries, currencies, and commodities
-        - Assess both immediate and longer-term geopolitical implications
+        - Base scores on:
+          * Severity and persistence of geopolitical risks
+          * Regional exposure to conflicts/crises
+          * Safe haven characteristics
+          * Currency and commodity exposure
+        - Consider both immediate shocks and longer-term structural shifts
+        - Differentiate scores meaningfully - not all ETFs should be neutral
         
         ETFs TO SCORE: {', '.join(universe)}
         
-        Return ONLY a JSON object with ETF scores:
-        {{"SPY": 0.1, "EWJ": -0.2, "GLD": 0.3, ...}}
+        Return ONLY a JSON object with ETF scores (differentiated, not all zeros):
+        {{"SPY": 0.1, "EWJ": -0.2, "GLD": 0.3, "TLT": 0.2, "FXI": -0.4, ...}}
         """
         return prompt
     
     def _format_news_data(self, news_data: list) -> str:
-        """Format news data for the prompt."""
+        """Format news data for the prompt (legacy method)."""
         if not news_data:
             return "No geopolitical news available"
         
@@ -142,6 +173,83 @@ class GeopoliticalAnalystAgent(BaseAgent):
             formatted.append("")
         
         return '\n'.join(formatted) if formatted else "No geopolitical news available"
+    
+    def _format_news_data_comprehensive(self, news_data: list) -> str:
+        """
+        Format comprehensive news data by categorizing articles into themes.
+        This helps the LLM process large volumes of news more effectively.
+        """
+        if not news_data:
+            return "No geopolitical news available"
+        
+        # Categorize articles by keywords
+        categories = {
+            'china': [],
+            'europe': [],
+            'us_domestic': [],
+            'trade_tariffs': [],
+            'central_banks': [],
+            'conflicts_geopolitics': [],
+            'commodities_energy': [],
+            'emerging_markets': [],
+            'currencies': [],
+            'other': []
+        }
+        
+        for article in news_data:
+            title = article.get('title', '').lower()
+            summary = article.get('summary', '').lower()
+            content = title + ' ' + summary
+            
+            # Categorize based on keywords
+            if any(word in content for word in ['china', 'chinese', 'beijing', 'xi jinping']):
+                categories['china'].append(article)
+            elif any(word in content for word in ['europe', 'eu', 'eurozone', 'germany', 'france', 'ecb']):
+                categories['europe'].append(article)
+            elif any(word in content for word in ['tariff', 'trade war', 'trade tension', 'sanctions', 'export']):
+                categories['trade_tariffs'].append(article)
+            elif any(word in content for word in ['fed', 'federal reserve', 'interest rate', 'monetary policy', 'central bank']):
+                categories['central_banks'].append(article)
+            elif any(word in content for word in ['war', 'conflict', 'military', 'tension', 'geopolitical']):
+                categories['conflicts_geopolitics'].append(article)
+            elif any(word in content for word in ['oil', 'crude', 'energy', 'gas', 'opec', 'commodity']):
+                categories['commodities_energy'].append(article)
+            elif any(word in content for word in ['emerging market', 'brazil', 'india', 'mexico', 'africa']):
+                categories['emerging_markets'].append(article)
+            elif any(word in content for word in ['dollar', 'currency', 'forex', 'exchange rate', 'yen', 'euro']):
+                categories['currencies'].append(article)
+            elif any(word in content for word in ['us ', 'united states', 'america', 'congress', 'biden', 'trump']):
+                categories['us_domestic'].append(article)
+            else:
+                categories['other'].append(article)
+        
+        # Format categorized news
+        formatted = []
+        formatted.append(f"=== COMPREHENSIVE NEWS ANALYSIS ({len(news_data)} Articles from Past 30 Days) ===\n")
+        
+        for category, articles in categories.items():
+            if articles:
+                category_name = category.replace('_', ' ').title()
+                formatted.append(f"\n{category_name} ({len(articles)} articles):")
+                
+                # Show top 3-5 articles per category
+                for i, article in enumerate(articles[:5], 1):
+                    title = article.get('title', 'No title')
+                    sentiment = article.get('sentiment', 'neutral')
+                    formatted.append(f"  {i}. {title} [Sentiment: {sentiment}]")
+                
+                if len(articles) > 5:
+                    formatted.append(f"  ... and {len(articles) - 5} more {category_name} articles")
+        
+        # Add summary statistics
+        formatted.append(f"\n=== KEY THEMES SUMMARY ===")
+        formatted.append(f"Total articles analyzed: {len(news_data)}")
+        for category, articles in categories.items():
+            if articles:
+                category_name = category.replace('_', ' ').title()
+                formatted.append(f"  - {category_name}: {len(articles)} articles")
+        
+        return '\n'.join(formatted)
     
     def _parse_scores(self, response: str, universe: list) -> dict:
         """

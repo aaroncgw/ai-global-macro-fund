@@ -161,8 +161,23 @@ class MacroEconomistAgent(BaseAgent):
             if etf in etf_returns.columns:
                 returns = etf_returns[etf].dropna()
                 if not returns.empty:
-                    recent_return = float(returns.iloc[-1]) if len(returns) > 0 else 0.0
-                    avg_return = float(returns.mean())
+                    # Safely extract scalar values
+                    try:
+                        recent_return = returns.iloc[-1]
+                        if hasattr(recent_return, 'item'):
+                            recent_return = recent_return.item()
+                        recent_return = float(recent_return)
+                    except (ValueError, TypeError, IndexError):
+                        recent_return = 0.0
+                    
+                    try:
+                        avg_return = returns.mean()
+                        if hasattr(avg_return, 'item'):
+                            avg_return = avg_return.item()
+                        avg_return = float(avg_return)
+                    except (ValueError, TypeError):
+                        avg_return = 0.0
+                    
                     formatted.append(f"- {etf}: Recent: {recent_return:.3f}, Avg: {avg_return:.3f}")
                 else:
                     formatted.append(f"- {etf}: No returns data")

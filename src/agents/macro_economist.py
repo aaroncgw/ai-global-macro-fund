@@ -33,17 +33,16 @@ class MacroEconomistAgent(BaseAgent):
     
     def analyze(self, state: dict) -> dict:
         """
-        Analyze macroeconomic data and score ETFs.
+        Analyze macroeconomic data and score ETFs with confidence and reasoning.
         
         Args:
             state: LangGraph state dictionary containing:
                 - macro_data: Macro economic indicators
                 - etf_data: ETF price data
                 - universe: List of ETFs to analyze
-                - analyst_scores: Dictionary to store scores
                 
         Returns:
-            Updated state dictionary with macro economist scores
+            Updated state dictionary with macro economist scores, confidence, and reasoning
         """
         try:
             # Extract data from state
@@ -51,26 +50,40 @@ class MacroEconomistAgent(BaseAgent):
             etf_data = state.get('etf_data', pd.DataFrame())
             universe = state.get('universe', [])
             
-            # Ensure analyst_scores exists in state
-            if 'analyst_scores' not in state:
-                state['analyst_scores'] = {}
+            # Create analysis prompt for batch processing
+            prompt = f"""
+            For each ETF in {universe}, analyze macro data {macro_data} and returns {etf_data.pct_change().tail(252) if not etf_data.empty else 'No ETF data available'}.
             
-            # Create analysis prompt
-            prompt = self._create_macro_analysis_prompt(macro_data, etf_data, universe)
+            MACRO ECONOMIC INDICATORS:
+            {self._format_macro_indicators(macro_data)}
+            
+            ETF RETURNS (252-day historical):
+            {self._format_etf_returns(etf_data.pct_change().tail(252) if not etf_data.empty else pd.DataFrame(), universe)}
+            
+            ANALYSIS REQUIREMENTS:
+            1. For each ETF, provide a score from -1 (strong sell) to 1 (strong buy)
+            2. Provide confidence level from 0 (no confidence) to 1 (high confidence)
+            3. Provide detailed reasoning for each score based on macro factors
+            4. Consider inflation impact, interest rates, economic growth, currency strength
+            5. Focus on {DEFAULT_HORIZON} horizon
+            
+            Output dict format:
+            {{"ETF": {{"score": -1 to 1, "confidence": 0-1, "reason": "detailed explanation"}}}}
+            """
             
             # Get LLM response
             response = self.llm(prompt)
             
-            # Parse scores from response
-            scores = self._parse_scores(response, universe)
+            # Parse the structured response
+            macro_scores = self._parse_structured_scores(response, universe)
             
-            # Store scores in state
-            state['analyst_scores']['macro'] = scores
+            # Store macro scores in state
+            state['macro_scores'] = macro_scores
             
             # Store detailed reasoning
             state['agent_reasoning'] = state.get('agent_reasoning', {})
             state['agent_reasoning']['macro_economist'] = {
-                'scores': scores,
+                'macro_scores': macro_scores,
                 'reasoning': f"Macro economist analysis based on {len(macro_data)} indicators and {len(universe)} ETFs",
                 'key_factors': list(macro_data.keys()) if macro_data else ['No macro data available'],
                 'timestamp': pd.Timestamp.now().isoformat()
@@ -82,8 +95,8 @@ class MacroEconomistAgent(BaseAgent):
         except Exception as e:
             logger.error(f"Macro economist analysis failed: {e}")
             # Return neutral scores on error
-            neutral_scores = {etf: 0.0 for etf in state.get('universe', [])}
-            state['analyst_scores']['macro'] = neutral_scores
+            neutral_scores = {etf: {'score': 0.0, 'confidence': 0.0, 'reason': 'Analysis failed due to error'} for etf in state.get('universe', [])}
+            state['macro_scores'] = neutral_scores
             return state
     
     def _create_macro_analysis_prompt(self, macro_data: dict, etf_data: pd.DataFrame, universe: list) -> str:
@@ -186,16 +199,16 @@ class MacroEconomistAgent(BaseAgent):
         
         return '\n'.join(formatted) if formatted else "No ETF returns data available"
     
-    def _parse_scores(self, response: str, universe: list) -> dict:
+    def _parse_structured_scores(self, response: str, universe: list) -> dict:
         """
-        Parse ETF scores from LLM response.
+        Parse structured ETF scores with confidence and reasoning from LLM response.
         
         Args:
             response: LLM response string
             universe: List of ETFs to score
             
         Returns:
-            Dictionary with ETF scores
+            Dictionary with ETF scores, confidence, and reasoning
         """
         try:
             # Try to extract JSON from response
@@ -207,24 +220,40 @@ class MacroEconomistAgent(BaseAgent):
                 
                 scores = json.loads(json_str)
                 
-                # Validate scores
+                # Validate and structure scores
                 validated_scores = {}
                 for etf in universe:
-                    if etf in scores:
-                        score = float(scores[etf])
-                        # Clamp score between -1 and 1
-                        validated_scores[etf] = max(-1.0, min(1.0, score))
+                    if etf in scores and isinstance(scores[etf], dict):
+                        etf_data = scores[etf]
+                        score = float(etf_data.get('score', 0.0))
+                        confidence = float(etf_data.get('confidence', 0.5))
+                        reason = str(etf_data.get('reason', 'No reasoning provided'))
+                        
+                        # Clamp values to valid ranges
+                        score = max(-1.0, min(1.0, score))
+                        confidence = max(0.0, min(1.0, confidence))
+                        
+                        validated_scores[etf] = {
+                            'score': score,
+                            'confidence': confidence,
+                            'reason': reason
+                        }
                     else:
-                        validated_scores[etf] = 0.0
+                        # Default values for missing ETFs
+                        validated_scores[etf] = {
+                            'score': 0.0,
+                            'confidence': 0.0,
+                            'reason': 'No analysis available'
+                        }
                 
                 return validated_scores
             else:
                 logger.warning("No JSON found in LLM response")
-                return {etf: 0.0 for etf in universe}
+                return {etf: {'score': 0.0, 'confidence': 0.0, 'reason': 'No JSON response'} for etf in universe}
                 
         except (json.JSONDecodeError, ValueError, KeyError) as e:
-            logger.error(f"Failed to parse scores from response: {e}")
-            return {etf: 0.0 for etf in universe}
+            logger.error(f"Failed to parse structured scores from response: {e}")
+            return {etf: {'score': 0.0, 'confidence': 0.0, 'reason': f'Parse error: {str(e)}'} for etf in universe}
 
 
 # Example usage and testing
@@ -257,7 +286,17 @@ if __name__ == "__main__":
         # Test analysis
         result_state = agent.analyze(sample_state)
         print(f"✓ Analysis completed")
-        print(f"  Scores: {result_state.get('analyst_scores', {}).get('macro', {})}")
+        print(f"  Macro scores: {result_state.get('macro_scores', {})}")
+        
+        # Show detailed output for first ETF
+        macro_scores = result_state.get('macro_scores', {})
+        if macro_scores:
+            first_etf = list(macro_scores.keys())[0]
+            etf_data = macro_scores[first_etf]
+            print(f"  Sample ETF ({first_etf}):")
+            print(f"    Score: {etf_data.get('score', 0.0)}")
+            print(f"    Confidence: {etf_data.get('confidence', 0.0)}")
+            print(f"    Reason: {etf_data.get('reason', 'No reason')[:100]}...")
         
     except Exception as e:
         print(f"❌ Test failed: {e}")

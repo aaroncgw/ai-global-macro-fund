@@ -1,5 +1,8 @@
 """
 LangGraph Workflow for Macro Trading System
+
+Revamped workflow like original ai-hedge-fund but for batch ETFs:
+Fetch → MacroAnalyst → GeoAnalyst → Risk → Portfolio
 """
 
 from langgraph.graph import StateGraph, END
@@ -16,7 +19,7 @@ logger = logging.getLogger(__name__)
 
 
 class MacroTradingGraph:
-    """LangGraph workflow for macro trading system."""
+    """LangGraph workflow for macro trading system - revamped for batch ETFs."""
     
     def __init__(self, debug=False):
         """Initialize the macro trading graph."""
@@ -24,10 +27,6 @@ class MacroTradingGraph:
         
         # Initialize components
         self.fetcher = MacroFetcher()
-        self.macro_analyst = MacroEconomistAgent("MacroEconomist")
-        self.geo_analyst = GeopoliticalAnalystAgent("GeopoliticalAnalyst")
-        self.risk_manager = RiskManager("RiskManager")
-        self.portfolio_agent = PortfolioAgent("PortfolioAgent")
         
         # Build the graph
         self.graph = StateGraph(state_schema=dict)
@@ -37,7 +36,7 @@ class MacroTradingGraph:
         logger.info("Macro trading graph initialized successfully")
     
     def add_nodes_and_edges(self):
-        """Add nodes and edges to the LangGraph workflow."""
+        """Add nodes and edges to the LangGraph workflow - simplified for batch ETFs."""
         
         # Data fetching node
         def fetch_node(state):
@@ -58,8 +57,7 @@ class MacroTradingGraph:
                 news_data = self.fetcher.fetch_comprehensive_geopolitical_news(days_back=30)
                 state['news'] = news_data
                 
-                # Initialize analyst scores and reasoning
-                state['analyst_scores'] = {}
+                # Initialize agent reasoning
                 state['agent_reasoning'] = {}
                 
                 logger.info(f"Data fetch completed for {len(universe)} ETFs")
@@ -71,76 +69,29 @@ class MacroTradingGraph:
                 state['macro_data'] = {}
                 state['etf_data'] = pd.DataFrame()
                 state['news'] = []
-                state['analyst_scores'] = {}
                 state['agent_reasoning'] = {}
                 return state
         
-        # Analysis nodes
-        def macro_analyst_node(state):
-            """Run macro economist analysis."""
-            try:
-                logger.info("Running macro economist analysis...")
-                result = self.macro_analyst.analyze(state)
-                logger.info("Macro economist analysis completed")
-                return result
-            except Exception as e:
-                logger.error(f"Macro economist analysis failed: {e}")
-                return state
-        
-        def geo_analyst_node(state):
-            """Run geopolitical analyst analysis."""
-            try:
-                logger.info("Running geopolitical analyst analysis...")
-                result = self.geo_analyst.analyze(state)
-                logger.info("Geopolitical analyst analysis completed")
-                return result
-            except Exception as e:
-                logger.error(f"Geopolitical analyst analysis failed: {e}")
-                return state
-        
-        def risk_manager_node(state):
-            """Run risk manager assessment."""
-            try:
-                logger.info("Running risk manager assessment...")
-                result = self.risk_manager.assess(state)
-                logger.info("Risk manager assessment completed")
-                return result
-            except Exception as e:
-                logger.error(f"Risk manager assessment failed: {e}")
-                return state
-        
-        
-        def portfolio_node(state):
-            """Run portfolio agent for final allocations."""
-            try:
-                logger.info("Running portfolio agent...")
-                result = self.portfolio_agent.manage(state)
-                logger.info("Portfolio agent completed")
-                return result
-            except Exception as e:
-                logger.error(f"Portfolio agent failed: {e}")
-                return state
-        
-        # Add nodes to graph
+        # Add nodes to graph - simplified workflow
         self.graph.add_node('fetch', fetch_node)
-        self.graph.add_node('macro_analyst', macro_analyst_node)
-        self.graph.add_node('geo_analyst', geo_analyst_node)
-        self.graph.add_node('risk_manager', risk_manager_node)
-        self.graph.add_node('portfolio', portfolio_node)
+        self.graph.add_node('macro_analyst', MacroEconomistAgent().analyze)
+        self.graph.add_node('geo_analyst', GeopoliticalAnalystAgent().analyze)
+        self.graph.add_node('risk', RiskManager().assess)
+        self.graph.add_node('portfolio', PortfolioAgent().manage)
         
         # Add edges to create workflow
         self.graph.set_entry_point('fetch')
         self.graph.add_edge('fetch', 'macro_analyst')
         self.graph.add_edge('macro_analyst', 'geo_analyst')
-        self.graph.add_edge('geo_analyst', 'risk_manager')
-        self.graph.add_edge('risk_manager', 'portfolio')
+        self.graph.add_edge('geo_analyst', 'risk')
+        self.graph.add_edge('risk', 'portfolio')
         self.graph.add_edge('portfolio', END)
         
         logger.info("Graph nodes and edges added successfully")
     
     def propagate(self, universe, date='today'):
         """
-        Run the complete macro trading workflow.
+        Run the complete macro trading workflow for batch ETFs.
         
         Args:
             universe: List of ETF tickers to analyze
@@ -163,20 +114,19 @@ class MacroTradingGraph:
             # Run the workflow
             result = self.compiled.invoke(initial_state)
             
-            # Extract final allocations and complete state
+            # Extract final allocations
             final_allocations = result.get('final_allocations', {})
-            complete_state = result
             
             logger.info("Macro trading workflow completed successfully")
             logger.info(f"Final allocations: {final_allocations}")
             
-            return complete_state
+            return final_allocations
             
         except Exception as e:
             logger.error(f"Macro trading workflow failed: {e}")
             # Return equal allocations on error
-            equal_allocation = 100.0 / len(universe)
-            return {etf: equal_allocation for etf in universe}
+            equal_allocation = 1.0 / len(universe)
+            return {etf: {'action': 'hold', 'allocation': equal_allocation, 'reason': 'Workflow failed'} for etf in universe}
 
 
 if __name__ == "__main__":
@@ -199,11 +149,16 @@ if __name__ == "__main__":
         
         # Show allocation summary
         if final_allocations:
-            print("\nAllocation Summary:")
+            print("\nPortfolio Summary:")
             print("="*20)
-            sorted_allocations = sorted(final_allocations.items(), key=lambda x: x[1], reverse=True)
-            for i, (etf, allocation) in enumerate(sorted_allocations, 1):
-                print(f"{i}. {etf}: {allocation:.1f}%")
+            for etf, data in final_allocations.items():
+                if isinstance(data, dict):
+                    action = data.get('action', 'unknown')
+                    allocation = data.get('allocation', 0.0)
+                    reason = data.get('reason', 'No reason')[:50]
+                    print(f"{etf}: {action.upper()} {allocation:.1%} - {reason}...")
+                else:
+                    print(f"{etf}: {data:.1%}")
         
     except Exception as e:
         print(f"❌ Test failed: {e}")

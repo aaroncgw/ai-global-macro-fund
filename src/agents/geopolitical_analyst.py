@@ -33,44 +33,62 @@ class GeopoliticalAnalystAgent(BaseAgent):
     
     def analyze(self, state: dict) -> dict:
         """
-        Analyze geopolitical news and score ETFs.
+        Analyze geopolitical news and score ETFs with confidence and reasoning.
         
         Args:
             state: LangGraph state dictionary containing:
                 - news: Geopolitical news data
                 - universe: List of ETFs to analyze
-                - analyst_scores: Dictionary to store scores
                 
         Returns:
-            Updated state dictionary with geopolitical analyst scores
+            Updated state dictionary with geopolitical analyst scores, confidence, and reasoning
         """
         try:
             # Extract data from state
-            news_data = state.get('news', [])
+            news = state.get('news', [])
             universe = state.get('universe', [])
             
-            # Ensure analyst_scores exists in state
-            if 'analyst_scores' not in state:
-                state['analyst_scores'] = {}
+            # Create analysis prompt for batch processing
+            prompt = f"""
+            For each ETF in {universe}, assess geopolitical news {news} impact.
             
-            # Create analysis prompt
-            prompt = self._create_geopolitical_analysis_prompt(news_data, universe)
+            GEOPOLITICAL NEWS ANALYSIS:
+            {self._format_news_data_comprehensive(news)}
+            
+            ANALYSIS REQUIREMENTS:
+            1. For each ETF, provide a score from -1 (strong sell) to 1 (strong buy)
+            2. Provide confidence level from 0 (no confidence) to 1 (high confidence)
+            3. Provide detailed reasoning for each score based on geopolitical factors
+            4. Consider regional risks, trade tensions, currency impacts, and safe haven flows
+            5. Assess both immediate shocks and longer-term structural shifts
+            
+            GEOPOLITICAL FACTORS TO CONSIDER:
+            - Regional conflicts and political instability
+            - Trade tensions and sanctions
+            - Currency volatility and central bank policies
+            - Commodity supply disruptions
+            - Safe haven flows during crises
+            - Country-specific economic outlooks
+            
+            Output dict format:
+            {{"ETF": {{"score": -1 to 1, "confidence": 0-1, "reason": "detailed explanation"}}}}
+            """
             
             # Get LLM response
             response = self.llm(prompt)
             
-            # Parse scores from response
-            scores = self._parse_scores(response, universe)
+            # Parse the structured response
+            geo_scores = self._parse_structured_scores(response, universe)
             
-            # Store scores in state
-            state['analyst_scores']['geo'] = scores
+            # Store geo scores in state
+            state['geo_scores'] = geo_scores
             
             # Store detailed reasoning
             state['agent_reasoning'] = state.get('agent_reasoning', {})
             state['agent_reasoning']['geopolitical_analyst'] = {
-                'scores': scores,
-                'reasoning': f"Geopolitical analysis based on {len(news_data)} news articles and {len(universe)} ETFs",
-                'key_factors': [article.get('title', 'Unknown')[:50] for article in news_data[:3]] if news_data else ['No news data available'],
+                'geo_scores': geo_scores,
+                'reasoning': f"Geopolitical analysis based on {len(news)} news articles and {len(universe)} ETFs",
+                'key_factors': [article.get('title', 'Unknown')[:50] for article in news[:3]] if news else ['No news data available'],
                 'timestamp': pd.Timestamp.now().isoformat()
             }
             
@@ -80,8 +98,8 @@ class GeopoliticalAnalystAgent(BaseAgent):
         except Exception as e:
             logger.error(f"Geopolitical analysis failed: {e}")
             # Return neutral scores on error
-            neutral_scores = {etf: 0.0 for etf in state.get('universe', [])}
-            state['analyst_scores']['geo'] = neutral_scores
+            neutral_scores = {etf: {'score': 0.0, 'confidence': 0.0, 'reason': 'Analysis failed due to error'} for etf in state.get('universe', [])}
+            state['geo_scores'] = neutral_scores
             return state
     
     def _create_geopolitical_analysis_prompt(self, news_data: list, universe: list) -> str:
@@ -262,16 +280,16 @@ class GeopoliticalAnalystAgent(BaseAgent):
         
         return '\n'.join(formatted)
     
-    def _parse_scores(self, response: str, universe: list) -> dict:
+    def _parse_structured_scores(self, response: str, universe: list) -> dict:
         """
-        Parse ETF scores from LLM response.
+        Parse structured ETF scores with confidence and reasoning from LLM response.
         
         Args:
             response: LLM response string
             universe: List of ETFs to score
             
         Returns:
-            Dictionary with ETF scores
+            Dictionary with ETF scores, confidence, and reasoning
         """
         try:
             # Try to extract JSON from response
@@ -283,24 +301,40 @@ class GeopoliticalAnalystAgent(BaseAgent):
                 
                 scores = json.loads(json_str)
                 
-                # Validate scores
+                # Validate and structure scores
                 validated_scores = {}
                 for etf in universe:
-                    if etf in scores:
-                        score = float(scores[etf])
-                        # Clamp score between -1 and 1
-                        validated_scores[etf] = max(-1.0, min(1.0, score))
+                    if etf in scores and isinstance(scores[etf], dict):
+                        etf_data = scores[etf]
+                        score = float(etf_data.get('score', 0.0))
+                        confidence = float(etf_data.get('confidence', 0.5))
+                        reason = str(etf_data.get('reason', 'No reasoning provided'))
+                        
+                        # Clamp values to valid ranges
+                        score = max(-1.0, min(1.0, score))
+                        confidence = max(0.0, min(1.0, confidence))
+                        
+                        validated_scores[etf] = {
+                            'score': score,
+                            'confidence': confidence,
+                            'reason': reason
+                        }
                     else:
-                        validated_scores[etf] = 0.0
+                        # Default values for missing ETFs
+                        validated_scores[etf] = {
+                            'score': 0.0,
+                            'confidence': 0.0,
+                            'reason': 'No analysis available'
+                        }
                 
                 return validated_scores
             else:
                 logger.warning("No JSON found in LLM response")
-                return {etf: 0.0 for etf in universe}
+                return {etf: {'score': 0.0, 'confidence': 0.0, 'reason': 'No JSON response'} for etf in universe}
                 
         except (json.JSONDecodeError, ValueError, KeyError) as e:
-            logger.error(f"Failed to parse scores from response: {e}")
-            return {etf: 0.0 for etf in universe}
+            logger.error(f"Failed to parse structured scores from response: {e}")
+            return {etf: {'score': 0.0, 'confidence': 0.0, 'reason': f'Parse error: {str(e)}'} for etf in universe}
 
 
 # Example usage and testing
@@ -336,7 +370,17 @@ if __name__ == "__main__":
         # Test analysis
         result_state = agent.analyze(sample_state)
         print(f"✓ Analysis completed")
-        print(f"  Scores: {result_state.get('analyst_scores', {}).get('geo', {})}")
+        print(f"  Geo scores: {result_state.get('geo_scores', {})}")
+        
+        # Show detailed output for first ETF
+        geo_scores = result_state.get('geo_scores', {})
+        if geo_scores:
+            first_etf = list(geo_scores.keys())[0]
+            etf_data = geo_scores[first_etf]
+            print(f"  Sample ETF ({first_etf}):")
+            print(f"    Score: {etf_data.get('score', 0.0)}")
+            print(f"    Confidence: {etf_data.get('confidence', 0.0)}")
+            print(f"    Reason: {etf_data.get('reason', 'No reason')[:100]}...")
         
     except Exception as e:
         print(f"❌ Test failed: {e}")

@@ -6,7 +6,7 @@ from langgraph.graph import StateGraph, END
 from src.agents.macro_economist import MacroEconomistAgent
 from src.agents.geopolitical_analyst import GeopoliticalAnalystAgent
 from src.agents.risk_manager import RiskManager
-from src.agents.portfolio_optimizer import PortfolioOptimizerAgent
+from src.agents.portfolio_agent import PortfolioAgent
 from src.data_fetchers.macro_fetcher import MacroFetcher
 from src.config import MACRO_INDICATORS, DEFAULT_CONFIG
 import logging
@@ -27,7 +27,7 @@ class MacroTradingGraph:
         self.macro_analyst = MacroEconomistAgent("MacroEconomist")
         self.geo_analyst = GeopoliticalAnalystAgent("GeopoliticalAnalyst")
         self.risk_manager = RiskManager("RiskManager")
-        self.optimizer = PortfolioOptimizerAgent("PortfolioOptimizer")
+        self.portfolio_agent = PortfolioAgent("PortfolioAgent")
         
         # Build the graph
         self.graph = StateGraph(state_schema=dict)
@@ -110,15 +110,15 @@ class MacroTradingGraph:
                 return state
         
         
-        def optimizer_node(state):
-            """Run portfolio optimizer for final allocations."""
+        def portfolio_node(state):
+            """Run portfolio agent for final allocations."""
             try:
-                logger.info("Running portfolio optimizer...")
-                result = self.optimizer.optimize(state)
-                logger.info("Portfolio optimizer completed")
+                logger.info("Running portfolio agent...")
+                result = self.portfolio_agent.manage(state)
+                logger.info("Portfolio agent completed")
                 return result
             except Exception as e:
-                logger.error(f"Portfolio optimizer failed: {e}")
+                logger.error(f"Portfolio agent failed: {e}")
                 return state
         
         # Add nodes to graph
@@ -126,15 +126,15 @@ class MacroTradingGraph:
         self.graph.add_node('macro_analyst', macro_analyst_node)
         self.graph.add_node('geo_analyst', geo_analyst_node)
         self.graph.add_node('risk_manager', risk_manager_node)
-        self.graph.add_node('optimizer', optimizer_node)
+        self.graph.add_node('portfolio', portfolio_node)
         
         # Add edges to create workflow
         self.graph.set_entry_point('fetch')
         self.graph.add_edge('fetch', 'macro_analyst')
         self.graph.add_edge('macro_analyst', 'geo_analyst')
         self.graph.add_edge('geo_analyst', 'risk_manager')
-        self.graph.add_edge('risk_manager', 'optimizer')
-        self.graph.add_edge('optimizer', END)
+        self.graph.add_edge('risk_manager', 'portfolio')
+        self.graph.add_edge('portfolio', END)
         
         logger.info("Graph nodes and edges added successfully")
     

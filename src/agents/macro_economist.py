@@ -98,8 +98,8 @@ class MacroEconomistAgent(BaseAgent):
         Returns:
             Formatted prompt string
         """
-        # Calculate ETF returns for analysis
-        etf_returns = etf_data.pct_change().tail(252) if etf_data is not None and not etf_data.empty else pd.DataFrame()
+        # Calculate ETF returns for analysis (use full 25-year dataset)
+        etf_returns = etf_data.pct_change().dropna() if etf_data is not None and not etf_data.empty else pd.DataFrame()
         
         # Format macro indicators
         macro_summary = self._format_macro_indicators(macro_data)
@@ -113,7 +113,7 @@ class MacroEconomistAgent(BaseAgent):
         MACRO ECONOMIC DATA:
         {macro_summary}
         
-        ETF RETURNS (252-day lookback):
+        ETF RETURNS (25-year historical analysis):
         {etf_summary}
         
         ANALYSIS FRAMEWORK:

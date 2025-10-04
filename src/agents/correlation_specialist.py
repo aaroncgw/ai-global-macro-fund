@@ -63,7 +63,10 @@ class CorrelationSpecialistAgent(BaseAgent):
             response = self.llm(prompt)
             
             # Parse scores from response
-            scores = self._parse_scores(response, universe)
+            raw_scores = self._parse_scores(response, universe)
+            
+            # Apply aggressive shrinkage to reduce universe size
+            scores = self._apply_correlation_shrinkage(raw_scores, universe)
             
             # Store scores in state
             state['analyst_scores']['correlation'] = scores
@@ -363,6 +366,50 @@ class CorrelationSpecialistAgent(BaseAgent):
         except (json.JSONDecodeError, ValueError, KeyError) as e:
             logger.error(f"Failed to parse scores from response: {e}")
             return {etf: 0.0 for etf in universe}
+    
+    def _apply_correlation_shrinkage(self, raw_scores: dict, universe: list) -> dict:
+        """
+        Apply aggressive shrinkage to correlation scores to reduce universe size.
+        
+        For large universes (>10 ETFs), only keep top diversifiers and set others to -1.0.
+        This forces the portfolio optimizer to focus on a smaller, more manageable set.
+        
+        Args:
+            raw_scores: Raw correlation scores from LLM
+            universe: List of ETFs
+            
+        Returns:
+            Shrunk correlation scores
+        """
+        try:
+            if len(universe) <= 10:
+                # Small universe - no shrinkage needed
+                return raw_scores
+            
+            # For large universes, apply very aggressive shrinkage
+            target_size = min(8, max(6, len(universe) // 6))  # Keep 6-8 ETFs max for 45 ETF universe
+            
+            # Sort ETFs by correlation score (descending)
+            sorted_etfs = sorted(raw_scores.items(), key=lambda x: x[1], reverse=True)
+            
+            # Keep only top diversifiers, set others to strong negative
+            shrunk_scores = {}
+            for i, (etf, score) in enumerate(sorted_etfs):
+                if i < target_size:
+                    # Keep top ETFs with enhanced scores
+                    shrunk_scores[etf] = min(1.0, score * 1.2)  # Boost top scores slightly
+                else:
+                    # Strongly penalize remaining ETFs to eliminate them
+                    shrunk_scores[etf] = -0.8
+            
+            kept_etfs = len([etf for etf, score in shrunk_scores.items() if score > -0.5])
+            logger.info(f"Correlation shrinkage: kept {kept_etfs} ETFs out of {len(universe)} (target: {target_size})")
+            
+            return shrunk_scores
+            
+        except Exception as e:
+            logger.error(f"Correlation shrinkage failed: {e}")
+            return raw_scores
 
 
 # Example usage and testing

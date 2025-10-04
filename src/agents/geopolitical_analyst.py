@@ -138,15 +138,26 @@ class GeopoliticalAnalystAgent(BaseAgent):
            - Gold, treasuries, dollar strength
            - Impact on TLT, IEF, BND, GLD
         
+        HISTORICAL CONTEXT FOR ANALYSIS:
+        Consider how current events relate to major geopolitical patterns from the past 25 years:
+        - 2000-2002: Dot-com crash, 9/11 attacks, Afghanistan War
+        - 2003-2007: Iraq War, emerging market growth, commodity supercycle
+        - 2008-2009: Global Financial Crisis, quantitative easing era begins
+        - 2010-2015: European debt crisis, Arab Spring, China's rise
+        - 2016-2020: Brexit, US-China trade war, COVID-19 pandemic
+        - 2021-2025: Post-COVID recovery, Russia-Ukraine war, inflation surge, deglobalization
+        
         SCORING INSTRUCTIONS:
         - Synthesize ALL {len(news_data)} articles to identify the dominant geopolitical themes
+        - Compare current events to historical precedents and cycles
         - Score each ETF from -1.0 (strong sell) to 1.0 (strong buy)
         - Base scores on:
-          * Severity and persistence of geopolitical risks
-          * Regional exposure to conflicts/crises
-          * Safe haven characteristics
-          * Currency and commodity exposure
+          * Severity and persistence of geopolitical risks (vs historical norms)
+          * Regional exposure to conflicts/crises (learning from past crises)
+          * Safe haven characteristics (how they performed in past crises)
+          * Currency and commodity exposure (historical volatility patterns)
         - Consider both immediate shocks and longer-term structural shifts
+        - Use 25-year historical perspective to assess if current risks are cyclical or structural
         - Differentiate scores meaningfully - not all ETFs should be neutral
         
         ETFs TO SCORE: {', '.join(universe)}

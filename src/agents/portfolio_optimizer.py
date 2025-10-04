@@ -102,7 +102,7 @@ class PortfolioOptimizerAgent:
             state['agent_reasoning']['portfolio_optimizer'] = {
                 'final_allocations': optimized_allocations,
                 'reasoning': f"Portfolio optimization based on risk-adjusted allocations and correlation analysis for {len(universe)} ETFs",
-                'optimization_method': 'Mathematical optimization with risk constraints',
+                'optimization_method': 'Mean-variance optimization with shrinkage (70% optimized + 20% equal weight + 10% analyst input) and 0.5% rounding',
                 'performance_metrics': {
                     'total_allocation': sum(optimized_allocations.values()),
                     'number_of_etfs': len([etf for etf, alloc in optimized_allocations.items() if alloc > 0]),
@@ -166,16 +166,22 @@ class PortfolioOptimizerAgent:
             prob.solve()
             
             if prob.status == cp.OPTIMAL:
-                # Convert to allocation dictionary
-                optimized_allocations = {}
+                # Convert to allocation dictionary with shrinkage and rounding
+                raw_allocations = {}
                 for i, etf in enumerate(universe):
-                    optimized_allocations[etf] = float(w.value[i]) * 100.0
+                    raw_allocations[etf] = float(w.value[i]) * 100.0
                 
-                logger.info("Portfolio optimization completed successfully")
+                # Apply shrinkage towards equal weights to reduce overfitting
+                optimized_allocations = self._apply_shrinkage_and_rounding(
+                    raw_allocations, risk_adjusted_allocations, universe
+                )
+                
+                logger.info("Portfolio optimization completed successfully with shrinkage")
                 return optimized_allocations
             else:
                 logger.warning(f"Optimization failed with status: {prob.status}")
-                return risk_adjusted_allocations
+                # Apply rounding to risk-adjusted allocations as fallback
+                return self._apply_rounding(risk_adjusted_allocations)
                 
         except Exception as e:
             logger.error(f"Portfolio optimization error: {e}")
@@ -213,6 +219,158 @@ class PortfolioOptimizerAgent:
         except Exception as e:
             logger.error(f"Failed to calculate correlation matrix: {e}")
             return pd.DataFrame()
+    
+    def _apply_shrinkage_and_rounding(self, raw_allocations: dict, 
+                                     risk_adjusted_allocations: dict, 
+                                     universe: list) -> dict:
+        """
+        Apply shrinkage towards equal weights and round to reasonable precision.
+        
+        This reduces overfitting by blending optimized weights with:
+        1. Equal weights (diversification)
+        2. Risk-adjusted weights (analyst input)
+        
+        Args:
+            raw_allocations: Raw optimization results
+            risk_adjusted_allocations: Risk-adjusted allocations from analysts
+            universe: List of ETFs
+            
+        Returns:
+            Shrunk and rounded allocations
+        """
+        try:
+            # Shrinkage parameters
+            shrinkage_factor = 0.3  # 30% shrinkage towards targets
+            
+            # Target weights for shrinkage
+            equal_weight = 100.0 / len(universe)
+            equal_weights = {etf: equal_weight for etf in universe}
+            
+            # Apply shrinkage: blend raw optimization with equal weights and analyst input
+            shrunk_allocations = {}
+            for etf in universe:
+                raw_weight = raw_allocations.get(etf, 0.0)
+                equal_weight = equal_weights.get(etf, 0.0)
+                risk_weight = risk_adjusted_allocations.get(etf, 0.0)
+                
+                # Weighted average: 70% optimized + 20% equal weight + 10% risk-adjusted
+                shrunk_weight = (
+                    0.7 * raw_weight + 
+                    0.2 * equal_weight + 
+                    0.1 * risk_weight
+                )
+                
+                shrunk_allocations[etf] = shrunk_weight
+            
+            # Normalize to ensure sum = 100%
+            total_weight = sum(shrunk_allocations.values())
+            if total_weight > 0:
+                for etf in shrunk_allocations:
+                    shrunk_allocations[etf] = (shrunk_allocations[etf] / total_weight) * 100.0
+            
+            # Apply rounding to reduce noise
+            rounded_allocations = self._apply_rounding(shrunk_allocations)
+            
+            # Apply portfolio concentration to force focus on top ETFs only
+            return self._apply_portfolio_concentration(rounded_allocations)
+            
+        except Exception as e:
+            logger.error(f"Shrinkage failed: {e}")
+            return self._apply_rounding(raw_allocations)
+    
+    def _apply_rounding(self, allocations: dict) -> dict:
+        """
+        Round allocations to reasonable precision to avoid overfitting noise.
+        
+        Args:
+            allocations: Raw allocations dictionary
+            
+        Returns:
+            Rounded allocations dictionary
+        """
+        try:
+            rounded_allocations = {}
+            
+            for etf, allocation in allocations.items():
+                # Round to nearest 0.5% to reduce noise
+                rounded_allocation = round(allocation * 2) / 2.0
+                
+                # Very aggressive minimum allocation threshold (eliminate small positions)
+                if rounded_allocation < 3.0:  # Increased from 2.0% to 3.0%
+                    rounded_allocation = 0.0
+                
+                rounded_allocations[etf] = rounded_allocation
+            
+            # Ensure allocations sum to 100% after rounding
+            total_rounded = sum(rounded_allocations.values())
+            
+            if total_rounded > 0 and abs(total_rounded - 100.0) > 0.1:
+                # Adjust largest allocation to make sum exactly 100%
+                largest_etf = max(rounded_allocations.keys(), 
+                                key=lambda x: rounded_allocations[x])
+                adjustment = 100.0 - total_rounded
+                rounded_allocations[largest_etf] += adjustment
+                rounded_allocations[largest_etf] = round(rounded_allocations[largest_etf] * 2) / 2.0
+            
+            logger.info(f"Applied rounding: {len([etf for etf, alloc in rounded_allocations.items() if alloc > 0])} non-zero positions")
+            return rounded_allocations
+            
+        except Exception as e:
+            logger.error(f"Rounding failed: {e}")
+            return allocations
+    
+    def _apply_portfolio_concentration(self, allocations: dict) -> dict:
+        """
+        Apply portfolio concentration to focus on top ETFs only.
+        
+        For large universes, keep only the top 8-10 ETFs and set others to 0.
+        This creates a concentrated, manageable portfolio.
+        
+        Args:
+            allocations: Rounded allocations dictionary
+            
+        Returns:
+            Concentrated allocations dictionary
+        """
+        try:
+            # Count non-zero allocations
+            non_zero_etfs = {etf: alloc for etf, alloc in allocations.items() if alloc > 0}
+            
+            if len(non_zero_etfs) <= 8:
+                # Already concentrated enough
+                return allocations
+            
+            # Sort by allocation size and keep only top 8
+            sorted_etfs = sorted(non_zero_etfs.items(), key=lambda x: x[1], reverse=True)
+            top_8_etfs = dict(sorted_etfs[:8])
+            
+            # Create concentrated portfolio
+            concentrated_allocations = {}
+            for etf in allocations.keys():
+                if etf in top_8_etfs:
+                    concentrated_allocations[etf] = top_8_etfs[etf]
+                else:
+                    concentrated_allocations[etf] = 0.0
+            
+            # Renormalize to 100%
+            total_allocation = sum(concentrated_allocations.values())
+            if total_allocation > 0:
+                for etf in concentrated_allocations:
+                    if concentrated_allocations[etf] > 0:
+                        concentrated_allocations[etf] = (concentrated_allocations[etf] / total_allocation) * 100.0
+            
+            # Final rounding
+            for etf in concentrated_allocations:
+                concentrated_allocations[etf] = round(concentrated_allocations[etf] * 2) / 2.0
+            
+            kept_etfs = len([etf for etf, alloc in concentrated_allocations.items() if alloc > 0])
+            logger.info(f"Portfolio concentration: kept {kept_etfs} ETFs out of {len(allocations)} (target: 8)")
+            
+            return concentrated_allocations
+            
+        except Exception as e:
+            logger.error(f"Portfolio concentration failed: {e}")
+            return allocations
 
 
 # Example usage and testing

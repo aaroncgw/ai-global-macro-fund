@@ -10,6 +10,7 @@ import logging
 import os
 from datetime import datetime
 from dotenv import load_dotenv
+import pandas as pd
 
 from src.graph.macro_trading_graph import MacroTradingGraph
 from src.config import ETF_UNIVERSE
@@ -70,8 +71,27 @@ def display_comprehensive_reasoning(complete_state, allocations):
     # 1. MACRO ECONOMIC ANALYSIS
     print("\n🏛️  MACRO ECONOMIC ANALYSIS")
     print("="*50)
+    
+    # Show ETF data lookback information
+    etf_data = complete_state.get('etf_data', pd.DataFrame())
+    if not etf_data.empty:
+        # Calculate actual lookback period
+        if hasattr(etf_data.index, 'min') and hasattr(etf_data.index, 'max'):
+            start_date = etf_data.index.min()
+            end_date = etf_data.index.max()
+            years_of_data = (end_date - start_date).days / 365.25
+            print(f"📊 ETF Historical Data:")
+            print(f"  • Lookback Period: {start_date.strftime('%Y-%m-%d')} to {end_date.strftime('%Y-%m-%d')}")
+            print(f"  • Years of Data: {years_of_data:.1f} years")
+            print(f"  • ETFs Analyzed: {len(etf_data.columns.get_level_values(0).unique()) if isinstance(etf_data.columns, pd.MultiIndex) else len(etf_data.columns)}")
+            print(f"  • Data Points: {len(etf_data)} trading days")
+        else:
+            print(f"📊 ETF Historical Data: {len(etf_data)} data points available")
+    else:
+        print("📊 ETF Historical Data: No data available")
+    
     if macro_data:
-        print("📈 Key Economic Indicators:")
+        print("\n📈 Key Economic Indicators:")
         for indicator, data in macro_data.items():
             if 'error' not in data and data.get('latest_value') is not None:
                 latest_value = data.get('latest_value', 'N/A')
@@ -408,8 +428,27 @@ def save_comprehensive_report(complete_state, allocations, universe, date, durat
         # 1. MACRO ECONOMIC ANALYSIS
         f.write("🏛️  MACRO ECONOMIC ANALYSIS\n")
         f.write("="*50 + "\n")
+        
+        # Show ETF data lookback information
+        etf_data = complete_state.get('etf_data', pd.DataFrame())
+        if not etf_data.empty:
+            # Calculate actual lookback period
+            if hasattr(etf_data.index, 'min') and hasattr(etf_data.index, 'max'):
+                start_date = etf_data.index.min()
+                end_date = etf_data.index.max()
+                years_of_data = (end_date - start_date).days / 365.25
+                f.write(f"📊 ETF Historical Data:\n")
+                f.write(f"  • Lookback Period: {start_date.strftime('%Y-%m-%d')} to {end_date.strftime('%Y-%m-%d')}\n")
+                f.write(f"  • Years of Data: {years_of_data:.1f} years\n")
+                f.write(f"  • ETFs Analyzed: {len(etf_data.columns.get_level_values(0).unique()) if isinstance(etf_data.columns, pd.MultiIndex) else len(etf_data.columns)}\n")
+                f.write(f"  • Data Points: {len(etf_data)} trading days\n")
+            else:
+                f.write(f"📊 ETF Historical Data: {len(etf_data)} data points available\n")
+        else:
+            f.write("📊 ETF Historical Data: No data available\n")
+        
         if macro_data:
-            f.write("📈 Key Economic Indicators:\n")
+            f.write("\n📈 Key Economic Indicators:\n")
             for indicator, data in macro_data.items():
                 if 'error' not in data and data.get('latest_value') is not None:
                     latest_value = data.get('latest_value', 'N/A')

@@ -53,8 +53,9 @@ class MacroFetcher:
             if not self.finlight_key:
                 logger.warning("FINLIGHT_API_KEY not found in environment variables")
             
-            # Set default date range
-            self.default_start_date = '2020-01-01'
+            # Set default date range (20+ years to capture major market cycles)
+            # This includes: 2000 dot-com crash, 2008 financial crisis, COVID-19, etc.
+            self.default_start_date = '2000-01-01'  # Extended to 20+ years
             self.default_end_date = datetime.now().strftime('%Y-%m-%d')
             
             logger.info("MacroFetcher initialized successfully")

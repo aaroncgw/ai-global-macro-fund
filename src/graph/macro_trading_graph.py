@@ -5,6 +5,7 @@ LangGraph Workflow for Macro Trading System
 from langgraph.graph import StateGraph, END
 from src.agents.macro_economist import MacroEconomistAgent
 from src.agents.geopolitical_analyst import GeopoliticalAnalystAgent
+from src.agents.risk_manager import RiskManager
 from src.agents.portfolio_optimizer import PortfolioOptimizerAgent
 from src.data_fetchers.macro_fetcher import MacroFetcher
 from src.config import MACRO_INDICATORS, DEFAULT_CONFIG
@@ -25,6 +26,7 @@ class MacroTradingGraph:
         self.fetcher = MacroFetcher()
         self.macro_analyst = MacroEconomistAgent("MacroEconomist")
         self.geo_analyst = GeopoliticalAnalystAgent("GeopoliticalAnalyst")
+        self.risk_manager = RiskManager("RiskManager")
         self.optimizer = PortfolioOptimizerAgent("PortfolioOptimizer")
         
         # Build the graph
@@ -96,6 +98,17 @@ class MacroTradingGraph:
                 logger.error(f"Geopolitical analyst analysis failed: {e}")
                 return state
         
+        def risk_manager_node(state):
+            """Run risk manager assessment."""
+            try:
+                logger.info("Running risk manager assessment...")
+                result = self.risk_manager.assess(state)
+                logger.info("Risk manager assessment completed")
+                return result
+            except Exception as e:
+                logger.error(f"Risk manager assessment failed: {e}")
+                return state
+        
         
         def optimizer_node(state):
             """Run portfolio optimizer for final allocations."""
@@ -112,13 +125,15 @@ class MacroTradingGraph:
         self.graph.add_node('fetch', fetch_node)
         self.graph.add_node('macro_analyst', macro_analyst_node)
         self.graph.add_node('geo_analyst', geo_analyst_node)
+        self.graph.add_node('risk_manager', risk_manager_node)
         self.graph.add_node('optimizer', optimizer_node)
         
         # Add edges to create workflow
         self.graph.set_entry_point('fetch')
         self.graph.add_edge('fetch', 'macro_analyst')
         self.graph.add_edge('macro_analyst', 'geo_analyst')
-        self.graph.add_edge('geo_analyst', 'optimizer')
+        self.graph.add_edge('geo_analyst', 'risk_manager')
+        self.graph.add_edge('risk_manager', 'optimizer')
         self.graph.add_edge('optimizer', END)
         
         logger.info("Graph nodes and edges added successfully")

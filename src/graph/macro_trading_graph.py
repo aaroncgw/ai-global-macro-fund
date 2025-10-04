@@ -5,11 +5,7 @@ LangGraph Workflow for Macro Trading System
 from langgraph.graph import StateGraph, END
 from src.agents.macro_economist import MacroEconomistAgent
 from src.agents.geopolitical_analyst import GeopoliticalAnalystAgent
-from src.agents.correlation_specialist import CorrelationSpecialistAgent
-from src.agents.trader_agent import TraderAgent
-from src.agents.risk_manager import RiskManagerAgent
 from src.agents.portfolio_optimizer import PortfolioOptimizerAgent
-from src.agents.debate_researchers import debate
 from src.data_fetchers.macro_fetcher import MacroFetcher
 from src.config import MACRO_INDICATORS, DEFAULT_CONFIG
 import logging
@@ -29,9 +25,6 @@ class MacroTradingGraph:
         self.fetcher = MacroFetcher()
         self.macro_analyst = MacroEconomistAgent("MacroEconomist")
         self.geo_analyst = GeopoliticalAnalystAgent("GeopoliticalAnalyst")
-        self.corr_analyst = CorrelationSpecialistAgent("CorrelationSpecialist")
-        self.trader = TraderAgent("Trader")
-        self.risk_manager = RiskManagerAgent("RiskManager")
         self.optimizer = PortfolioOptimizerAgent("PortfolioOptimizer")
         
         # Build the graph
@@ -103,56 +96,6 @@ class MacroTradingGraph:
                 logger.error(f"Geopolitical analyst analysis failed: {e}")
                 return state
         
-        def corr_analyst_node(state):
-            """Run correlation specialist analysis."""
-            try:
-                logger.info("Running correlation specialist analysis...")
-                result = self.corr_analyst.analyze(state)
-                logger.info("Correlation specialist analysis completed")
-                return result
-            except Exception as e:
-                logger.error(f"Correlation specialist analysis failed: {e}")
-                return state
-        
-        # Debate node
-        def debate_node(state):
-            """Run debate between bullish and bearish researchers."""
-            try:
-                logger.info("Starting debate...")
-                state = debate(state, rounds=DEFAULT_CONFIG.get('max_debate_rounds', 2))
-                state['agent_reasoning']['debate'] = {
-                    'rounds': state.get('debate_output', []),
-                    'summary': state.get('debate_summary', 'No debate summary available'),
-                    'timestamp': pd.Timestamp.now().isoformat()
-                }
-                logger.info("Debate completed")
-                return state
-            except Exception as e:
-                logger.error(f"Debate failed: {e}")
-                return state
-        
-        # Allocation nodes
-        def trader_node(state):
-            """Run trader agent for initial allocations."""
-            try:
-                logger.info("Running trader agent...")
-                result = self.trader.propose(state)
-                logger.info("Trader agent completed")
-                return result
-            except Exception as e:
-                logger.error(f"Trader agent failed: {e}")
-                return state
-        
-        def risk_node(state):
-            """Run risk manager for risk adjustments."""
-            try:
-                logger.info("Running risk manager...")
-                result = self.risk_manager.assess(state)
-                logger.info("Risk manager completed")
-                return result
-            except Exception as e:
-                logger.error(f"Risk manager failed: {e}")
-                return state
         
         def optimizer_node(state):
             """Run portfolio optimizer for final allocations."""
@@ -169,21 +112,13 @@ class MacroTradingGraph:
         self.graph.add_node('fetch', fetch_node)
         self.graph.add_node('macro_analyst', macro_analyst_node)
         self.graph.add_node('geo_analyst', geo_analyst_node)
-        self.graph.add_node('corr_analyst', corr_analyst_node)
-        self.graph.add_node('debate', debate_node)
-        self.graph.add_node('trader', trader_node)
-        self.graph.add_node('risk', risk_node)
         self.graph.add_node('optimizer', optimizer_node)
         
         # Add edges to create workflow
         self.graph.set_entry_point('fetch')
         self.graph.add_edge('fetch', 'macro_analyst')
         self.graph.add_edge('macro_analyst', 'geo_analyst')
-        self.graph.add_edge('geo_analyst', 'corr_analyst')
-        self.graph.add_edge('corr_analyst', 'debate')
-        self.graph.add_edge('debate', 'trader')
-        self.graph.add_edge('trader', 'risk')
-        self.graph.add_edge('risk', 'optimizer')
+        self.graph.add_edge('geo_analyst', 'optimizer')
         self.graph.add_edge('optimizer', END)
         
         logger.info("Graph nodes and edges added successfully")

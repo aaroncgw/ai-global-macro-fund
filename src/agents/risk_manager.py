@@ -198,17 +198,6 @@ class RiskManager(BaseAgent):
         
         return "\n".join(formatted)
     
-    def _format_combined_scores(self, combined_scores: dict) -> str:
-        """Format combined analyst scores for the prompt."""
-        if not combined_scores:
-            return "No combined scores available"
-        
-        formatted = []
-        for etf, score in combined_scores.items():
-            formatted.append(f"  {etf}: {score:.3f}")
-        
-        return '\n'.join(formatted) if formatted else "No combined scores available"
-    
     def _format_macro_data(self, macro_data: dict) -> str:
         """Format macro data for the prompt."""
         if not macro_data:

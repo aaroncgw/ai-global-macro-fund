@@ -9,7 +9,7 @@ This revamped system transforms traditional portfolio management by using a stre
 - **Macro Economist**: Analyzes economic indicators (GDP, inflation, unemployment, interest rates) and scores ETFs
 - **Geopolitical Analyst**: Assesses geopolitical risks and opportunities from news and events
 - **Risk Manager**: Combines analyst scores and adjusts for risk factors and volatility
-- **Portfolio Agent**: Uses mathematical optimization for final allocation decisions
+- **Portfolio Manager**: LLM-driven portfolio synthesis with comprehensive reasoning and position limits
 
 ## 🏗️ System Architecture
 
@@ -22,7 +22,7 @@ This revamped system transforms traditional portfolio management by using a stre
 │ • yfinance      │    │ • Macro Analysis │    │   Allocations   │
 │ • Finlight.me   │    │ • Geo Analysis   │    │ • Reasoning     │
 │ • News APIs     │    │ • Risk Management│    │ • Rationale     │
-└─────────────────┘    │ • Portfolio Opt  │    │ • Insights     │
+└─────────────────┘    │ • Portfolio Mgmt │    │ • Insights     │
                        └──────────────────┘    └─────────────────┘
 ```
 
@@ -182,20 +182,28 @@ poetry run python src/main.py --universe SPY EWJ EWG FXI GLD TLT
 **Input**: Macro scores, geopolitical scores, ETF data, macro data
 **Output**: Risk-adjusted scores with risk levels and reasoning
 
-### 4. Portfolio Agent (`src/agents/portfolio_agent.py`)
+### 4. Portfolio Manager Agent (`src/agents/portfolio_manager.py`)
 
-**Purpose**: Uses mathematical optimization for final allocation decisions.
+**Purpose**: LLM-driven portfolio synthesis with comprehensive reasoning and position limits.
 
 **Key Responsibilities**:
-- Performs mean-variance optimization using CVXPY
-- Considers correlation matrices between ETFs
-- Applies portfolio constraints (weights sum to 1, non-negative)
-- Generates mathematically optimal allocations
-- Handles single ETF cases with risk-based allocation
-- Provides final action recommendations (buy/hold/sell)
+- Aggregates analyst scores and risk metrics from all agents
+- Uses LLM synthesis for final allocation decisions
+- Enforces position limits (maximum 20% of universe)
+- Provides comprehensive reasoning covering 8 analytical dimensions:
+  - Analyst consensus analysis
+  - Risk assessment integration
+  - Score aggregation logic
+  - Risk-return trade-off analysis
+  - Portfolio construction rationale
+  - Conviction level explanation
+  - Risk management considerations
+  - Market outlook integration
+- Focuses on highest conviction opportunities
+- Generates detailed reasoning for each allocation decision
 
-**Input**: Risk-adjusted scores, ETF correlation data
-**Output**: Final optimized allocations with actions and reasoning
+**Input**: Aggregated analyst scores, risk metrics, detailed agent reasoning
+**Output**: Final allocations with comprehensive reasoning and position limits
 
 ## 🔄 Workflow Process
 
@@ -214,8 +222,8 @@ The system follows a streamlined LangGraph workflow:
 3. Risk Management Phase
    └── Risk Manager → Combines scores and adjusts for risk factors
 
-4. Portfolio Optimization Phase
-   └── Portfolio Agent → Mathematical optimization for final allocations
+4. Portfolio Management Phase
+   └── Portfolio Manager → LLM-driven synthesis with position limits
 
 5. Output
    ├── Final allocations with actions (buy/hold/sell)

@@ -153,24 +153,14 @@ async def get_agents():
                 "description": "Assesses geopolitical risks and opportunities"
             },
             {
-                "id": "correlation_specialist",
-                "name": "Correlation Specialist", 
-                "description": "Evaluates diversification benefits and portfolio balance"
-            },
-            {
-                "id": "trader_agent",
-                "name": "Trader Agent",
-                "description": "Converts analysis into allocation proposals"
-            },
-            {
                 "id": "risk_manager",
                 "name": "Risk Manager",
                 "description": "Adjusts allocations for risk factors"
             },
             {
-                "id": "portfolio_optimizer",
-                "name": "Portfolio Optimizer",
-                "description": "Uses mathematical optimization for final allocations"
+                "id": "portfolio_manager",
+                "name": "Portfolio Manager",
+                "description": "LLM-driven portfolio synthesis with comprehensive reasoning"
             }
         ]
         return {"agents": agents}

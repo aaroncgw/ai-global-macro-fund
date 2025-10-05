@@ -229,6 +229,13 @@ MACRO_INDICATORS = [
 # Default trading horizon for the system
 DEFAULT_HORIZON = 'months_to_years'
 
+# Signal Agents Configuration
+# These are the analyst agents that provide scores for portfolio synthesis
+SIGNAL_AGENTS = [
+    'MacroEconomistAgent',
+    'GeopoliticalAnalystAgent'
+]
+
 # Default system configuration
 DEFAULT_CONFIG = {
     'llm_model': 'deepseek-chat',

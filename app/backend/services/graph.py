@@ -23,20 +23,6 @@ MACRO_AGENT_CONFIG = {
         "type": "analyst",
         "order": 1,
     },
-    "correlation_specialist": {
-        "display_name": "Correlation Specialist",
-        "description": "Evaluates diversification benefits and portfolio balance", 
-        "agent_func": "correlation_specialist_agent",
-        "type": "analyst",
-        "order": 2,
-    },
-    "trader_agent": {
-        "display_name": "Trader Agent",
-        "description": "Converts analysis into allocation proposals",
-        "agent_func": "trader_agent",
-        "type": "trader",
-        "order": 3,
-    },
     "risk_manager": {
         "display_name": "Risk Manager",
         "description": "Adjusts allocations for risk factors",
@@ -44,11 +30,11 @@ MACRO_AGENT_CONFIG = {
         "type": "risk",
         "order": 4,
     },
-    "portfolio_optimizer": {
-        "display_name": "Portfolio Optimizer",
-        "description": "Uses mathematical optimization for final allocations",
-        "agent_func": "portfolio_optimizer_agent",
-        "type": "optimizer",
+    "portfolio_manager": {
+        "display_name": "Portfolio Manager",
+        "description": "LLM-driven portfolio synthesis with comprehensive reasoning",
+        "agent_func": "portfolio_manager_agent",
+        "type": "manager",
         "order": 5,
     }
 }

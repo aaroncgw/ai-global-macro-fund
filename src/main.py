@@ -120,15 +120,15 @@ def generate_final_report(result, universe, date):
     # 5. RISK MANAGER ASSESSMENT
     add_line("\n⚠️ RISK MANAGER ASSESSMENT")
     add_line("-" * 50)
-    risk_assessments = result.get('risk_assessments', {})
-    if risk_assessments:
+    risk_metrics = result.get('risk_metrics', {})
+    if risk_metrics:
         add_line("Risk Assessments:")
-        for etf, data in risk_assessments.items():
+        for etf, data in risk_metrics.items():
             if isinstance(data, dict):
                 risk_level = data.get('risk_level', 'medium')
-                adjusted_score = data.get('adjusted_score', 0.0)
+                volatility = data.get('volatility', 0.0)
                 reason = data.get('reason', 'No reasoning provided')
-                add_line(f"  • {etf}: {risk_level.upper()} Risk (Adjusted Score: {adjusted_score:.3f})")
+                add_line(f"  • {etf}: {risk_level.upper()} Risk (Volatility: {volatility:.1%})")
                 add_line(f"    Reasoning: {reason[:100]}...")
     else:
         add_line("  • Risk assessments not available")

@@ -80,22 +80,34 @@ class PortfolioManagerAgent(BaseAgent):
                 avg_score = sum(etf_scores) / len(etf_scores) if etf_scores else 0
                 avg_scores[etf] = avg_score
             
-            # Create LLM prompt for portfolio synthesis
+            # Get detailed reasoning from all agents
+            agent_reasoning = state.get('agent_reasoning', {})
+            
+            # Calculate position limit (max 20% of universe)
+            max_positions = max(1, int(len(universe) * 0.2))
+            
+            # Create LLM prompt for portfolio synthesis with full reasoning
             prompt = f"""
-            As a hedge fund manager, synthesize the following analyst scores and risk metrics to recommend portfolio allocations for the ETF universe {universe}.
+            As a hedge fund manager, synthesize the following analyst scores, detailed reasoning, and risk metrics to recommend portfolio allocations for the ETF universe {universe}.
             
             AVERAGED ANALYST SCORES (from all agents):
             {json.dumps(avg_scores, indent=2)}
+            
+            DETAILED ANALYST REASONING:
+            {self._format_agent_reasoning(agent_reasoning)}
             
             RISK METRICS:
             {json.dumps(risks, indent=2)}
             
             PORTFOLIO SYNTHESIS REQUIREMENTS:
             1. Consider both analyst scores and risk levels for each ETF
-            2. Balance return potential with risk management
-            3. Ensure total allocations sum to 1.0 (100% of portfolio)
-            4. Consider correlations implicitly through reasoning
-            5. Provide clear reasoning for each allocation decision
+            2. Use the detailed reasoning from each analyst to understand their logic
+            3. Balance return potential with risk management
+            4. Ensure total allocations sum to 1.0 (100% of portfolio)
+            5. Consider correlations implicitly through reasoning
+            6. Provide clear reasoning for each allocation decision that references the analyst insights
+            7. POSITION LIMIT: Allocate to maximum {max_positions} ETFs only (20% of universe size)
+            8. Focus on highest conviction opportunities with best risk-adjusted returns
             
             ALLOCATION GUIDELINES:
             - High scores + Low risk = Higher allocation
@@ -108,10 +120,21 @@ class PortfolioManagerAgent(BaseAgent):
             - Medium risk: Moderate allocations with monitoring
             - High risk: Lower allocations or avoid
             
-            Output format (JSON):
-            {{"ETF": {{"action": "buy/sell/hold", "allocation": 0.0-1.0, "reason": "detailed explanation"}}}}
+            COMPREHENSIVE REASONING REQUIREMENTS:
+            For each allocation decision, provide detailed reasoning that includes:
+            1. Analyst consensus analysis (what the macro and geopolitical analysts concluded)
+            2. Risk assessment integration (how risk manager's assessment influenced the decision)
+            3. Score aggregation logic (how averaged scores were interpreted)
+            4. Risk-return trade-off analysis (balancing potential returns with identified risks)
+            5. Portfolio construction rationale (why this allocation fits the overall portfolio)
+            6. Conviction level explanation (why this position size was chosen)
+            7. Risk management considerations (how risks are being managed)
+            8. Market outlook integration (how current market conditions influenced the decision)
             
-            Ensure all ETF allocations sum to 1.0 and provide clear reasoning for each decision.
+            Output format (JSON):
+            {{"ETF": {{"action": "buy/sell/hold", "allocation": 0.0-1.0, "reason": "comprehensive detailed explanation covering all reasoning requirements above"}}}}
+            
+            Ensure all ETF allocations sum to 1.0, focus on top {max_positions} opportunities, and provide comprehensive reasoning for each decision.
             """
             
             # Get LLM response
@@ -119,6 +142,9 @@ class PortfolioManagerAgent(BaseAgent):
             
             # Parse the structured response
             final_allocations = self._parse_allocations(response, universe)
+            
+            # Enforce position limit (max 20% of universe)
+            final_allocations = self._enforce_position_limit(final_allocations, max_positions)
             
             # Store final allocations in state
             state['final_allocations'] = final_allocations
@@ -213,6 +239,116 @@ class PortfolioManagerAgent(BaseAgent):
         except (json.JSONDecodeError, ValueError, KeyError) as e:
             logger.error(f"Failed to parse allocations from response: {e}")
             return {etf: {'action': 'hold', 'allocation': 0.0, 'reason': f'Parse error: {str(e)}'} for etf in universe}
+    
+    def _format_agent_reasoning(self, agent_reasoning: dict) -> str:
+        """
+        Format detailed reasoning from all agents for the LLM prompt.
+        
+        Args:
+            agent_reasoning: Dictionary with reasoning from all agents
+            
+        Returns:
+            Formatted string with all agent reasoning
+        """
+        if not agent_reasoning:
+            return "No detailed reasoning available from agents"
+        
+        formatted = []
+        for agent_name, reasoning_data in agent_reasoning.items():
+            if isinstance(reasoning_data, dict):
+                formatted.append(f"\n{agent_name.upper().replace('_', ' ')} REASONING:")
+                formatted.append(f"  Summary: {reasoning_data.get('reasoning', 'No summary available')}")
+                
+                # Add specific scores/reasoning for each ETF
+                if 'macro_scores' in reasoning_data:
+                    scores = reasoning_data['macro_scores']
+                    formatted.append("  ETF Analysis:")
+                    for etf, data in scores.items():
+                        if isinstance(data, dict):
+                            score = data.get('score', 0)
+                            confidence = data.get('confidence', 0)
+                            reason = data.get('reason', 'No reasoning')
+                            formatted.append(f"    {etf}: Score {score:.3f} (Confidence: {confidence:.1%}) - {reason[:100]}...")
+                
+                elif 'geo_scores' in reasoning_data:
+                    scores = reasoning_data['geo_scores']
+                    formatted.append("  ETF Analysis:")
+                    for etf, data in scores.items():
+                        if isinstance(data, dict):
+                            score = data.get('score', 0)
+                            confidence = data.get('confidence', 0)
+                            reason = data.get('reason', 'No reasoning')
+                            formatted.append(f"    {etf}: Score {score:.3f} (Confidence: {confidence:.1%}) - {reason[:100]}...")
+                
+                elif 'risk_metrics' in reasoning_data:
+                    metrics = reasoning_data['risk_metrics']
+                    formatted.append("  Risk Assessment:")
+                    for etf, data in metrics.items():
+                        if isinstance(data, dict):
+                            risk_level = data.get('risk_level', 'unknown')
+                            volatility = data.get('volatility', 0)
+                            reason = data.get('reason', 'No reasoning')
+                            formatted.append(f"    {etf}: {risk_level.upper()} Risk (Vol: {volatility:.1%}) - {reason[:100]}...")
+                
+                # Add key factors
+                key_factors = reasoning_data.get('key_factors', [])
+                if key_factors:
+                    formatted.append(f"  Key Factors: {', '.join(key_factors[:5])}")
+        
+        return '\n'.join(formatted) if formatted else "No detailed reasoning available"
+    
+    def _enforce_position_limit(self, allocations: dict, max_positions: int) -> dict:
+        """
+        Enforce position limit by keeping only the top allocations.
+        
+        Args:
+            allocations: Dictionary with ETF allocations
+            max_positions: Maximum number of positions allowed
+            
+        Returns:
+            Dictionary with position limit enforced
+        """
+        try:
+            # Filter out zero allocations and sort by allocation size
+            active_allocations = {etf: data for etf, data in allocations.items() 
+                                if data.get('allocation', 0) > 0}
+            
+            if len(active_allocations) <= max_positions:
+                return allocations
+            
+            # Sort by allocation size (descending)
+            sorted_allocations = sorted(active_allocations.items(), 
+                                     key=lambda x: x[1].get('allocation', 0), 
+                                     reverse=True)
+            
+            # Keep only top positions
+            top_allocations = dict(sorted_allocations[:max_positions])
+            
+            # Set all other positions to hold with 0 allocation
+            result = {}
+            for etf, data in allocations.items():
+                if etf in top_allocations:
+                    result[etf] = data
+                else:
+                    result[etf] = {
+                        'action': 'hold',
+                        'allocation': 0.0,
+                        'reason': f'Position limit enforced - not in top {max_positions} opportunities'
+                    }
+            
+            # Renormalize allocations to sum to 1.0
+            total_allocation = sum(data.get('allocation', 0) for data in result.values())
+            if total_allocation > 0:
+                for etf in result:
+                    if result[etf].get('allocation', 0) > 0:
+                        result[etf]['allocation'] /= total_allocation
+            
+            logger.info(f"Position limit enforced: {len(top_allocations)} positions from {len(active_allocations)} candidates")
+            return result
+            
+        except Exception as e:
+            logger.error(f"Position limit enforcement failed: {e}")
+            return allocations
 
 
 # Example usage and testing

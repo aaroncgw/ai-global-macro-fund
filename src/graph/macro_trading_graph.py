@@ -11,7 +11,7 @@ from src.agents.geopolitical_analyst import GeopoliticalAnalystAgent
 from src.agents.risk_manager import RiskManager
 from src.agents.portfolio_manager import PortfolioManagerAgent
 from src.data_fetchers.macro_fetcher import MacroFetcher
-from src.config import MACRO_INDICATORS, DEFAULT_CONFIG
+from src.config import MACRO_INDICATORS, DEFAULT_CONFIG, SIGNAL_AGENTS
 import logging
 import pandas as pd
 
@@ -72,28 +72,45 @@ class MacroTradingGraph:
                 state['agent_reasoning'] = {}
                 return state
         
-        # Add nodes to graph - simplified workflow
+        # Add nodes to graph - dynamic signal agents workflow
         self.graph.add_node('fetch', fetch_node)
-        self.graph.add_node('macro_analyst', MacroEconomistAgent().analyze)
-        self.graph.add_node('geo_analyst', GeopoliticalAnalystAgent().analyze)
-        self.graph.add_node('risk', RiskManager().assess)
-        self.graph.add_node('aggregate_scores', self._aggregate_scores)
-        self.graph.add_node('portfolio', PortfolioManagerAgent().manage)
         
-        # Add edges to create workflow
-        self.graph.set_entry_point('fetch')
-        self.graph.add_edge('fetch', 'macro_analyst')
-        self.graph.add_edge('macro_analyst', 'geo_analyst')
-        self.graph.add_edge('geo_analyst', 'risk')
+        # Add dynamic signal agents
+        prev_node = 'fetch'
+        for agent_class_name in SIGNAL_AGENTS:
+            # Get the agent class dynamically
+            if agent_class_name == 'MacroEconomistAgent':
+                agent_class = MacroEconomistAgent
+            elif agent_class_name == 'GeopoliticalAnalystAgent':
+                agent_class = GeopoliticalAnalystAgent
+            else:
+                logger.warning(f"Unknown signal agent: {agent_class_name}")
+                continue
+            
+            agent_name = agent_class_name.lower().replace('agent', '')
+            self.graph.add_node(agent_name, agent_class().analyze)
+            self.graph.add_edge(prev_node, agent_name)
+            prev_node = agent_name
+        
+        # Add risk and portfolio nodes
+        self.graph.add_node('risk', RiskManager().assess)
+        self.graph.add_edge(prev_node, 'risk')
+        
+        self.graph.add_node('aggregate_scores', self._aggregate_scores)
         self.graph.add_edge('risk', 'aggregate_scores')
+        
+        self.graph.add_node('portfolio', PortfolioManagerAgent().manage)
         self.graph.add_edge('aggregate_scores', 'portfolio')
         self.graph.add_edge('portfolio', END)
+        
+        # Set entry point
+        self.graph.set_entry_point('fetch')
         
         logger.info("Graph nodes and edges added successfully")
     
     def _aggregate_scores(self, state):
         """
-        Aggregate scores from all analyst agents into a unified scores dictionary.
+        Aggregate scores from all signal agents into a unified scores dictionary.
         
         Args:
             state: LangGraph state dictionary
@@ -102,20 +119,26 @@ class MacroTradingGraph:
             Updated state with aggregated scores
         """
         try:
-            # Extract scores from analyst agents
-            macro_scores = state.get('macro_scores', {})
-            geo_scores = state.get('geo_scores', {})
+            # Extract scores from all signal agents dynamically
+            scores = {}
             
-            # Aggregate scores from all agents
-            scores = {
-                'macro_economist': macro_scores,
-                'geopolitical_analyst': geo_scores
+            # Map agent class names to their score keys in state
+            agent_score_mapping = {
+                'MacroEconomistAgent': 'macro_scores',
+                'GeopoliticalAnalystAgent': 'geo_scores'
             }
+            
+            for agent_class_name in SIGNAL_AGENTS:
+                score_key = agent_score_mapping.get(agent_class_name)
+                if score_key and score_key in state:
+                    # Convert class name to agent name for scores dict
+                    agent_name = agent_class_name.lower().replace('agent', '')
+                    scores[agent_name] = state[score_key]
             
             # Store aggregated scores in state
             state['scores'] = scores
             
-            logger.info(f"Score aggregation completed for {len(scores)} agents")
+            logger.info(f"Score aggregation completed for {len(scores)} signal agents")
             return state
             
         except Exception as e:

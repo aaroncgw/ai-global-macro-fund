@@ -77,7 +77,7 @@ poetry run python src/graph/test_complete_workflow.py
 poetry run python src/agents/macro_economist.py
 poetry run python src/agents/geopolitical_analyst.py
 poetry run python src/agents/risk_manager.py
-poetry run python src/agents/portfolio_agent.py
+poetry run python src/agents/portfolio_manager.py
 
 # Test allocation agents
 poetry run python tests/agents/test_allocation_agents.py
@@ -183,7 +183,7 @@ src/
 │   ├── macro_economist.py    # Macro analysis
 │   ├── geopolitical_analyst.py # Geo analysis
 │   ├── risk_manager.py       # Risk assessment
-│   └── portfolio_agent.py    # Portfolio optimization
+│   └── portfolio_manager.py # Portfolio management
 ├── data_fetchers/            # Data sources
 │   └── macro_fetcher.py       # Unified data fetching
 ├── graph/                     # Workflow orchestration
@@ -207,7 +207,7 @@ src/
    └── Risk Manager → Risk-adjusted scores
 
 4. Portfolio Optimization Phase
-   └── Portfolio Agent → Final allocations
+   └── Portfolio Manager → Final allocations
 
 5. Output
    ├── Final allocations
@@ -222,7 +222,7 @@ src/
 | Macro Economist | Economic analysis | Macro data, ETF data | ETF scores (-1 to 1) |
 | Geopolitical Analyst | Geo risk analysis | News data, events | ETF scores (-1 to 1) |
 | Risk Manager | Risk assessment | Macro scores, geo scores | Risk-adjusted scores |
-| Portfolio Agent | Mathematical optimization | Risk-adjusted scores | Final allocations |
+| Portfolio Manager | LLM-driven synthesis | Risk-adjusted scores | Final allocations |
 
 ## 📈 Output Quick Reference
 

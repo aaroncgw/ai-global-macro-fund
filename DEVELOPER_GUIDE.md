@@ -13,7 +13,7 @@ src/
 │   ├── macro_economist.py # Macro economic analysis
 │   ├── geopolitical_analyst.py # Geopolitical risk analysis
 │   ├── risk_manager.py    # Risk assessment
-│   └── portfolio_agent.py # Portfolio optimization
+│   └── portfolio_manager.py # Portfolio management
 ├── data_fetchers/         # Data source integrations
 │   └── macro_fetcher.py   # Unified data fetching
 ├── graph/                 # LangGraph workflow orchestration

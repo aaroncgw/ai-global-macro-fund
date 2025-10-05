@@ -65,6 +65,27 @@ class RiskManager(BaseAgent):
             news = state.get('news', [])
             universe = state.get('universe', [])
             
+            # Calculate actual volatility for each ETF
+            etf_volatilities = {}
+            if not etf_data.empty:
+                for etf in universe:
+                    if etf in etf_data.columns:
+                        returns = etf_data[etf].pct_change().dropna()
+                        if len(returns) > 0:
+                            volatility = returns.std() * (252 ** 0.5)  # Annualized volatility
+                            # Ensure volatility is a float, not a pandas Series
+                            if hasattr(volatility, 'iloc'):
+                                volatility = float(volatility.iloc[0]) if len(volatility) > 0 else 0.0
+                            else:
+                                volatility = float(volatility)
+                            etf_volatilities[etf] = round(volatility, 4)
+                        else:
+                            etf_volatilities[etf] = 0.0
+                    else:
+                        etf_volatilities[etf] = 0.0
+            else:
+                etf_volatilities = {etf: 0.0 for etf in universe}
+            
             # Create risk assessment prompt with news input
             prompt = f"""
             Independent of analyst scores, assess risks for each ETF in {universe} using macro data, ETF data, and geopolitical/financial news for text-based insights.
@@ -75,12 +96,15 @@ class RiskManager(BaseAgent):
             ETF PERFORMANCE DATA:
             {self._format_etf_performance(etf_data, universe)}
             
+            CALCULATED VOLATILITIES (Annualized):
+            {json.dumps(etf_volatilities, indent=2, default=str)}
+            
             GEOPOLITICAL AND FINANCIAL NEWS:
             {self._format_news_for_risk_assessment(news)}
             
             RISK ASSESSMENT REQUIREMENTS:
             1. For each ETF, determine risk level: "low", "medium", or "high"
-            2. Calculate volatility as standard deviation of returns (use historical data if available)
+            2. Use the provided volatility calculations (already calculated from historical data)
             3. Provide detailed reasoning for risk assessment based on macro factors, news impact, and volatility
             
             RISK LEVEL CRITERIA:
@@ -121,10 +145,17 @@ class RiskManager(BaseAgent):
             """
             
             # Get LLM response
-            response = self.llm(prompt)
+            try:
+                response = self.llm(prompt)
+            except Exception as e:
+                logger.error(f"LLM call failed: {e}")
+                # Return neutral risk metrics on error
+                neutral_metrics = {etf: {'risk_level': 'medium', 'volatility': etf_volatilities.get(etf, 0.0), 'reason': f'LLM call failed: {str(e)}'} for etf in universe}
+                state['risk_metrics'] = neutral_metrics
+                return state
             
             # Parse the structured response
-            risk_metrics = self._parse_risk_metrics(response, universe)
+            risk_metrics = self._parse_risk_metrics(response, universe, etf_volatilities)
             
             # Store risk metrics in state
             state['risk_metrics'] = risk_metrics
@@ -284,7 +315,7 @@ class RiskManager(BaseAgent):
             logger.error(f"Failed to parse risk assessments from response: {e}")
             return {etf: {'risk_level': 'medium', 'adjusted_score': 0.0, 'reason': f'Parse error: {str(e)}'} for etf in universe}
     
-    def _parse_risk_metrics(self, response: str, universe: list) -> dict:
+    def _parse_risk_metrics(self, response: str, universe: list, etf_volatilities: dict) -> dict:
         """
         Parse structured risk metrics from LLM response.
         
@@ -311,15 +342,13 @@ class RiskManager(BaseAgent):
                     if etf in metrics and isinstance(metrics[etf], dict):
                         etf_data = metrics[etf]
                         risk_level = str(etf_data.get('risk_level', 'medium')).lower()
-                        volatility = float(etf_data.get('volatility', 0.0))
+                        # Use calculated volatility instead of parsing from LLM
+                        volatility = etf_volatilities.get(etf, 0.0)
                         reason = str(etf_data.get('reason', 'No reasoning provided'))
                         
                         # Validate risk level
                         if risk_level not in ['low', 'medium', 'high']:
                             risk_level = 'medium'
-                        
-                        # Ensure volatility is non-negative
-                        volatility = max(0.0, volatility)
                         
                         validated_metrics[etf] = {
                             'risk_level': risk_level,
@@ -330,18 +359,18 @@ class RiskManager(BaseAgent):
                         # Default values for missing ETFs
                         validated_metrics[etf] = {
                             'risk_level': 'medium',
-                            'volatility': 0.0,
+                            'volatility': etf_volatilities.get(etf, 0.0),
                             'reason': 'No risk assessment available'
                         }
                 
                 return validated_metrics
             else:
                 logger.warning("No JSON found in LLM response")
-                return {etf: {'risk_level': 'medium', 'volatility': 0.0, 'reason': 'No JSON response'} for etf in universe}
+                return {etf: {'risk_level': 'medium', 'volatility': etf_volatilities.get(etf, 0.0), 'reason': 'No JSON response'} for etf in universe}
                 
         except (json.JSONDecodeError, ValueError, KeyError) as e:
             logger.error(f"Failed to parse risk metrics from response: {e}")
-            return {etf: {'risk_level': 'medium', 'volatility': 0.0, 'reason': f'Parse error: {str(e)}'} for etf in universe}
+            return {etf: {'risk_level': 'medium', 'volatility': etf_volatilities.get(etf, 0.0), 'reason': f'Parse error: {str(e)}'} for etf in universe}
 
 
 # Example usage and testing

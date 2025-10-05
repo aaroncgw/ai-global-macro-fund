@@ -178,7 +178,7 @@ def generate_final_report(result, universe, date):
             if isinstance(reasoning, dict):
                 for key, value in reasoning.items():
                     if key != 'timestamp':
-                        add_line(f"  • {key}: {str(value)[:100]}...")
+                        add_line(f"  • {key}: {str(value)}")
     
     # 9. FINAL RECOMMENDATIONS
     add_line("\n🎯 FINAL RECOMMENDATIONS")

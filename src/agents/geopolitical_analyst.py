@@ -48,31 +48,8 @@ class GeopoliticalAnalystAgent(BaseAgent):
             news = state.get('news', [])
             universe = state.get('universe', [])
             
-            # Create analysis prompt for batch processing
-            prompt = f"""
-            For each ETF in {universe}, assess geopolitical news {news} impact.
-            
-            GEOPOLITICAL NEWS ANALYSIS:
-            {self._format_news_data_comprehensive(news)}
-            
-            ANALYSIS REQUIREMENTS:
-            1. For each ETF, provide a score from -1 (strong sell) to 1 (strong buy)
-            2. Provide confidence level from 0 (no confidence) to 1 (high confidence)
-            3. Provide detailed reasoning for each score based on geopolitical factors
-            4. Consider regional risks, trade tensions, currency impacts, and safe haven flows
-            5. Assess both immediate shocks and longer-term structural shifts
-            
-            GEOPOLITICAL FACTORS TO CONSIDER:
-            - Regional conflicts and political instability
-            - Trade tensions and sanctions
-            - Currency volatility and central bank policies
-            - Commodity supply disruptions
-            - Safe haven flows during crises
-            - Country-specific economic outlooks
-            
-            Output dict format:
-            {{"ETF": {{"score": -1 to 1, "confidence": 0-1, "reason": "detailed explanation"}}}}
-            """
+            # Use the comprehensive analysis framework (now includes all requirements)
+            prompt = self._create_geopolitical_analysis_prompt(news, universe)
             
             # Get LLM response
             response = self.llm(prompt)
@@ -165,23 +142,26 @@ class GeopoliticalAnalystAgent(BaseAgent):
         - 2016-2020: Brexit, US-China trade war, COVID-19 pandemic
         - 2021-2025: Post-COVID recovery, Russia-Ukraine war, inflation surge, deglobalization
         
-        SCORING INSTRUCTIONS:
+        ANALYSIS FRAMEWORK & REQUIREMENTS:
         - Synthesize ALL {len(news_data)} articles to identify the dominant geopolitical themes
         - Compare current events to historical precedents and cycles
-        - Score each ETF from -1.0 (strong sell) to 1.0 (strong buy)
-        - Base scores on:
+        - Use 25-year historical perspective to assess if current risks are cyclical or structural
+        - Consider both immediate shocks and longer-term structural shifts
+        
+        For each ETF, provide:
+        - Score from -1.0 (strong sell) to 1.0 (strong buy) based on:
           * Severity and persistence of geopolitical risks (vs historical norms)
           * Regional exposure to conflicts/crises (learning from past crises)
           * Safe haven characteristics (how they performed in past crises)
           * Currency and commodity exposure (historical volatility patterns)
-        - Consider both immediate shocks and longer-term structural shifts
-        - Use 25-year historical perspective to assess if current risks are cyclical or structural
+        - Confidence level from 0.0 (no confidence) to 1.0 (high confidence)
+        - Detailed reasoning based on geopolitical factors above
         - Differentiate scores meaningfully - not all ETFs should be neutral
         
         ETFs TO SCORE: {', '.join(universe)}
         
-        Return ONLY a JSON object with ETF scores (differentiated, not all zeros):
-        {{"SPY": 0.1, "EWJ": -0.2, "GLD": 0.3, "TLT": 0.2, "FXI": -0.4, ...}}
+        Output dict format:
+        {{"ETF": {{"score": -1 to 1, "confidence": 0-1, "reason": "detailed explanation"}}}}
         """
         return prompt
     

@@ -50,26 +50,8 @@ class MacroEconomistAgent(BaseAgent):
             etf_data = state.get('etf_data', pd.DataFrame())
             universe = state.get('universe', [])
             
-            # Create analysis prompt for batch processing
-            prompt = f"""
-            For each ETF in {universe}, analyze macro data {macro_data} and returns {etf_data.pct_change().tail(252) if not etf_data.empty else 'No ETF data available'}.
-            
-            MACRO ECONOMIC INDICATORS:
-            {self._format_macro_indicators(macro_data)}
-            
-            ETF RETURNS (252-day historical):
-            {self._format_etf_returns(etf_data.pct_change().tail(252) if not etf_data.empty else pd.DataFrame(), universe)}
-            
-            ANALYSIS REQUIREMENTS:
-            1. For each ETF, provide a score from -1 (strong sell) to 1 (strong buy)
-            2. Provide confidence level from 0 (no confidence) to 1 (high confidence)
-            3. Provide detailed reasoning for each score based on macro factors
-            4. Consider inflation impact, interest rates, economic growth, currency strength
-            5. Focus on {DEFAULT_HORIZON} horizon
-            
-            Output dict format:
-            {{"ETF": {{"score": -1 to 1, "confidence": 0-1, "reason": "detailed explanation"}}}}
-            """
+            # Use the comprehensive analysis framework (now includes all requirements)
+            prompt = self._create_macro_analysis_prompt(macro_data, etf_data, universe)
             
             # Get LLM response
             response = self.llm(prompt)
@@ -129,22 +111,23 @@ class MacroEconomistAgent(BaseAgent):
         ETF RETURNS (25-year historical analysis):
         {etf_summary}
         
-        ANALYSIS FRAMEWORK:
+        ANALYSIS FRAMEWORK & REQUIREMENTS:
         1. Inflation Impact: How does current inflation affect bonds (TLT, IEF) vs commodities (GLD, SLV)?
         2. Interest Rate Environment: Impact on bond ETFs vs equity ETFs
         3. Economic Growth: Which regions/sectors benefit from current growth trends?
         4. Currency Strength: Impact on international ETFs (EWJ, EWG, etc.)
         5. Economic Cycle Position: Where are we in the cycle and what assets perform best?
         
-        SCORING CRITERIA:
-        - Score each ETF from -1.0 (strong sell) to 1.0 (strong buy)
-        - Consider macro trends, inflation, rates, growth, and currency factors
+        For each ETF, provide:
+        - Score from -1.0 (strong sell) to 1.0 (strong buy)
+        - Confidence level from 0.0 (no confidence) to 1.0 (high confidence)
+        - Detailed reasoning based on macro factors above
         - Focus on {DEFAULT_HORIZON} horizon
         
         ETFs TO SCORE: {', '.join(universe)}
         
-        Return ONLY a JSON object with ETF scores:
-        {{"SPY": 0.2, "QQQ": 0.1, "TLT": -0.3, ...}}
+        Output dict format:
+        {{"ETF": {{"score": -1 to 1, "confidence": 0-1, "reason": "detailed explanation"}}}}
         """
         return prompt
     

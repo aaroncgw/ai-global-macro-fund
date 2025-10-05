@@ -46,40 +46,28 @@ class RiskManager(BaseAgent):
     
     def assess(self, state: dict) -> dict:
         """
-        Assess risks and adjust scores for ETFs based on combined analyst scores.
+        Assess risks for ETFs using macro data, ETF data, and news for text-based risk understanding.
         
         Args:
             state: LangGraph state dictionary containing:
-                - macro_scores: Macro economist scores
-                - geo_scores: Geopolitical analyst scores
                 - macro_data: Macro economic indicators
                 - etf_data: ETF price data
+                - news: Geopolitical and financial news
                 - universe: List of ETFs to assess
                 
         Returns:
-            Updated state dictionary with risk assessments
+            Updated state dictionary with risk metrics
         """
         try:
             # Extract data from state
-            macro_scores = state.get('macro_scores', {})
-            geo_scores = state.get('geo_scores', {})
             macro_data = state.get('macro_data', {})
             etf_data = state.get('etf_data', pd.DataFrame())
+            news = state.get('news', [])
             universe = state.get('universe', [])
             
-            # Combine analyst scores (simple average for now)
-            combined = {}
-            for etf in universe:
-                macro_score = macro_scores.get(etf, {'score': 0}).get('score', 0)
-                geo_score = geo_scores.get(etf, {'score': 0}).get('score', 0)
-                combined[etf] = (macro_score + geo_score) / 2
-            
-            # Create risk assessment prompt
+            # Create risk assessment prompt with news input
             prompt = f"""
-            For each ETF, assess risks on combined scores {combined}, macro_data {macro_data}, etf_data {etf_data.pct_change().tail(252) if not etf_data.empty else 'No ETF data available'}.
-            
-            COMBINED ANALYST SCORES:
-            {self._format_combined_scores(combined)}
+            Independent of analyst scores, assess risks for each ETF in {universe} using macro data, ETF data, and geopolitical/financial news for text-based insights.
             
             MACRO ECONOMIC DATA:
             {self._format_macro_data(macro_data)}
@@ -87,50 +75,58 @@ class RiskManager(BaseAgent):
             ETF PERFORMANCE DATA:
             {self._format_etf_performance(etf_data, universe)}
             
+            GEOPOLITICAL AND FINANCIAL NEWS:
+            {self._format_news_for_risk_assessment(news)}
+            
             RISK ASSESSMENT REQUIREMENTS:
             1. For each ETF, determine risk level: "low", "medium", or "high"
-            2. Adjust the combined score based on risk factors
-            3. Provide detailed reasoning for risk assessment
-            4. Consider volatility, correlation, macro risks, and position sizing
-            
-            RISK FACTORS TO CONSIDER:
-            - Volatility and price stability
-            - Correlation with other assets
-            - Macro economic sensitivity
-            - Geopolitical risk exposure
-            - Liquidity and market depth
-            - Concentration risk
-            - Drawdown potential
+            2. Calculate volatility as standard deviation of returns (use historical data if available)
+            3. Provide detailed reasoning for risk assessment based on macro factors, news impact, and volatility
             
             RISK LEVEL CRITERIA:
             - LOW: Stable, diversified, low volatility, strong fundamentals
             - MEDIUM: Moderate volatility, some concentration risk, mixed fundamentals
             - HIGH: High volatility, concentrated exposure, weak fundamentals, high correlation
             
-            SCORE ADJUSTMENT RULES:
-            - Low risk: Maintain or slightly boost score
-            - Medium risk: Moderate score reduction (0.1-0.3 points)
-            - High risk: Significant score reduction (0.3-0.5 points)
+            MACRO RISK FACTORS TO CONSIDER:
+            - Inflation impact on bonds vs commodities
+            - Interest rate sensitivity
+            - Currency volatility and competitive devaluations
+            - Regional economic stability
+            - Trade tensions and geopolitical conflicts
+            - Central bank policy differences
+            - Commodity supply disruptions
+            - Safe haven flows during uncertainty
+            
+            NEWS-BASED RISK FACTORS:
+            - Geopolitical tensions affecting specific regions
+            - Trade wars and tariff impacts
+            - Currency wars and competitive devaluations
+            - Central bank policy changes
+            - Commodity supply disruptions
+            - Political instability
+            - Economic sanctions
+            - Market sentiment shifts
             
             Output dict format:
-            {{"ETF": {{"risk_level": "low/medium/high", "adjusted_score": -1 to 1, "reason": "detailed explanation"}}}}
+            {{"ETF": {{"risk_level": "low/medium/high", "volatility": float, "reason": "detailed explanation"}}}}
             """
             
             # Get LLM response
             response = self.llm(prompt)
             
             # Parse the structured response
-            risk_assessments = self._parse_risk_assessments(response, universe)
+            risk_metrics = self._parse_risk_metrics(response, universe)
             
-            # Store risk assessments in state
-            state['risk_assessments'] = risk_assessments
+            # Store risk metrics in state
+            state['risk_metrics'] = risk_metrics
             
             # Store detailed reasoning
             state['agent_reasoning'] = state.get('agent_reasoning', {})
             state['agent_reasoning']['risk_manager'] = {
-                'risk_assessments': risk_assessments,
-                'reasoning': f"Risk assessment based on combined scores from {len(macro_scores)} macro and {len(geo_scores)} geo analysts",
-                'key_factors': ['combined_scores', 'macro_data', 'etf_performance', 'volatility'],
+                'risk_metrics': risk_metrics,
+                'reasoning': f"Independent risk assessment based on macro data, ETF data, and {len(news)} news articles for {len(universe)} ETFs",
+                'key_factors': ['macro_risks', 'geopolitical_risks', 'volatility', 'news_impact'],
                 'timestamp': pd.Timestamp.now().isoformat()
             }
             
@@ -139,10 +135,29 @@ class RiskManager(BaseAgent):
             
         except Exception as e:
             logger.error(f"Risk assessment failed: {e}")
-            # Return neutral risk assessments on error
-            neutral_assessments = {etf: {'risk_level': 'medium', 'adjusted_score': 0.0, 'reason': 'Risk assessment failed due to error'} for etf in state.get('universe', [])}
-            state['risk_assessments'] = neutral_assessments
+            # Return neutral risk metrics on error
+            neutral_metrics = {etf: {'risk_level': 'medium', 'volatility': 0.0, 'reason': 'Risk assessment failed due to error'} for etf in state.get('universe', [])}
+            state['risk_metrics'] = neutral_metrics
             return state
+    
+    def _format_news_for_risk_assessment(self, news: list) -> str:
+        """Format news data for risk assessment prompt."""
+        if not news:
+            return "No news data available"
+        
+        formatted = []
+        for i, article in enumerate(news[:10], 1):  # Limit to top 10 articles
+            title = article.get('title', 'No title')
+            summary = article.get('summary', 'No summary')
+            sentiment = article.get('sentiment', 'neutral')
+            impact = article.get('impact', 'medium')
+            
+            formatted.append(f"{i}. {title}")
+            formatted.append(f"   Summary: {summary[:200]}...")
+            formatted.append(f"   Sentiment: {sentiment}, Impact: {impact}")
+            formatted.append("")
+        
+        return "\n".join(formatted)
     
     def _format_combined_scores(self, combined_scores: dict) -> str:
         """Format combined analyst scores for the prompt."""
@@ -260,6 +275,65 @@ class RiskManager(BaseAgent):
         except (json.JSONDecodeError, ValueError, KeyError) as e:
             logger.error(f"Failed to parse risk assessments from response: {e}")
             return {etf: {'risk_level': 'medium', 'adjusted_score': 0.0, 'reason': f'Parse error: {str(e)}'} for etf in universe}
+    
+    def _parse_risk_metrics(self, response: str, universe: list) -> dict:
+        """
+        Parse structured risk metrics from LLM response.
+        
+        Args:
+            response: LLM response string
+            universe: List of ETFs to assess
+            
+        Returns:
+            Dictionary with risk metrics
+        """
+        try:
+            # Try to extract JSON from response
+            if '{' in response and '}' in response:
+                # Find JSON part
+                start = response.find('{')
+                end = response.rfind('}') + 1
+                json_str = response[start:end]
+                
+                metrics = json.loads(json_str)
+                
+                # Validate and structure metrics
+                validated_metrics = {}
+                for etf in universe:
+                    if etf in metrics and isinstance(metrics[etf], dict):
+                        etf_data = metrics[etf]
+                        risk_level = str(etf_data.get('risk_level', 'medium')).lower()
+                        volatility = float(etf_data.get('volatility', 0.0))
+                        reason = str(etf_data.get('reason', 'No reasoning provided'))
+                        
+                        # Validate risk level
+                        if risk_level not in ['low', 'medium', 'high']:
+                            risk_level = 'medium'
+                        
+                        # Ensure volatility is non-negative
+                        volatility = max(0.0, volatility)
+                        
+                        validated_metrics[etf] = {
+                            'risk_level': risk_level,
+                            'volatility': volatility,
+                            'reason': reason
+                        }
+                    else:
+                        # Default values for missing ETFs
+                        validated_metrics[etf] = {
+                            'risk_level': 'medium',
+                            'volatility': 0.0,
+                            'reason': 'No risk assessment available'
+                        }
+                
+                return validated_metrics
+            else:
+                logger.warning("No JSON found in LLM response")
+                return {etf: {'risk_level': 'medium', 'volatility': 0.0, 'reason': 'No JSON response'} for etf in universe}
+                
+        except (json.JSONDecodeError, ValueError, KeyError) as e:
+            logger.error(f"Failed to parse risk metrics from response: {e}")
+            return {etf: {'risk_level': 'medium', 'volatility': 0.0, 'reason': f'Parse error: {str(e)}'} for etf in universe}
 
 
 # Example usage and testing
@@ -274,43 +348,48 @@ if __name__ == "__main__":
         print(f"  Specialization: {agent.specialization}")
         print(f"  Provider: {agent.get_provider_info()['provider']}")
         
-        # Test with sample state
+        # Test with sample state (independent risk assessment)
         sample_state = {
-            'macro_scores': {
-                'SPY': {'score': 0.3, 'confidence': 0.8, 'reason': 'Positive macro trends'},
-                'QQQ': {'score': 0.5, 'confidence': 0.7, 'reason': 'Tech growth outlook'},
-                'TLT': {'score': -0.2, 'confidence': 0.6, 'reason': 'Rising rates pressure'}
-            },
-            'geo_scores': {
-                'SPY': {'score': 0.1, 'confidence': 0.5, 'reason': 'US stability'},
-                'QQQ': {'score': 0.2, 'confidence': 0.6, 'reason': 'Tech resilience'},
-                'TLT': {'score': 0.4, 'confidence': 0.7, 'reason': 'Safe haven demand'}
-            },
             'macro_data': {
                 'CPIAUCSL': {'latest_value': 300.0, 'trend': 'increasing'},
-                'UNRATE': {'latest_value': 3.5, 'trend': 'stable'}
+                'UNRATE': {'latest_value': 3.5, 'trend': 'stable'},
+                'FEDFUNDS': {'latest_value': 5.25, 'trend': 'increasing'}
             },
             'etf_data': pd.DataFrame({
                 'SPY': [100, 101, 102, 103, 104],
-                'QQQ': [200, 201, 202, 203, 204],
-                'TLT': [150, 149, 148, 147, 146]
+                'TLT': [150, 149, 148, 147, 146],
+                'GLD': [180, 181, 182, 183, 184]
             }),
-            'universe': ['SPY', 'QQQ', 'TLT']
+            'news': [
+                {
+                    'title': 'Federal Reserve Maintains Hawkish Stance on Interest Rates',
+                    'summary': 'Fed signals continued rate hikes to combat inflation, affecting bond markets',
+                    'sentiment': 'negative',
+                    'impact': 'high'
+                },
+                {
+                    'title': 'Geopolitical Tensions Rise in Middle East',
+                    'summary': 'Regional conflicts escalate, driving safe-haven demand for gold',
+                    'sentiment': 'negative',
+                    'impact': 'high'
+                }
+            ],
+            'universe': ['SPY', 'TLT', 'GLD']
         }
         
-        # Test risk assessment
+        # Test independent risk assessment
         result_state = agent.assess(sample_state)
-        print(f"✓ Risk assessment completed")
-        print(f"  Risk assessments: {result_state.get('risk_assessments', {})}")
+        print(f"✓ Independent risk assessment completed")
+        print(f"  Risk metrics: {result_state.get('risk_metrics', {})}")
         
         # Show detailed output for first ETF
-        risk_assessments = result_state.get('risk_assessments', {})
-        if risk_assessments:
-            first_etf = list(risk_assessments.keys())[0]
-            etf_data = risk_assessments[first_etf]
+        risk_metrics = result_state.get('risk_metrics', {})
+        if risk_metrics:
+            first_etf = list(risk_metrics.keys())[0]
+            etf_data = risk_metrics[first_etf]
             print(f"  Sample ETF ({first_etf}):")
             print(f"    Risk Level: {etf_data.get('risk_level', 'unknown')}")
-            print(f"    Adjusted Score: {etf_data.get('adjusted_score', 0.0)}")
+            print(f"    Volatility: {etf_data.get('volatility', 0.0):.3f}")
             print(f"    Reason: {etf_data.get('reason', 'No reason')[:100]}...")
         
     except Exception as e:

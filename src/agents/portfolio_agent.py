@@ -47,7 +47,7 @@ class PortfolioAgent:
         """
         try:
             # Extract data from state
-            risks = state.get('risk_assessments', {})
+            risks = state.get('risk_metrics', {})
             etf_data = state.get('etf_data', pd.DataFrame())
             universe = state.get('universe', [])
             
@@ -112,8 +112,8 @@ class PortfolioAgent:
             Dictionary with final allocations
         """
         try:
-            # Extract expected scores from risk assessments
-            expected_scores = np.array([risks.get(etf, {'adjusted_score': 0.0}).get('adjusted_score', 0.0) for etf in universe])
+            # Extract expected scores from risk metrics (convert risk level to score)
+            expected_scores = np.array([self._convert_risk_to_score(risks.get(etf, {'risk_level': 'medium', 'volatility': 0.0})) for etf in universe])
             
             # Use correlation matrix as covariance matrix (simplified)
             cov_matrix = corr_matrix.values
@@ -205,6 +205,34 @@ class PortfolioAgent:
             logger.error(f"Portfolio optimization error: {e}")
             return self._create_risk_based_allocations(risks, universe)
     
+    def _convert_risk_to_score(self, risk_data: dict) -> float:
+        """
+        Convert risk metrics to a score for optimization.
+        
+        Args:
+            risk_data: Dictionary with risk_level, volatility, reason
+            
+        Returns:
+            Score from -1 to 1 for optimization
+        """
+        risk_level = risk_data.get('risk_level', 'medium')
+        volatility = risk_data.get('volatility', 0.0)
+        
+        # Base score based on risk level
+        if risk_level == 'low':
+            base_score = 0.3  # Positive score for low risk
+        elif risk_level == 'medium':
+            base_score = 0.0  # Neutral score for medium risk
+        else:  # high
+            base_score = -0.3  # Negative score for high risk
+        
+        # Adjust for volatility (higher volatility = lower score)
+        volatility_penalty = min(0.2, volatility * 10)  # Cap penalty at 0.2
+        final_score = base_score - volatility_penalty
+        
+        # Clamp to [-1, 1]
+        return max(-1.0, min(1.0, final_score))
+    
     def _create_risk_based_allocations(self, risks: dict, universe: list) -> dict:
         """
         Create allocations based on risk assessments without optimization.
@@ -220,36 +248,20 @@ class PortfolioAgent:
             allocations = {}
             total_risk_score = 0.0
             
-            # Calculate total risk-adjusted score
+            # Calculate total risk-adjusted score using new risk metrics
             for etf in universe:
-                risk_data = risks.get(etf, {'adjusted_score': 0.0, 'risk_level': 'medium'})
-                adjusted_score = risk_data.get('adjusted_score', 0.0)
-                risk_level = risk_data.get('risk_level', 'medium')
-                
-                # Apply risk penalty
-                if risk_level == 'high':
-                    adjusted_score *= 0.5  # 50% penalty for high risk
-                elif risk_level == 'medium':
-                    adjusted_score *= 0.8  # 20% penalty for medium risk
-                # Low risk: no penalty
-                
-                total_risk_score += max(0, adjusted_score)  # Only positive scores
+                risk_data = risks.get(etf, {'risk_level': 'medium', 'volatility': 0.0})
+                score = self._convert_risk_to_score(risk_data)
+                total_risk_score += max(0, score)  # Only positive scores
             
             # Create allocations based on risk-adjusted scores
             for etf in universe:
-                risk_data = risks.get(etf, {'adjusted_score': 0.0, 'risk_level': 'medium'})
-                adjusted_score = risk_data.get('adjusted_score', 0.0)
-                risk_level = risk_data.get('risk_level', 'medium')
-                
-                # Apply risk penalty
-                if risk_level == 'high':
-                    adjusted_score *= 0.5
-                elif risk_level == 'medium':
-                    adjusted_score *= 0.8
+                risk_data = risks.get(etf, {'risk_level': 'medium', 'volatility': 0.0})
+                score = self._convert_risk_to_score(risk_data)
                 
                 # Calculate allocation
-                if total_risk_score > 0 and adjusted_score > 0:
-                    allocation = (max(0, adjusted_score) / total_risk_score)
+                if total_risk_score > 0 and score > 0:
+                    allocation = (max(0, score) / total_risk_score)
                 else:
                     allocation = 0.0
                 
@@ -262,7 +274,7 @@ class PortfolioAgent:
                 allocations[etf] = {
                     'action': action,
                     'allocation': allocation,
-                    'reason': f"Risk-based allocation ({risk_level} risk): {risk_data.get('reason', 'No reasoning')}"
+                    'reason': f"Risk-based allocation ({risk_data.get('risk_level', 'medium')} risk): {risk_data.get('reason', 'No reasoning')}"
                 }
             
             return allocations
@@ -342,25 +354,25 @@ if __name__ == "__main__":
         }, index=dates)
         
         sample_state = {
-            'risk_assessments': {
+            'risk_metrics': {
                 'SPY': {
                     'risk_level': 'low',
-                    'adjusted_score': 0.3,
+                    'volatility': 0.15,
                     'reason': 'Stable large-cap exposure with low volatility'
                 },
                 'QQQ': {
                     'risk_level': 'medium',
-                    'adjusted_score': 0.2,
+                    'volatility': 0.25,
                     'reason': 'Tech concentration risk but strong fundamentals'
                 },
                 'TLT': {
                     'risk_level': 'high',
-                    'adjusted_score': -0.1,
+                    'volatility': 0.35,
                     'reason': 'Interest rate sensitivity creates volatility risk'
                 },
                 'GLD': {
                     'risk_level': 'medium',
-                    'adjusted_score': 0.1,
+                    'volatility': 0.20,
                     'reason': 'Safe haven demand but commodity volatility'
                 }
             },

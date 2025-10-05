@@ -97,7 +97,7 @@ def generate_final_report(result, universe, date):
                 confidence = data.get('confidence', 0.0)
                 reason = data.get('reason', 'No reasoning provided')
                 add_line(f"  • {etf}: Score {score:.3f} (Confidence: {confidence:.1%})")
-                add_line(f"    Reasoning: {reason[:100]}...")
+                add_line(f"    Reasoning: {reason}")
     else:
         add_line("  • Macro economist analysis not available")
     
@@ -113,7 +113,7 @@ def generate_final_report(result, universe, date):
                 confidence = data.get('confidence', 0.0)
                 reason = data.get('reason', 'No reasoning provided')
                 add_line(f"  • {etf}: Score {score:.3f} (Confidence: {confidence:.1%})")
-                add_line(f"    Reasoning: {reason[:100]}...")
+                add_line(f"    Reasoning: {reason}")
     else:
         add_line("  • Geopolitical analyst analysis not available")
     
@@ -129,7 +129,7 @@ def generate_final_report(result, universe, date):
                 volatility = data.get('volatility', 0.0)
                 reason = data.get('reason', 'No reasoning provided')
                 add_line(f"  • {etf}: {risk_level.upper()} Risk (Volatility: {volatility:.1%})")
-                add_line(f"    Reasoning: {reason[:100]}...")
+                add_line(f"    Reasoning: {reason}")
     else:
         add_line("  • Risk assessments not available")
     

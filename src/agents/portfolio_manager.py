@@ -57,28 +57,17 @@ class PortfolioManagerAgent(BaseAgent):
             Updated state dictionary with final allocations
         """
         try:
-            # Extract data from state
-            scores = state.get('scores', {})
+            # Extract data from state - get individual analyst scores
+            macro_scores = state.get('macro_scores', {})
+            geo_scores = state.get('geo_scores', {})
             risks = state.get('risk_metrics', {})
             universe = state.get('universe', [])
             
-            if not scores or not risks or not universe:
+            if not macro_scores or not geo_scores or not risks or not universe:
                 logger.warning("Insufficient data for portfolio management")
                 neutral_allocations = {etf: {'action': 'hold', 'allocation': 0.0, 'reason': 'Insufficient data'} for etf in universe}
                 state['final_allocations'] = neutral_allocations
                 return state
-            
-            # Aggregate scores generically (average per ETF from all agents)
-            avg_scores = {}
-            for etf in universe:
-                etf_scores = []
-                for agent_name, agent_scores in scores.items():
-                    if isinstance(agent_scores, dict) and etf in agent_scores:
-                        etf_score = agent_scores[etf].get('score', 0) if isinstance(agent_scores[etf], dict) else 0
-                        etf_scores.append(etf_score)
-                
-                avg_score = sum(etf_scores) / len(etf_scores) if etf_scores else 0
-                avg_scores[etf] = avg_score
             
             # Get detailed reasoning from all agents
             agent_reasoning = state.get('agent_reasoning', {})
@@ -88,10 +77,13 @@ class PortfolioManagerAgent(BaseAgent):
             
             # Create LLM prompt for portfolio synthesis with full reasoning
             prompt = f"""
-            As a hedge fund manager, synthesize the following analyst scores, detailed reasoning, and risk metrics to recommend portfolio allocations for the ETF universe {universe}.
+            As a hedge fund manager, synthesize the following individual analyst scores, detailed reasoning, and risk metrics to recommend portfolio allocations for the ETF universe {universe}.
             
-            AVERAGED ANALYST SCORES (from all agents):
-            {json.dumps(avg_scores, indent=2)}
+            MACRO ECONOMIST SCORES:
+            {json.dumps(macro_scores, indent=2)}
+            
+            GEOPOLITICAL ANALYST SCORES:
+            {json.dumps(geo_scores, indent=2)}
             
             DETAILED ANALYST REASONING:
             {self._format_agent_reasoning(agent_reasoning)}
@@ -100,14 +92,16 @@ class PortfolioManagerAgent(BaseAgent):
             {json.dumps(risks, indent=2)}
             
             PORTFOLIO SYNTHESIS REQUIREMENTS:
-            1. Consider both analyst scores and risk levels for each ETF
-            2. Use the detailed reasoning from each analyst to understand their logic
-            3. Balance return potential with risk management
-            4. Ensure total allocations sum to 1.0 (100% of portfolio)
-            5. Consider correlations implicitly through reasoning
-            6. Provide clear reasoning for each allocation decision that references the analyst insights
-            7. POSITION LIMIT: Allocate to maximum {max_positions} ETFs only (20% of universe size)
-            8. Focus on highest conviction opportunities with best risk-adjusted returns
+            1. AGGREGATE ANALYST SCORES: Combine macro economist and geopolitical analyst scores for each ETF
+            2. WEIGHT ANALYSTS: Decide how much weight to give each analyst based on their confidence and reasoning quality
+            3. Consider both individual analyst scores and risk levels for each ETF
+            4. Use the detailed reasoning from each analyst to understand their logic
+            5. Balance return potential with risk management
+            6. Ensure total allocations sum to 1.0 (100% of portfolio)
+            7. Consider correlations implicitly through reasoning
+            8. Provide clear reasoning for each allocation decision that references the analyst insights
+            9. POSITION LIMIT: Allocate to maximum {max_positions} ETFs only (20% of universe size)
+            10. Focus on highest conviction opportunities with best risk-adjusted returns
             
             ALLOCATION GUIDELINES:
             - High scores + Low risk = Higher allocation
@@ -124,7 +118,7 @@ class PortfolioManagerAgent(BaseAgent):
             For each allocation decision, provide detailed reasoning that includes:
             1. Analyst consensus analysis (what the macro and geopolitical analysts concluded)
             2. Risk assessment integration (how risk manager's assessment influenced the decision)
-            3. Score aggregation logic (how averaged scores were interpreted)
+            3. Score aggregation logic (how individual analyst scores were weighted and combined)
             4. Risk-return trade-off analysis (balancing potential returns with identified risks)
             5. Portfolio construction rationale (why this allocation fits the overall portfolio)
             6. Conviction level explanation (why this position size was chosen)
@@ -153,7 +147,7 @@ class PortfolioManagerAgent(BaseAgent):
             state['agent_reasoning'] = state.get('agent_reasoning', {})
             state['agent_reasoning']['portfolio_agent'] = {
                 'final_allocations': final_allocations,
-                'reasoning': f"LLM-driven portfolio synthesis aggregating {len(scores)} analyst scores and risk metrics for {len(universe)} ETFs",
+                'reasoning': f"LLM-driven portfolio synthesis aggregating macro and geopolitical analyst scores and risk metrics for {len(universe)} ETFs",
                 'synthesis_method': 'LLM synthesis with score aggregation and risk consideration',
                 'performance_metrics': {
                     'total_allocation': sum([alloc.get('allocation', 0) for alloc in final_allocations.values()]),

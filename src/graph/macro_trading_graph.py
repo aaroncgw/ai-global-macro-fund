@@ -96,11 +96,9 @@ class MacroTradingGraph:
         self.graph.add_node('risk', RiskManager().assess)
         self.graph.add_edge(prev_node, 'risk')
         
-        self.graph.add_node('aggregate_scores', self._aggregate_scores)
-        self.graph.add_edge('risk', 'aggregate_scores')
-        
+        # Add portfolio manager node (receives individual scores directly)
         self.graph.add_node('portfolio', PortfolioManagerAgent().manage)
-        self.graph.add_edge('aggregate_scores', 'portfolio')
+        self.graph.add_edge('risk', 'portfolio')
         self.graph.add_edge('portfolio', END)
         
         # Set entry point
@@ -108,44 +106,6 @@ class MacroTradingGraph:
         
         logger.info("Graph nodes and edges added successfully")
     
-    def _aggregate_scores(self, state):
-        """
-        Aggregate scores from all signal agents into a unified scores dictionary.
-        
-        Args:
-            state: LangGraph state dictionary
-            
-        Returns:
-            Updated state with aggregated scores
-        """
-        try:
-            # Extract scores from all signal agents dynamically
-            scores = {}
-            
-            # Map agent class names to their score keys in state
-            agent_score_mapping = {
-                'MacroEconomistAgent': 'macro_scores',
-                'GeopoliticalAnalystAgent': 'geo_scores'
-            }
-            
-            for agent_class_name in SIGNAL_AGENTS:
-                score_key = agent_score_mapping.get(agent_class_name)
-                if score_key and score_key in state:
-                    # Convert class name to agent name for scores dict
-                    agent_name = agent_class_name.lower().replace('agent', '')
-                    scores[agent_name] = state[score_key]
-            
-            # Store aggregated scores in state
-            state['scores'] = scores
-            
-            logger.info(f"Score aggregation completed for {len(scores)} signal agents")
-            return state
-            
-        except Exception as e:
-            logger.error(f"Score aggregation failed: {e}")
-            # Return empty scores on error
-            state['scores'] = {}
-            return state
     
     def propagate(self, universe, date='today'):
         """

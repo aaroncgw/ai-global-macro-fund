@@ -76,10 +76,11 @@ poetry run python src/graph/test_complete_workflow.py
 # Test individual agents
 poetry run python src/agents/macro_economist.py
 poetry run python src/agents/geopolitical_analyst.py
-poetry run python src/agents/correlation_specialist.py
+poetry run python src/agents/risk_manager.py
+poetry run python src/agents/portfolio_agent.py
 
 # Test allocation agents
-poetry run python src/agents/test_allocation_agents.py
+poetry run python tests/agents/test_allocation_agents.py
 
 # Test complete workflow
 poetry run python src/graph/test_complete_workflow.py
@@ -181,11 +182,8 @@ src/
 │   ├── base_agent.py         # Base agent class
 │   ├── macro_economist.py    # Macro analysis
 │   ├── geopolitical_analyst.py # Geo analysis
-│   ├── correlation_specialist.py # Correlation analysis
-│   ├── debate_researchers.py # Debate system
-│   ├── trader_agent.py       # Allocation proposals
-│   ├── risk_manager.py        # Risk assessment
-│   └── portfolio_optimizer.py # Optimization
+│   ├── risk_manager.py       # Risk assessment
+│   └── portfolio_agent.py    # Portfolio optimization
 ├── data_fetchers/            # Data sources
 │   └── macro_fetcher.py       # Unified data fetching
 ├── graph/                     # Workflow orchestration

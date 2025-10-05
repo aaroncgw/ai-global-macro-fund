@@ -43,8 +43,9 @@ Thumbs.db
 # graph
 *.png
 
-# Txt files
+# Txt files (except reports)
 *.txt
+!reports/*.txt
 
 # PDF files
 *.pdf

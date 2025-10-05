@@ -1,6 +1,0 @@
-Fully remove stock-related features (e.g., sentiment, fundamentals, technicals for stocks).
-Focus exclusively on global macro with the specified ETF universe, which captures opportunities across economic cycles, policy shifts, geopolitics, etc. (as explained: country ETFs for regional growth, currencies for FX plays, bonds for rates, indices for broad equities, commodities for inflation/hedges).
-Ensure genericity: ETF universe is config-driven (list in config.py), with dynamic batch processing, dict-based outputs, and scalable optimization—add new ETFs by editing the list (e.g., append 'BITO' for crypto exposure) without code changes.
-Integrate LangGraph from TradingAgents repo for agent debates: Analysts provide initial scores, bullish/bearish researchers debate macro opportunities/risks, trader proposes allocations, risk manager adjusts, optimizer finalizes.
-
-The system analyzes all ETFs simultaneously via batch fetches and parallel agents, outputting allocations (e.g., {"TLT": 0.15}) based on macro signals for months-years horizons.

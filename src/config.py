@@ -236,13 +236,6 @@ SIGNAL_AGENTS = [
     'GeopoliticalAnalystAgent'
 ]
 
-# Default system configuration
-DEFAULT_CONFIG = {
-    'llm_model': 'deepseek-chat',
-    'batch_size': 10,  # Number of ETFs to process in parallel
-    'analysis_horizon_days': 90,  # Lookback period for analysis
-    'rebalance_frequency': 'monthly',  # How often to rebalance
-}
 
 # LLM Configuration for flexibility
 # Users can switch providers by editing this configuration
@@ -282,42 +275,8 @@ LLM_CONFIG = {
 #     'max_tokens': 4000,
 # }
 
-# ETF Category mappings for analysis grouping
-ETF_CATEGORIES = {
-    'country_region': [
-        'EWJ', 'EWG', 'EWU', 'EWA', 'EWC', 'EWZ', 'INDA', 'FXI', 'EZA', 'TUR', 'RSX', 'EWW'
-    ],
-    'currency': [
-        'UUP', 'FXE', 'FXY', 'FXB', 'FXC', 'FXA', 'FXF', 'CYB'
-    ],
-    'bonds': [
-        'TLT', 'IEF', 'BND', 'TIP', 'LQD', 'HYG', 'EMB', 'PCY'
-    ],
-    'equity_indices': [
-        'SPY', 'QQQ', 'VEU', 'VWO', 'VGK', 'VPL', 'ACWI'
-    ],
-    'commodities': [
-        'GLD', 'SLV', 'USO', 'UNG', 'DBC', 'CORN', 'WEAT', 'DBA', 'PDBC', 'GSG'
-    ]
-}
 
-# Risk management parameters
-RISK_CONFIG = {
-    'max_position_size': 0.15,  # Maximum 15% allocation to any single ETF
-    'max_category_exposure': 0.40,  # Maximum 40% allocation to any category
-    'max_leverage': 1.0,  # No leverage for conservative approach
-    'stop_loss_threshold': 0.10,  # 10% stop loss
-    'rebalance_threshold': 0.05,  # Rebalance when allocation drifts 5%
-}
 
-# Data source configuration
-DATA_CONFIG = {
-    'primary_source': 'yfinance',  # Primary data source
-    'backup_source': 'fredapi',   # Backup for economic data
-    'cache_duration_hours': 1,     # Cache data for 1 hour
-    'retry_attempts': 3,          # Number of retry attempts for failed requests
-    'timeout_seconds': 30,        # Request timeout
-}
 
 # Agent configuration for the revamped macro trading system
 AGENT_CONFIG = {
@@ -336,14 +295,6 @@ AGENT_CONFIG = {
     'consensus_threshold': 0.60,  # Minimum consensus for signal execution
 }
 
-# Output configuration
-OUTPUT_CONFIG = {
-    'format': 'json',  # Output format for results
-    'include_reasoning': True,  # Include agent reasoning in output
-    'include_metrics': True,   # Include performance metrics
-    'save_to_file': True,      # Save results to file
-    'output_directory': 'results',  # Directory for output files
-}
 
 # Validation function to ensure configuration is valid
 def validate_config():
@@ -354,27 +305,12 @@ def validate_config():
     if not ETF_UNIVERSE:
         errors.append("ETF_UNIVERSE cannot be empty")
     
-    # Check all ETFs in categories are in the universe
-    all_categorized_etfs = set()
-    for category, etfs in ETF_CATEGORIES.items():
-        all_categorized_etfs.update(etfs)
-    
-    universe_set = set(ETF_UNIVERSE)
-    if not all_categorized_etfs.issubset(universe_set):
-        missing = all_categorized_etfs - universe_set
-        errors.append(f"ETFs in categories but not in universe: {missing}")
     
     # Check agent weights sum to 1.0
     total_weight = sum(AGENT_CONFIG['agent_weights'].values())
     if abs(total_weight - 1.0) > 0.01:
         errors.append(f"Agent weights sum to {total_weight}, should be 1.0")
     
-    # Check risk parameters are valid
-    if RISK_CONFIG['max_position_size'] > 1.0:
-        errors.append("max_position_size cannot exceed 1.0")
-    
-    if RISK_CONFIG['max_category_exposure'] > 1.0:
-        errors.append("max_category_exposure cannot exceed 1.0")
     
     if errors:
         raise ValueError(f"Configuration validation failed: {'; '.join(errors)}")

@@ -11,7 +11,7 @@ from src.agents.geopolitical_analyst import GeopoliticalAnalystAgent
 from src.agents.risk_manager import RiskManager
 from src.agents.portfolio_manager import PortfolioManagerAgent
 from src.data_fetchers.macro_fetcher import MacroFetcher
-from src.config import MACRO_INDICATORS, DEFAULT_CONFIG, SIGNAL_AGENTS
+from src.config import MACRO_INDICATORS, SIGNAL_AGENTS
 import logging
 import pandas as pd
 

@@ -13,7 +13,7 @@ poetry run python src/main.py --universe SPY QQQ --debug
 poetry run python src/main.py --universe SPY QQQ --date 2024-01-01
 
 # Test complete workflow
-poetry run python src/graph/test_complete_workflow.py
+poetry run python tests/graph/test_complete_workflow.py
 ```
 
 ## 🔧 Common Development Tasks
@@ -83,7 +83,7 @@ poetry run python src/agents/portfolio_manager.py
 poetry run python tests/agents/test_allocation_agents.py
 
 # Test complete workflow
-poetry run python src/graph/test_complete_workflow.py
+poetry run python tests/graph/test_complete_workflow.py
 
 # Test with different scenarios
 poetry run python src/main.py --universe SPY QQQ --debug

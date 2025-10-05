@@ -51,8 +51,8 @@ class GeopoliticalAnalystAgent(BaseAgent):
             # Use the comprehensive analysis framework (now includes all requirements)
             prompt = self._create_geopolitical_analysis_prompt(news, universe)
             
-            # Get LLM response
-            response = self.llm(prompt)
+            # Get LLM response with JSON format
+            response = self.llm(prompt, response_format='json_object')
             
             # Parse the structured response
             geo_scores = self._parse_structured_scores(response, universe)
@@ -160,8 +160,20 @@ class GeopoliticalAnalystAgent(BaseAgent):
         
         ETFs TO SCORE: {', '.join(universe)}
         
-        Output dict format:
+        EXAMPLES OF EXPECTED OUTPUT:
+        Example 1 - War/conflict news:
+        {{"SPY": {{"score": -0.6, "confidence": 0.8, "reason": "Geopolitical tensions increase market volatility and risk premiums"}}, "GLD": {{"score": 0.8, "confidence": 0.9, "reason": "Gold benefits from safe-haven demand during conflicts"}}}}
+        
+        Example 2 - Trade war escalation:
+        {{"SPY": {{"score": -0.4, "confidence": 0.7, "reason": "Trade tensions disrupt supply chains and corporate earnings"}}, "FXI": {{"score": -0.7, "confidence": 0.8, "reason": "China-focused ETF faces direct trade war impact"}}}}
+        
+        Example 3 - Central bank uncertainty:
+        {{"SPY": {{"score": -0.3, "confidence": 0.6, "reason": "Policy uncertainty creates market volatility"}}, "TLT": {{"score": 0.5, "confidence": 0.7, "reason": "Flight-to-quality flows support treasuries during uncertainty"}}}}
+        
+        CRITICAL: Output only valid JSON dict with no extra text, explanations, or formatting:
         {{"ETF": {{"score": -1 to 1, "confidence": 0-1, "reason": "detailed explanation"}}}}
+        
+        Do not include any text before or after the JSON. Return only the JSON object.
         """
         return prompt
     

@@ -53,8 +53,12 @@ class MacroEconomistAgent(BaseAgent):
             # Use the comprehensive analysis framework (now includes all requirements)
             prompt = self._create_macro_analysis_prompt(macro_data, etf_data, universe)
             
-            # Get LLM response
-            response = self.llm(prompt)
+            # Get LLM response with JSON format
+            response = self.llm(prompt, response_format='json_object')
+            
+            # Debug: Log response length and first 200 chars
+            logger.debug(f"LLM response length: {len(response)} chars")
+            logger.debug(f"LLM response preview: {response[:200]}...")
             
             # Parse the structured response
             macro_scores = self._parse_structured_scores(response, universe)
@@ -126,8 +130,20 @@ class MacroEconomistAgent(BaseAgent):
         
         ETFs TO SCORE: {', '.join(universe)}
         
-        Output dict format:
+        EXAMPLES OF EXPECTED OUTPUT:
+        Example 1 - High inflation environment:
+        {{"SPY": {{"score": -0.5, "confidence": 0.8, "reason": "Elevated inflation erodes real equity returns and compresses margins"}}, "TLT": {{"score": 0.7, "confidence": 0.9, "reason": "Bonds provide inflation hedge and benefit from flight-to-quality"}}}}
+        
+        Example 2 - Strong economic growth:
+        {{"SPY": {{"score": 0.6, "confidence": 0.7, "reason": "Robust GDP growth and employment support equity valuations"}}, "TLT": {{"score": -0.3, "confidence": 0.6, "reason": "Strong growth reduces safe-haven demand for bonds"}}}}
+        
+        Example 3 - Recessionary signals:
+        {{"SPY": {{"score": -0.8, "confidence": 0.9, "reason": "Rising unemployment and contracting GDP signal equity weakness"}}, "TLT": {{"score": 0.9, "confidence": 0.8, "reason": "Recession fears drive flight-to-quality into treasuries"}}}}
+        
+        CRITICAL: Output only valid JSON dict with no extra text, explanations, or formatting:
         {{"ETF": {{"score": -1 to 1, "confidence": 0-1, "reason": "detailed explanation"}}}}
+        
+        Do not include any text before or after the JSON. Return only the JSON object.
         """
         return prompt
     
@@ -194,14 +210,44 @@ class MacroEconomistAgent(BaseAgent):
             Dictionary with ETF scores, confidence, and reasoning
         """
         try:
-            # Try to extract JSON from response
+            # Try to extract JSON from response with better error handling
             if '{' in response and '}' in response:
                 # Find JSON part
                 start = response.find('{')
                 end = response.rfind('}') + 1
                 json_str = response[start:end]
                 
-                scores = json.loads(json_str)
+                # Try to clean up common JSON issues
+                json_str = json_str.replace('\n', ' ').replace('\r', ' ')
+                json_str = json_str.replace('  ', ' ')  # Remove double spaces
+                
+                # Try to parse JSON
+                try:
+                    scores = json.loads(json_str)
+                except json.JSONDecodeError as json_err:
+                    # Try to fix common JSON issues
+                    logger.warning(f"Initial JSON parse failed: {json_err}")
+                    
+                    # Try to extract individual ETF entries
+                    import re
+                    etf_pattern = r'"([A-Z]{2,4})":\s*\{[^}]*\}'
+                    etf_matches = re.findall(etf_pattern, json_str)
+                    
+                    if etf_matches:
+                        # Try to build a valid JSON object
+                        fixed_json = "{"
+                        for etf in etf_matches:
+                            etf_entry = re.search(f'"{etf}":\\s*\\{{[^}}]*\\}}', json_str)
+                            if etf_entry:
+                                fixed_json += etf_entry.group(0) + ","
+                        fixed_json = fixed_json.rstrip(',') + "}"
+                        
+                        try:
+                            scores = json.loads(fixed_json)
+                        except:
+                            raise json_err
+                    else:
+                        raise json_err
                 
                 # Validate and structure scores
                 validated_scores = {}
@@ -236,7 +282,12 @@ class MacroEconomistAgent(BaseAgent):
                 
         except (json.JSONDecodeError, ValueError, KeyError) as e:
             logger.error(f"Failed to parse structured scores from response: {e}")
-            return {etf: {'score': 0.0, 'confidence': 0.0, 'reason': f'Parse error: {str(e)}'} for etf in universe}
+            # Provide more helpful fallback reasoning
+            return {etf: {
+                'score': 0.0, 
+                'confidence': 0.0, 
+                'reason': f'JSON parsing failed - LLM response format issue. Raw response length: {len(response)} chars'
+            } for etf in universe}
 
 
 # Example usage and testing

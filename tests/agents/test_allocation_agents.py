@@ -90,7 +90,7 @@ def test_complete_allocation_pipeline():
         
         # Initialize all agents
         risk_manager = RiskManager("RiskManager")
-        portfolio_agent = PortfolioManagerAgent("PortfolioManagerAgent")
+        portfolio_manager = PortfolioManagerAgent("PortfolioManagerAgent")
         
         print(f"✓ All agents initialized")
         
@@ -113,7 +113,7 @@ def test_complete_allocation_pipeline():
         
         # Step 2: Portfolio Agent optimizes allocations
         print("\n2. Running Portfolio Agent...")
-        state = portfolio_agent.manage(state)
+        state = portfolio_manager.manage(state)
         final_allocations = state.get('final_allocations', {})
         print(f"   Final allocations generated for {len(final_allocations)} ETFs")
         
@@ -206,7 +206,7 @@ def test_individual_agents():
         
         # Test Portfolio Agent
         print("\n2. Testing Portfolio Agent...")
-        portfolio_agent = PortfolioManagerAgent("TestPortfolioManagerAgent")
+        portfolio_manager = PortfolioManagerAgent("TestPortfolioManagerAgent")
         
         portfolio_data = {
             'risk_assessments': risk_assessments,
@@ -216,7 +216,7 @@ def test_individual_agents():
             'timestamp': datetime.now().isoformat()
         }
         
-        portfolio_result = portfolio_agent.manage(portfolio_data)
+        portfolio_result = portfolio_manager.manage(portfolio_data)
         print(f"   Portfolio agent analysis completed")
         final_allocations = portfolio_result.get('final_allocations', {})
         print(f"   Final allocations: {len(final_allocations)} ETFs")

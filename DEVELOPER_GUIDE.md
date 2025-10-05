@@ -2,6 +2,10 @@
 
 This guide provides comprehensive technical documentation for developers working on the Global Macro ETF Trading System. It covers system architecture, development workflows, and best practices for extending the system.
 
+## 📚 Quick Start for New Agents
+
+For comprehensive instructions on adding new agents to the system, see the [Agent Development Guide](AGENT_DEVELOPMENT_GUIDE.md).
+
 ## 🏗️ System Architecture Deep Dive
 
 ### Core Components

@@ -125,14 +125,25 @@ class PortfolioManagerAgent(BaseAgent):
             7. Risk management considerations (how risks are being managed)
             8. Market outlook integration (how current market conditions influenced the decision)
             
-            Output format (JSON):
+            EXAMPLES OF EXPECTED OUTPUT:
+            Example 1 - Risk-off environment:
+            {{"SPY": {{"action": "sell", "allocation": 0.0, "reason": "Risk-off sentiment with high volatility and geopolitical tensions favor defensive positioning"}}, "TLT": {{"action": "buy", "allocation": 1.0, "reason": "Flight-to-quality flows and safe-haven demand support treasury allocation"}}}}
+            
+            Example 2 - Growth environment:
+            {{"SPY": {{"action": "buy", "allocation": 0.7, "reason": "Strong economic growth and accommodative policy support equity allocation"}}, "QQQ": {{"action": "buy", "allocation": 0.3, "reason": "Technology sector benefits from growth environment and innovation trends"}}}}
+            
+            Example 3 - Balanced approach:
+            {{"SPY": {{"action": "buy", "allocation": 0.4, "reason": "Moderate equity exposure with diversification benefits"}}, "TLT": {{"action": "buy", "allocation": 0.3, "reason": "Bond allocation for income and portfolio stability"}}, "GLD": {{"action": "buy", "allocation": 0.3, "reason": "Gold allocation for inflation hedge and diversification"}}}}
+            
+            CRITICAL: Output only valid JSON dict with no extra text, explanations, or formatting:
             {{"ETF": {{"action": "buy/sell/hold", "allocation": 0.0-1.0, "reason": "comprehensive detailed explanation covering all reasoning requirements above"}}}}
             
+            Do not include any text before or after the JSON. Return only the JSON object.
             Ensure all ETF allocations sum to 1.0, focus on top {max_positions} opportunities, and provide comprehensive reasoning for each decision.
             """
             
-            # Get LLM response
-            response = self.llm(prompt)
+            # Get LLM response with JSON format
+            response = self.llm(prompt, response_format='json_object')
             
             # Parse the structured response
             final_allocations = self._parse_allocations(response, universe)
@@ -145,7 +156,7 @@ class PortfolioManagerAgent(BaseAgent):
             
             # Store detailed reasoning
             state['agent_reasoning'] = state.get('agent_reasoning', {})
-            state['agent_reasoning']['portfolio_agent'] = {
+            state['agent_reasoning']['portfolio_manager'] = {
                 'final_allocations': final_allocations,
                 'reasoning': f"LLM-driven portfolio synthesis aggregating macro and geopolitical analyst scores and risk metrics for {len(universe)} ETFs",
                 'synthesis_method': 'LLM synthesis with score aggregation and risk consideration',

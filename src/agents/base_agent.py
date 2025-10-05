@@ -81,8 +81,12 @@ class BaseAgent(ABC):
             api_key=api_key,
             base_url=LLM_CONFIG.get('base_url', 'https://api.deepseek.com/v1'),
             model=LLM_CONFIG.get('model', 'deepseek-chat'),
-            temperature=LLM_CONFIG.get('temperature', 0.7),
-            max_tokens=LLM_CONFIG.get('max_tokens', 4000)
+            temperature=LLM_CONFIG.get('temperature', 0),
+            seed=LLM_CONFIG.get('seed', 42),
+            max_tokens=LLM_CONFIG.get('max_tokens', 1500),
+            top_p=LLM_CONFIG.get('top_p', 1.0),
+            frequency_penalty=LLM_CONFIG.get('frequency_penalty', 0.0),
+            presence_penalty=LLM_CONFIG.get('presence_penalty', 0.0)
         )
         logger.info("DeepSeek LLM initialized successfully")
     
@@ -95,8 +99,12 @@ class BaseAgent(ABC):
         self.llm_model = ChatOpenAI(
             api_key=api_key,
             model=LLM_CONFIG.get('model', 'gpt-4'),
-            temperature=LLM_CONFIG.get('temperature', 0.7),
-            max_tokens=LLM_CONFIG.get('max_tokens', 4000)
+            temperature=LLM_CONFIG.get('temperature', 0),
+            seed=LLM_CONFIG.get('seed', 42),
+            max_tokens=LLM_CONFIG.get('max_tokens', 1500),
+            top_p=LLM_CONFIG.get('top_p', 1.0),
+            frequency_penalty=LLM_CONFIG.get('frequency_penalty', 0.0),
+            presence_penalty=LLM_CONFIG.get('presence_penalty', 0.0)
         )
         logger.info("OpenAI LLM initialized successfully")
     
@@ -109,8 +117,8 @@ class BaseAgent(ABC):
         self.llm_model = ChatAnthropic(
             api_key=api_key,
             model=LLM_CONFIG.get('model', 'claude-3-sonnet-20240229'),
-            temperature=LLM_CONFIG.get('temperature', 0.7),
-            max_tokens=LLM_CONFIG.get('max_tokens', 4000)
+            temperature=LLM_CONFIG.get('temperature', 0),
+            max_tokens=LLM_CONFIG.get('max_tokens', 1500)
         )
         logger.info("Anthropic LLM initialized successfully")
     
@@ -123,23 +131,34 @@ class BaseAgent(ABC):
         self.llm_model = ChatGoogleGenerativeAI(
             api_key=api_key,
             model=LLM_CONFIG.get('model', 'gemini-pro'),
-            temperature=LLM_CONFIG.get('temperature', 0.7),
-            max_output_tokens=LLM_CONFIG.get('max_tokens', 4000)
+            temperature=LLM_CONFIG.get('temperature', 0),
+            max_output_tokens=LLM_CONFIG.get('max_tokens', 1500)
         )
         logger.info("Google LLM initialized successfully")
     
-    def llm(self, prompt: str) -> str:
+    def llm(self, prompt: str, response_format: str = None) -> str:
         """
         Call the LLM with a text prompt and return the response.
         
         Args:
             prompt: Text prompt to send to the LLM
+            response_format: Optional response format ('json_object' for structured JSON)
             
         Returns:
             LLM response as string
         """
         try:
-            response = self.llm_model.invoke(prompt)
+            if response_format == 'json_object':
+                # Use structured output for JSON responses
+                response = self.llm_model.invoke(prompt, response_format={'type': 'json_object'})
+            else:
+                response = self.llm_model.invoke(prompt)
+            
+            # Log prompt and response for debugging
+            logger.info(f'LLM Call - Agent: {self.agent_name}')
+            logger.info(f'Prompt: {prompt[:100]}...')
+            logger.info(f'Output: {response.content[:100]}...')
+            
             return response.content
         except Exception as e:
             logger.error(f"LLM call failed: {e}")

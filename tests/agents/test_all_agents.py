@@ -102,7 +102,7 @@ def test_all_agents():
         macro_economist = MacroEconomistAgent("MacroEconomist")
         geopolitical_analyst = GeopoliticalAnalystAgent("GeopoliticalAnalyst")
         risk_manager = RiskManager("RiskManager")
-        portfolio_agent = PortfolioManagerAgent("PortfolioManagerAgent")
+        portfolio_manager = PortfolioManagerAgent("PortfolioManagerAgent")
         
         print("✓ All agents initialized successfully")
         
@@ -141,7 +141,7 @@ def test_all_agents():
         
         # Run portfolio agent analysis
         print("\n4. Running Portfolio Agent Analysis...")
-        state = portfolio_agent.manage(state)
+        state = portfolio_manager.manage(state)
         final_allocations = state.get('final_allocations', {})
         print(f"   Final allocations generated for {len(final_allocations)} ETFs")
         
@@ -188,7 +188,7 @@ def test_agent_integration():
         macro_economist = MacroEconomistAgent("MacroEconomist")
         geopolitical_analyst = GeopoliticalAnalystAgent("GeopoliticalAnalyst")
         risk_manager = RiskManager("RiskManager")
-        portfolio_agent = PortfolioManagerAgent("PortfolioManagerAgent")
+        portfolio_manager = PortfolioManagerAgent("PortfolioManagerAgent")
         
         # Simulate LangGraph workflow
         state = {
@@ -219,7 +219,7 @@ def test_agent_integration():
         
         # Step 4: Portfolio optimization
         state['workflow_step'] = 4
-        state = portfolio_agent.manage(state)
+        state = portfolio_manager.manage(state)
         print(f"Step 4: Portfolio optimization completed")
         
         # Final state

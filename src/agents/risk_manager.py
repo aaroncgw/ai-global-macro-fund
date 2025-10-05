@@ -140,13 +140,25 @@ class RiskManager(BaseAgent):
             - Correlation with market indices and other assets
             - Price impact of large trades
             
-            Output dict format:
+            EXAMPLES OF EXPECTED OUTPUT:
+            Example 1 - High volatility ETF with geopolitical risks:
+            {{"SPY": {{"risk_level": "high", "volatility": 0.25, "reason": "Elevated volatility (25%) combined with trade war tensions and policy uncertainty creates high risk profile"}}, "TLT": {{"risk_level": "medium", "volatility": 0.15, "reason": "Moderate volatility but duration risk from rising rates offsets safe-haven benefits"}}}}
+            
+            Example 2 - Stable market environment:
+            {{"SPY": {{"risk_level": "low", "volatility": 0.12, "reason": "Low volatility with stable economic growth and accommodative policy"}}, "TLT": {{"risk_level": "medium", "volatility": 0.08, "reason": "Low volatility but interest rate sensitivity remains a concern"}}}}
+            
+            Example 3 - Crisis period:
+            {{"SPY": {{"risk_level": "high", "volatility": 0.35, "reason": "Crisis-level volatility with multiple risk factors: recession fears, geopolitical tensions, and credit stress"}}, "TLT": {{"risk_level": "low", "volatility": 0.20, "reason": "Higher volatility but strong safe-haven demand during crisis provides downside protection"}}}}
+            
+            CRITICAL: Output only valid JSON dict with no extra text, explanations, or formatting:
             {{"ETF": {{"risk_level": "low/medium/high", "volatility": float, "reason": "detailed explanation"}}}}
+            
+            Do not include any text before or after the JSON. Return only the JSON object.
             """
             
-            # Get LLM response
+            # Get LLM response with JSON format
             try:
-                response = self.llm(prompt)
+                response = self.llm(prompt, response_format='json_object')
             except Exception as e:
                 logger.error(f"LLM call failed: {e}")
                 # Return neutral risk metrics on error

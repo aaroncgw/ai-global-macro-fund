@@ -341,8 +341,8 @@ poetry run python src/agents/geopolitical_analyst.py
 # Test risk manager
 poetry run python src/agents/risk_manager.py
 
-# Test portfolio agent
-poetry run python src/agents/portfolio_agent.py
+# Test portfolio manager
+poetry run python src/agents/portfolio_manager.py
 ```
 
 ### Run Complete Workflow Tests
@@ -461,6 +461,9 @@ data = fetcher.fetch_comprehensive_data(etfs, indicators)
 ```
 
 ## 🤝 Contributing
+
+### Adding New Agents
+See the comprehensive [Agent Development Guide](AGENT_DEVELOPMENT_GUIDE.md) for detailed instructions on adding new agents to the system.
 
 ### Code Style
 - Follow PEP 8 guidelines

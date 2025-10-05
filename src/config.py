@@ -251,8 +251,12 @@ LLM_CONFIG = {
     'model': 'deepseek-chat',
     'api_key_env': 'DEEPSEEK_API_KEY',
     'base_url': 'https://api.deepseek.com/v1',
-    'temperature': 0.7,
-    'max_tokens': 4000,
+    'temperature': 0,  # Deterministic output
+    'seed': 42,  # Fixed seed for reproducibility
+    'max_tokens': 1500,  # Reduced for more focused responses
+    'top_p': 1.0,  # Deterministic sampling
+    'frequency_penalty': 0.0,  # No frequency penalty
+    'presence_penalty': 0.0,  # No presence penalty
 }
 
 # Alternative LLM configurations (commented out for reference)
@@ -321,13 +325,13 @@ AGENT_CONFIG = {
         'macro_economist',
         'geopolitical_analyst', 
         'risk_manager',
-        'portfolio_agent'
+        'portfolio_manager'
     ],
     'agent_weights': {
         'macro_economist': 0.30,         # Macro economic analysis
         'geopolitical_analyst': 0.25,    # Geopolitical risk assessment
         'risk_manager': 0.20,            # Risk management and score adjustment
-        'portfolio_agent': 0.25,         # Final allocation decisions
+        'portfolio_manager': 0.25,         # Final allocation decisions
     },
     'consensus_threshold': 0.60,  # Minimum consensus for signal execution
 }

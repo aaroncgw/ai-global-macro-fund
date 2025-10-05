@@ -309,23 +309,19 @@ DATA_CONFIG = {
     'timeout_seconds': 30,        # Request timeout
 }
 
-# Agent configuration for the macro trading system
+# Agent configuration for the revamped macro trading system
 AGENT_CONFIG = {
     'enabled_agents': [
         'macro_economist',
-        'geopolitical_analyst',
-        'correlation_specialist',
-        'trader_agent',
+        'geopolitical_analyst', 
         'risk_manager',
-        'portfolio_optimizer'
+        'portfolio_agent'
     ],
     'agent_weights': {
-        'macro_economist': 0.25,         # Macro economic analysis
-        'geopolitical_analyst': 0.20,    # Geopolitical risk assessment
-        'correlation_specialist': 0.15,  # Diversification analysis
-        'trader_agent': 0.20,            # Allocation proposals
-        'risk_manager': 0.15,             # Risk management
-        'portfolio_optimizer': 0.05,     # Mathematical optimization
+        'macro_economist': 0.30,         # Macro economic analysis
+        'geopolitical_analyst': 0.25,    # Geopolitical risk assessment
+        'risk_manager': 0.20,            # Risk management and score adjustment
+        'portfolio_agent': 0.25,         # Final allocation decisions
     },
     'consensus_threshold': 0.60,  # Minimum consensus for signal execution
 }

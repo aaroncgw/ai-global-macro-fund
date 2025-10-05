@@ -127,6 +127,48 @@ class MacroTradingGraph:
             # Return equal allocations on error
             equal_allocation = 1.0 / len(universe)
             return {etf: {'action': 'hold', 'allocation': equal_allocation, 'reason': 'Workflow failed'} for etf in universe}
+    
+    def propagate_with_details(self, universe, date='today'):
+        """
+        Run the complete macro trading workflow and return detailed results.
+        
+        Args:
+            universe: List of ETF tickers to analyze
+            date: Date for analysis (default: 'today')
+            
+        Returns:
+            Dictionary with complete analysis results including all agent reasoning
+        """
+        try:
+            logger.info(f"Starting detailed macro trading workflow for {len(universe)} ETFs")
+            logger.info(f"Universe: {', '.join(universe)}")
+            
+            # Create initial state
+            initial_state = {
+                'universe': universe,
+                'date': date,
+                'timestamp': pd.Timestamp.now().isoformat()
+            }
+            
+            # Run the workflow
+            result = self.compiled.invoke(initial_state)
+            
+            logger.info("Detailed macro trading workflow completed successfully")
+            logger.info(f"Result keys: {list(result.keys())}")
+            
+            return result
+            
+        except Exception as e:
+            logger.error(f"Detailed macro trading workflow failed: {e}")
+            # Return error state
+            return {
+                'final_allocations': {etf: {'action': 'hold', 'allocation': 0.0, 'reason': 'Workflow failed'} for etf in universe},
+                'agent_reasoning': {},
+                'macro_data': {},
+                'etf_data': pd.DataFrame(),
+                'news': [],
+                'error': str(e)
+            }
 
 
 if __name__ == "__main__":

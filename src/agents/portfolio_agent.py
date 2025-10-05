@@ -120,17 +120,57 @@ class PortfolioAgent:
             
             # Portfolio optimization
             n = len(universe)
+            
+            # Check for NaN values and handle them
+            if np.isnan(cov_matrix).any():
+                logger.warning("Correlation matrix contains NaN values, using identity matrix")
+                cov_matrix = np.eye(n)
+            
+            # Ensure matrix is square and matches universe size
+            if cov_matrix.shape != (n, n):
+                logger.warning(f"Correlation matrix shape {cov_matrix.shape} doesn't match universe size {n}, using identity matrix")
+                cov_matrix = np.eye(n)
+            
             w = cp.Variable(n)
             
+            # Handle single ETF case (no optimization needed)
+            if n == 1:
+                logger.info("Single ETF case - using risk-based allocation")
+                allocations = {}
+                for i, etf in enumerate(universe):
+                    risk_data = risks.get(etf, {'risk_level': 'medium', 'reason': 'No risk assessment'})
+                    adjusted_score = risks.get(etf, {'adjusted_score': 0.0}).get('adjusted_score', 0.0)
+                    
+                    # Simple allocation based on adjusted score
+                    if adjusted_score > 0.1:
+                        action = 'buy'
+                        allocation = min(1.0, adjusted_score)  # Cap at 100%
+                    else:
+                        action = 'hold'
+                        allocation = 0.0
+                    
+                    allocations[etf] = {
+                        'action': action,
+                        'allocation': allocation,
+                        'reason': f"Single ETF allocation based on {risk_data.get('risk_level', 'medium')} risk: {risk_data.get('reason', 'No reasoning')}"
+                    }
+                return allocations
+            
             # Objective: maximize expected return - risk penalty
-            objective = cp.Maximize(expected_scores.T @ w - 0.5 * cp.quad_form(w, cov_matrix))
-            
-            # Constraints: weights sum to 1, non-negative weights
-            constraints = [cp.sum(w) == 1, w >= 0]
-            
-            # Solve optimization problem
-            prob = cp.Problem(objective, constraints)
-            prob.solve()
+            try:
+                objective = cp.Maximize(expected_scores.T @ w - 0.5 * cp.quad_form(w, cov_matrix))
+                
+                # Constraints: weights sum to 1, non-negative weights
+                constraints = [cp.sum(w) == 1, w >= 0]
+                
+                # Solve optimization problem
+                prob = cp.Problem(objective, constraints)
+                prob.solve()
+                
+            except Exception as opt_error:
+                logger.error(f"Portfolio optimization error: {opt_error}")
+                logger.info("Falling back to risk-based allocation")
+                return self._create_risk_based_allocations(risks, universe)
             
             if prob.status == cp.OPTIMAL:
                 # Create allocations with actions and reasoning

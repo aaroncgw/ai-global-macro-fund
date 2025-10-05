@@ -1,7 +1,7 @@
 """
-Test All Macro Analyst Agents
+Test All Revamped Macro Analyst Agents
 
-This module tests all three macro analyst agents working together
+This module tests all four revamped macro analyst agents working together
 to demonstrate the complete analysis pipeline.
 """
 
@@ -10,7 +10,8 @@ import numpy as np
 from datetime import datetime, timedelta
 from src.agents.macro_economist import MacroEconomistAgent
 from src.agents.geopolitical_analyst import GeopoliticalAnalystAgent
-from src.agents.correlation_specialist import CorrelationSpecialistAgent
+from src.agents.risk_manager import RiskManager
+from src.agents.portfolio_agent import PortfolioAgent
 
 
 def create_sample_data():
@@ -87,20 +88,21 @@ def create_sample_data():
 
 
 def test_all_agents():
-    """Test all three macro analyst agents."""
+    """Test all four revamped macro analyst agents."""
     
-    print("Testing All Macro Analyst Agents")
+    print("Testing All Revamped Macro Analyst Agents")
     print("="*50)
     
     try:
         # Create sample data
         etf_data, macro_data, news_data = create_sample_data()
-        universe = ['SPY', 'QQQ', 'TLT', 'GLD', 'EWJ', 'FXI', 'UUP', 'FXE']
+        universe = ['SPY', 'TLT', 'GLD', 'EWJ', 'FXI']
         
         # Initialize all agents
         macro_economist = MacroEconomistAgent("MacroEconomist")
         geopolitical_analyst = GeopoliticalAnalystAgent("GeopoliticalAnalyst")
-        correlation_specialist = CorrelationSpecialistAgent("CorrelationSpecialist")
+        risk_manager = RiskManager("RiskManager")
+        portfolio_agent = PortfolioAgent("PortfolioAgent")
         
         print("✓ All agents initialized successfully")
         
@@ -110,7 +112,7 @@ def test_all_agents():
             'etf_data': etf_data,
             'news': news_data,
             'universe': universe,
-            'analyst_scores': {},
+            'agent_reasoning': {},
             'timestamp': datetime.now().isoformat()
         }
         
@@ -122,63 +124,46 @@ def test_all_agents():
         # Run macro economist analysis
         print("\n1. Running Macro Economist Analysis...")
         state = macro_economist.analyze(state)
-        macro_scores = state['analyst_scores']['macro']
-        print(f"   Macro scores: {macro_scores}")
+        macro_scores = state.get('macro_scores', {})
+        print(f"   Macro scores generated for {len(macro_scores)} ETFs")
         
         # Run geopolitical analyst analysis
         print("\n2. Running Geopolitical Analyst Analysis...")
         state = geopolitical_analyst.analyze(state)
-        geo_scores = state['analyst_scores']['geo']
-        print(f"   Geopolitical scores: {geo_scores}")
+        geo_scores = state.get('geo_scores', {})
+        print(f"   Geopolitical scores generated for {len(geo_scores)} ETFs")
         
-        # Run correlation specialist analysis
-        print("\n3. Running Correlation Specialist Analysis...")
-        state = correlation_specialist.analyze(state)
-        corr_scores = state['analyst_scores']['correlation']
-        print(f"   Correlation scores: {corr_scores}")
+        # Run risk manager analysis
+        print("\n3. Running Risk Manager Analysis...")
+        state = risk_manager.assess(state)
+        risk_assessments = state.get('risk_assessments', {})
+        print(f"   Risk assessments generated for {len(risk_assessments)} ETFs")
         
-        # Combine and analyze results
-        print("\n4. Combined Analysis Results:")
+        # Run portfolio agent analysis
+        print("\n4. Running Portfolio Agent Analysis...")
+        state = portfolio_agent.manage(state)
+        final_allocations = state.get('final_allocations', {})
+        print(f"   Final allocations generated for {len(final_allocations)} ETFs")
+        
+        # Display results
+        print("\n5. Final Results:")
         print("="*30)
         
-        all_scores = {
-            'macro': macro_scores,
-            'geopolitical': geo_scores,
-            'correlation': corr_scores
-        }
+        print("Final Portfolio Allocations:")
+        for etf, allocation in final_allocations.items():
+            if isinstance(allocation, dict):
+                action = allocation.get('action', 'unknown')
+                allocation_pct = allocation.get('allocation', 0.0)
+                reason = allocation.get('reason', 'No reasoning provided')
+                print(f"  {etf}: {action.upper()} {allocation_pct:.1%} - {reason[:50]}...")
+            else:
+                print(f"  {etf}: {allocation}")
         
-        # Calculate average scores
-        avg_scores = {}
-        for etf in universe:
-            scores = [all_scores[analyst][etf] for analyst in all_scores.keys()]
-            avg_scores[etf] = sum(scores) / len(scores)
-        
-        # Sort by average score
-        sorted_etfs = sorted(avg_scores.items(), key=lambda x: x[1], reverse=True)
-        
-        print("ETF Rankings (by average score):")
-        for i, (etf, score) in enumerate(sorted_etfs, 1):
-            print(f"  {i}. {etf}: {score:.3f}")
-        
-        # Show detailed breakdown
-        print("\nDetailed Score Breakdown:")
-        for etf in universe:
-            print(f"\n{etf}:")
-            print(f"  Macro: {macro_scores.get(etf, 0.0):.3f}")
-            print(f"  Geopolitical: {geo_scores.get(etf, 0.0):.3f}")
-            print(f"  Correlation: {corr_scores.get(etf, 0.0):.3f}")
-            print(f"  Average: {avg_scores.get(etf, 0.0):.3f}")
-        
-        # Show top recommendations
-        print("\nTop Recommendations:")
-        top_3 = sorted_etfs[:3]
-        for i, (etf, score) in enumerate(top_3, 1):
-            print(f"  {i}. {etf} (Score: {score:.3f})")
-        
-        print("\nBottom Recommendations:")
-        bottom_3 = sorted_etfs[-3:]
-        for i, (etf, score) in enumerate(bottom_3, 1):
-            print(f"  {i}. {etf} (Score: {score:.3f})")
+        # Show agent reasoning summary
+        print("\nAgent Reasoning Summary:")
+        agent_reasoning = state.get('agent_reasoning', {})
+        for agent_name, reasoning in agent_reasoning.items():
+            print(f"  {agent_name}: {reasoning.get('reasoning', 'No reasoning available')}")
         
         print("\n✓ All agent tests completed successfully!")
         
@@ -197,12 +182,13 @@ def test_agent_integration():
     try:
         # Create sample data
         etf_data, macro_data, news_data = create_sample_data()
-        universe = ['SPY', 'QQQ', 'TLT', 'GLD']
+        universe = ['SPY', 'TLT', 'GLD']
         
         # Initialize agents
         macro_economist = MacroEconomistAgent("MacroEconomist")
         geopolitical_analyst = GeopoliticalAnalystAgent("GeopoliticalAnalyst")
-        correlation_specialist = CorrelationSpecialistAgent("CorrelationSpecialist")
+        risk_manager = RiskManager("RiskManager")
+        portfolio_agent = PortfolioAgent("PortfolioAgent")
         
         # Simulate LangGraph workflow
         state = {
@@ -210,7 +196,7 @@ def test_agent_integration():
             'etf_data': etf_data,
             'news': news_data,
             'universe': universe,
-            'analyst_scores': {},
+            'agent_reasoning': {},
             'workflow_step': 0
         }
         
@@ -226,16 +212,22 @@ def test_agent_integration():
         state = geopolitical_analyst.analyze(state)
         print(f"Step 2: Geopolitical analysis completed")
         
-        # Step 3: Correlation analysis
+        # Step 3: Risk management
         state['workflow_step'] = 3
-        state = correlation_specialist.analyze(state)
-        print(f"Step 3: Correlation analysis completed")
+        state = risk_manager.assess(state)
+        print(f"Step 3: Risk management completed")
+        
+        # Step 4: Portfolio optimization
+        state['workflow_step'] = 4
+        state = portfolio_agent.manage(state)
+        print(f"Step 4: Portfolio optimization completed")
         
         # Final state
         print(f"\nFinal state contains:")
         print(f"  - Workflow step: {state['workflow_step']}")
-        print(f"  - Analyst scores: {len(state['analyst_scores'])} analysts")
+        print(f"  - Agent reasoning: {len(state.get('agent_reasoning', {}))} agents")
         print(f"  - Universe: {len(state['universe'])} ETFs")
+        print(f"  - Final allocations: {len(state.get('final_allocations', {}))} ETFs")
         
         print("✓ Agent integration test completed!")
         
@@ -246,7 +238,7 @@ def test_agent_integration():
 
 
 if __name__ == "__main__":
-    print("Macro Analyst Agents Test Suite")
+    print("Revamped Macro Analyst Agents Test Suite")
     print("="*50)
     
     # Test individual agents

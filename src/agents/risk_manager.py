@@ -32,6 +32,18 @@ class RiskManager(BaseAgent):
         self.analysis_focus = "risk_assessment"
         self.role = "risk_manager"
     
+    def analyze(self, state: dict) -> dict:
+        """
+        Analyze risks and adjust scores for ETFs (required by BaseAgent).
+        
+        Args:
+            state: LangGraph state dictionary
+            
+        Returns:
+            Updated state dictionary with risk assessments
+        """
+        return self.assess(state)
+    
     def assess(self, state: dict) -> dict:
         """
         Assess risks and adjust scores for ETFs based on combined analyst scores.

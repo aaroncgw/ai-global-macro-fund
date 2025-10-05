@@ -1,18 +1,15 @@
-# Global Macro ETF Trading System
+# AI Global Macro Fund
 
-A sophisticated AI-powered trading system that uses multiple specialized agents to analyze macroeconomic data, geopolitical events, and market correlations to generate optimal ETF portfolio allocations. The system employs LangGraph for agent orchestration and provides comprehensive reasoning for all investment decisions.
+A sophisticated AI-powered ETF trading system that uses multiple specialized agents to analyze macroeconomic data, geopolitical events, and risk factors to generate optimal ETF portfolio allocations. The system employs LangGraph for agent orchestration and provides comprehensive reasoning for all investment decisions.
 
 ## 🎯 System Overview
 
-This system transforms traditional portfolio management by using multiple AI agents that specialize in different aspects of macro analysis:
+This revamped system transforms traditional portfolio management by using a streamlined set of AI agents that specialize in different aspects of macro analysis:
 
-- **Macro Economist**: Analyzes economic indicators (GDP, inflation, unemployment, interest rates)
+- **Macro Economist**: Analyzes economic indicators (GDP, inflation, unemployment, interest rates) and scores ETFs
 - **Geopolitical Analyst**: Assesses geopolitical risks and opportunities from news and events
-- **Correlation Specialist**: Evaluates diversification benefits and portfolio balance
-- **Debate Researchers**: Bullish and bearish researchers engage in structured debates
-- **Trader Agent**: Converts analysis into initial allocation proposals
-- **Risk Manager**: Adjusts allocations based on risk factors and volatility
-- **Portfolio Optimizer**: Uses mathematical optimization for final allocations
+- **Risk Manager**: Combines analyst scores and adjusts for risk factors and volatility
+- **Portfolio Agent**: Uses mathematical optimization for final allocation decisions
 
 ## 🏗️ System Architecture
 
@@ -24,12 +21,9 @@ This system transforms traditional portfolio management by using multiple AI age
 │ • FRED API      │───▶│ • Data Fetching  │───▶│ • Final         │
 │ • yfinance      │    │ • Macro Analysis │    │   Allocations   │
 │ • Finlight.me   │    │ • Geo Analysis   │    │ • Reasoning     │
-│ • News APIs     │    │ • Correlation    │    │ • Rationale     │
-└─────────────────┘    │ • Debate         │    │ • Insights     │
-                       │ • Trading        │    └─────────────────┘
-                       │ • Risk Mgmt      │
-                       │ • Optimization   │
-                       └──────────────────┘
+│ • News APIs     │    │ • Risk Management│    │ • Rationale     │
+└─────────────────┘    │ • Portfolio Opt  │    │ • Insights     │
+                       └──────────────────┘    └─────────────────┘
 ```
 
 ## 🚀 Quick Start
@@ -61,7 +55,7 @@ This system transforms traditional portfolio management by using multiple AI age
 
 4. **Run the system:**
    ```bash
-   poetry run python src/main.py --universe SPY QQQ TLT GLD
+   poetry run python src/main.py --universe SPY TLT GLD
    ```
 
 ## ⚙️ Configuration
@@ -151,94 +145,61 @@ poetry run python src/main.py --universe SPY EWJ EWG FXI GLD TLT
 **Purpose**: Analyzes macroeconomic indicators and their impact on different asset classes.
 
 **Key Responsibilities**:
-- Fetches and analyzes FRED economic indicators (CPI, unemployment, Fed funds rate, GDP)
+- Analyzes FRED economic indicators (CPI, unemployment, Fed funds rate, GDP)
 - Scores ETFs based on macro trends and economic cycles
 - Considers inflation impact on bonds vs commodities
 - Evaluates interest rate environment effects
+- Provides confidence levels and detailed reasoning
 
 **Input**: Macro economic data, ETF price data
-**Output**: ETF scores from -1 (strong sell) to 1 (strong buy)
+**Output**: ETF scores from -1 (strong sell) to 1 (strong buy) with confidence and reasoning
 
 ### 2. Geopolitical Analyst Agent (`src/agents/geopolitical_analyst.py`)
 
 **Purpose**: Assesses geopolitical risks and opportunities from news and events.
 
 **Key Responsibilities**:
-- Analyzes geopolitical news and events
+- Analyzes geopolitical news and events from Finlight.me
 - Evaluates regional risks and opportunities
 - Considers currency and trade impacts
 - Scores country-specific and regional ETFs
+- Provides confidence levels and detailed reasoning
 
 **Input**: News data, geopolitical events
-**Output**: ETF scores based on geopolitical factors
+**Output**: ETF scores based on geopolitical factors with confidence and reasoning
 
-### 3. Correlation Specialist Agent (`src/agents/correlation_specialist.py`)
+### 3. Risk Manager Agent (`src/agents/risk_manager.py`)
 
-**Purpose**: Analyzes ETF correlations and suggests diversification scores.
-
-**Key Responsibilities**:
-- Calculates correlation matrices between ETFs
-- Identifies diversification opportunities
-- Suggests portfolio balance improvements
-- Scores ETFs based on correlation benefits
-
-**Input**: ETF price data, correlation matrices
-**Output**: Diversification-focused ETF scores
-
-### 4. Debate Researchers (`src/agents/debate_researchers.py`)
-
-**Purpose**: Conducts structured debates between bullish and bearish perspectives.
-
-**Key Components**:
-- **BullishMacroResearcher**: Presents bullish macro opportunities
-- **BearishMacroResearcher**: Presents bearish macro risks
-- **Debate Function**: Orchestrates multi-round debates
-
-**Input**: Analyst scores, market data
-**Output**: Structured debate results and consensus
-
-### 5. Trader Agent (`src/agents/trader_agent.py`)
-
-**Purpose**: Converts analysis into actionable allocation proposals.
+**Purpose**: Combines analyst scores and adjusts for risk factors and volatility.
 
 **Key Responsibilities**:
-- Synthesizes analyst scores and debate results
-- Proposes initial buy/sell allocations
-- Balances risk and return objectives
-- Creates actionable trading decisions
+- Combines macro and geopolitical analyst scores
+- Adjusts scores based on risk factors and volatility
+- Assesses risk levels (low/medium/high) for each ETF
+- Provides risk-adjusted scores with detailed reasoning
+- Considers correlation and concentration risks
 
-**Input**: Debate results, analyst scores
-**Output**: Proposed ETF allocations (percentages)
+**Input**: Macro scores, geopolitical scores, ETF data, macro data
+**Output**: Risk-adjusted scores with risk levels and reasoning
 
-### 6. Risk Manager Agent (`src/agents/risk_manager.py`)
-
-**Purpose**: Assesses and adjusts allocations for macro risks and volatility.
-
-**Key Responsibilities**:
-- Adjusts allocations based on risk factors
-- Caps volatile ETFs during high inflation
-- Reduces exposure during economic uncertainty
-- Applies risk management constraints
-
-**Input**: Proposed allocations, macro data, risk factors
-**Output**: Risk-adjusted allocations with reasoning
-
-### 7. Portfolio Optimizer Agent (`src/agents/portfolio_optimizer.py`)
+### 4. Portfolio Agent (`src/agents/portfolio_agent.py`)
 
 **Purpose**: Uses mathematical optimization for final allocation decisions.
 
 **Key Responsibilities**:
-- Performs mean-variance optimization
-- Considers correlation matrices
-- Applies portfolio constraints
+- Performs mean-variance optimization using CVXPY
+- Considers correlation matrices between ETFs
+- Applies portfolio constraints (weights sum to 1, non-negative)
 - Generates mathematically optimal allocations
+- Handles single ETF cases with risk-based allocation
+- Provides final action recommendations (buy/hold/sell)
 
-**Input**: Risk-adjusted allocations, correlation data
-**Output**: Final optimized allocations
+**Input**: Risk-adjusted scores, ETF correlation data
+**Output**: Final optimized allocations with actions and reasoning
 
 ## 🔄 Workflow Process
 
-The system follows a structured LangGraph workflow:
+The system follows a streamlined LangGraph workflow:
 
 ```
 1. Data Fetching
@@ -248,22 +209,19 @@ The system follows a structured LangGraph workflow:
 
 2. Analysis Phase
    ├── Macro Economist → Scores ETFs based on macro trends
-   ├── Geopolitical Analyst → Scores ETFs based on geo risks
-   └── Correlation Specialist → Scores ETFs for diversification
+   └── Geopolitical Analyst → Scores ETFs based on geo risks
 
-3. Debate Phase
-   ├── Bullish Researcher → Presents bullish arguments
-   └── Bearish Researcher → Presents bearish counterarguments
+3. Risk Management Phase
+   └── Risk Manager → Combines scores and adjusts for risk factors
 
-4. Allocation Phase
-   ├── Trader Agent → Proposes initial allocations
-   ├── Risk Manager → Adjusts for risk factors
-   └── Portfolio Optimizer → Final mathematical optimization
+4. Portfolio Optimization Phase
+   └── Portfolio Agent → Mathematical optimization for final allocations
 
 5. Output
-   ├── Final allocations
-   ├── Comprehensive reasoning
-   └── Actionable insights
+   ├── Final allocations with actions (buy/hold/sell)
+   ├── Comprehensive reasoning from all agents
+   ├── Risk assessments and confidence levels
+   └── Detailed report saved to reports/ folder
 ```
 
 ## 📊 Data Sources
@@ -372,8 +330,11 @@ poetry run python src/agents/macro_economist.py
 # Test geopolitical analyst
 poetry run python src/agents/geopolitical_analyst.py
 
-# Test correlation specialist
-poetry run python src/agents/correlation_specialist.py
+# Test risk manager
+poetry run python src/agents/risk_manager.py
+
+# Test portfolio agent
+poetry run python src/agents/portfolio_agent.py
 ```
 
 ### Run Complete Workflow Tests
@@ -390,7 +351,10 @@ poetry run python src/agents/test_allocation_agents.py
 
 ```bash
 # Test with different ETF universes
-poetry run python src/graph/test_complete_workflow.py
+poetry run python src/main.py --universe SPY TLT GLD
+
+# Test with single ETF
+poetry run python src/main.py --universe SPY
 
 # Test error handling
 poetry run python src/main.py --universe INVALID1 INVALID2
@@ -461,8 +425,11 @@ from src.graph.macro_trading_graph import MacroTradingGraph
 # Initialize graph
 graph = MacroTradingGraph(debug=True)
 
-# Run workflow
-result = graph.propagate(['SPY', 'QQQ', 'TLT'], '2024-01-01')
+# Run workflow and get final allocations
+result = graph.propagate(['SPY', 'TLT', 'GLD'], '2024-01-01')
+
+# Run workflow and get detailed results with reasoning
+detailed_result = graph.propagate_with_details(['SPY', 'TLT', 'GLD'], '2024-01-01')
 ```
 
 ### Agent Interface
@@ -534,6 +501,6 @@ For questions, issues, or contributions:
 
 ---
 
-**Last Updated**: September 2024  
-**Version**: 1.0.0  
+**Last Updated**: October 2024  
+**Version**: 2.0.0 (Revamped)  
 **Python**: 3.11+

@@ -12,11 +12,8 @@ src/
 │   ├── base_agent.py      # Base class for all agents
 │   ├── macro_economist.py # Macro economic analysis
 │   ├── geopolitical_analyst.py # Geopolitical risk analysis
-│   ├── correlation_specialist.py # Diversification analysis
-│   ├── debate_researchers.py # Bullish/bearish debates
-│   ├── trader_agent.py    # Allocation proposals
 │   ├── risk_manager.py    # Risk assessment
-│   └── portfolio_optimizer.py # Mathematical optimization
+│   └── portfolio_agent.py # Portfolio optimization
 ├── data_fetchers/         # Data source integrations
 │   └── macro_fetcher.py   # Unified data fetching
 ├── graph/                 # LangGraph workflow orchestration
@@ -64,9 +61,9 @@ state = {
         'geopolitical_analyst': {...},
         # ... other agents
     },
-    'debate_output': [...],
-    'proposed_allocations': {...},
-    'risk_adjusted_allocations': {...},
+    'macro_scores': {...},
+    'geo_scores': {...},
+    'risk_assessments': {...},
     'final_allocations': {...}
 }
 ```
@@ -100,11 +97,8 @@ The system follows a strict LangGraph workflow:
 self.graph.add_node('fetch', fetch_node)
 self.graph.add_node('macro_analyst', macro_analyst_node)
 self.graph.add_node('geo_analyst', geo_analyst_node)
-self.graph.add_node('corr_analyst', corr_analyst_node)
-self.graph.add_node('debate', debate_node)
-self.graph.add_node('trader', trader_node)
 self.graph.add_node('risk', risk_node)
-self.graph.add_node('optimizer', optimizer_node)
+self.graph.add_node('portfolio', portfolio_node)
 
 # Define edges
 self.graph.set_entry_point('fetch')

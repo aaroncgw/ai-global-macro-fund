@@ -40,9 +40,9 @@ def sample_state():
         ],
         'analyst_scores': {},
         'agent_reasoning': {},
-        'debate_output': [],
-        'proposed_allocations': {},
-        'risk_adjusted_allocations': {},
+        'macro_scores': {},
+        'geo_scores': {},
+        'risk_assessments': {},
         'final_allocations': {}
     }
 

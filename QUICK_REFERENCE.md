@@ -201,17 +201,13 @@ src/
 
 2. Analysis Phase
    ├── Macro Economist → ETF scores
-   ├── Geopolitical Analyst → ETF scores
-   └── Correlation Specialist → ETF scores
+   └── Geopolitical Analyst → ETF scores
 
-3. Debate Phase
-   ├── Bullish Researcher → Bullish arguments
-   └── Bearish Researcher → Bearish arguments
+3. Risk Management Phase
+   └── Risk Manager → Risk-adjusted scores
 
-4. Allocation Phase
-   ├── Trader Agent → Initial allocations
-   ├── Risk Manager → Risk adjustments
-   └── Portfolio Optimizer → Final allocations
+4. Portfolio Optimization Phase
+   └── Portfolio Agent → Final allocations
 
 5. Output
    ├── Final allocations
@@ -225,11 +221,8 @@ src/
 |-------|---------|-------|--------|
 | Macro Economist | Economic analysis | Macro data, ETF data | ETF scores (-1 to 1) |
 | Geopolitical Analyst | Geo risk analysis | News data, events | ETF scores (-1 to 1) |
-| Correlation Specialist | Diversification | ETF correlations | ETF scores (-1 to 1) |
-| Debate Researchers | Bullish/bearish debate | Analyst scores | Debate results |
-| Trader Agent | Allocation proposals | Debate results, scores | Proposed allocations |
-| Risk Manager | Risk assessment | Proposed allocations | Risk-adjusted allocations |
-| Portfolio Optimizer | Mathematical optimization | Risk-adjusted allocations | Final allocations |
+| Risk Manager | Risk assessment | Macro scores, geo scores | Risk-adjusted scores |
+| Portfolio Agent | Mathematical optimization | Risk-adjusted scores | Final allocations |
 
 ## 📈 Output Quick Reference
 

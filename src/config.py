@@ -231,7 +231,6 @@ DEFAULT_HORIZON = 'months_to_years'
 
 # Default system configuration
 DEFAULT_CONFIG = {
-    'max_debate_rounds': 2,
     'llm_model': 'deepseek-chat',
     'batch_size': 10,  # Number of ETFs to process in parallel
     'analysis_horizon_days': 90,  # Lookback period for analysis

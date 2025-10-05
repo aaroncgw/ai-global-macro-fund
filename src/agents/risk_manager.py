@@ -108,6 +108,14 @@ class RiskManager(BaseAgent):
             - Economic sanctions
             - Market sentiment shifts
             
+            PRICE-RELATED RISK FACTORS:
+            - Historical volatility patterns and trends
+            - Price momentum and technical indicators
+            - Volume patterns and liquidity risks
+            - Drawdown analysis and maximum loss potential
+            - Correlation with market indices and other assets
+            - Price impact of large trades
+            
             Output dict format:
             {{"ETF": {{"risk_level": "low/medium/high", "volatility": float, "reason": "detailed explanation"}}}}
             """

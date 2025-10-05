@@ -11,7 +11,7 @@ from datetime import datetime, timedelta
 from src.agents.macro_economist import MacroEconomistAgent
 from src.agents.geopolitical_analyst import GeopoliticalAnalystAgent
 from src.agents.risk_manager import RiskManager
-from src.agents.portfolio_agent import PortfolioAgent
+from src.agents.portfolio_manager import PortfolioManagerAgent
 
 
 def create_sample_data():
@@ -102,7 +102,7 @@ def test_all_agents():
         macro_economist = MacroEconomistAgent("MacroEconomist")
         geopolitical_analyst = GeopoliticalAnalystAgent("GeopoliticalAnalyst")
         risk_manager = RiskManager("RiskManager")
-        portfolio_agent = PortfolioAgent("PortfolioAgent")
+        portfolio_agent = PortfolioManagerAgent("PortfolioManagerAgent")
         
         print("✓ All agents initialized successfully")
         
@@ -188,7 +188,7 @@ def test_agent_integration():
         macro_economist = MacroEconomistAgent("MacroEconomist")
         geopolitical_analyst = GeopoliticalAnalystAgent("GeopoliticalAnalyst")
         risk_manager = RiskManager("RiskManager")
-        portfolio_agent = PortfolioAgent("PortfolioAgent")
+        portfolio_agent = PortfolioManagerAgent("PortfolioManagerAgent")
         
         # Simulate LangGraph workflow
         state = {

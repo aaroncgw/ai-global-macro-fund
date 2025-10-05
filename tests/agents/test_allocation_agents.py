@@ -9,7 +9,7 @@ import pandas as pd
 import numpy as np
 from datetime import datetime
 from src.agents.risk_manager import RiskManager
-from src.agents.portfolio_agent import PortfolioAgent
+from src.agents.portfolio_manager import PortfolioManagerAgent
 
 
 def create_allocation_sample_data():
@@ -90,7 +90,7 @@ def test_complete_allocation_pipeline():
         
         # Initialize all agents
         risk_manager = RiskManager("RiskManager")
-        portfolio_agent = PortfolioAgent("PortfolioAgent")
+        portfolio_agent = PortfolioManagerAgent("PortfolioManagerAgent")
         
         print(f"✓ All agents initialized")
         
@@ -206,7 +206,7 @@ def test_individual_agents():
         
         # Test Portfolio Agent
         print("\n2. Testing Portfolio Agent...")
-        portfolio_agent = PortfolioAgent("TestPortfolioAgent")
+        portfolio_agent = PortfolioManagerAgent("TestPortfolioManagerAgent")
         
         portfolio_data = {
             'risk_assessments': risk_assessments,

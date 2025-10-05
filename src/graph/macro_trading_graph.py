@@ -9,7 +9,7 @@ from langgraph.graph import StateGraph, END
 from src.agents.macro_economist import MacroEconomistAgent
 from src.agents.geopolitical_analyst import GeopoliticalAnalystAgent
 from src.agents.risk_manager import RiskManager
-from src.agents.portfolio_agent import PortfolioAgent
+from src.agents.portfolio_manager import PortfolioManagerAgent
 from src.data_fetchers.macro_fetcher import MacroFetcher
 from src.config import MACRO_INDICATORS, DEFAULT_CONFIG
 import logging
@@ -77,17 +77,52 @@ class MacroTradingGraph:
         self.graph.add_node('macro_analyst', MacroEconomistAgent().analyze)
         self.graph.add_node('geo_analyst', GeopoliticalAnalystAgent().analyze)
         self.graph.add_node('risk', RiskManager().assess)
-        self.graph.add_node('portfolio', PortfolioAgent().manage)
+        self.graph.add_node('aggregate_scores', self._aggregate_scores)
+        self.graph.add_node('portfolio', PortfolioManagerAgent().manage)
         
         # Add edges to create workflow
         self.graph.set_entry_point('fetch')
         self.graph.add_edge('fetch', 'macro_analyst')
         self.graph.add_edge('macro_analyst', 'geo_analyst')
         self.graph.add_edge('geo_analyst', 'risk')
-        self.graph.add_edge('risk', 'portfolio')
+        self.graph.add_edge('risk', 'aggregate_scores')
+        self.graph.add_edge('aggregate_scores', 'portfolio')
         self.graph.add_edge('portfolio', END)
         
         logger.info("Graph nodes and edges added successfully")
+    
+    def _aggregate_scores(self, state):
+        """
+        Aggregate scores from all analyst agents into a unified scores dictionary.
+        
+        Args:
+            state: LangGraph state dictionary
+            
+        Returns:
+            Updated state with aggregated scores
+        """
+        try:
+            # Extract scores from analyst agents
+            macro_scores = state.get('macro_scores', {})
+            geo_scores = state.get('geo_scores', {})
+            
+            # Aggregate scores from all agents
+            scores = {
+                'macro_economist': macro_scores,
+                'geopolitical_analyst': geo_scores
+            }
+            
+            # Store aggregated scores in state
+            state['scores'] = scores
+            
+            logger.info(f"Score aggregation completed for {len(scores)} agents")
+            return state
+            
+        except Exception as e:
+            logger.error(f"Score aggregation failed: {e}")
+            # Return empty scores on error
+            state['scores'] = {}
+            return state
     
     def propagate(self, universe, date='today'):
         """

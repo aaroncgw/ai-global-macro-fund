@@ -262,7 +262,7 @@ class PortfolioManagerAgent(BaseAgent):
                             score = data.get('score', 0)
                             confidence = data.get('confidence', 0)
                             reason = data.get('reason', 'No reasoning')
-                            formatted.append(f"    {etf}: Score {score:.3f} (Confidence: {confidence:.1%}) - {reason[:100]}...")
+                            formatted.append(f"    {etf}: Score {score:.3f} (Confidence: {confidence:.1%}) - {reason}")
                 
                 elif 'geo_scores' in reasoning_data:
                     scores = reasoning_data['geo_scores']
@@ -272,7 +272,7 @@ class PortfolioManagerAgent(BaseAgent):
                             score = data.get('score', 0)
                             confidence = data.get('confidence', 0)
                             reason = data.get('reason', 'No reasoning')
-                            formatted.append(f"    {etf}: Score {score:.3f} (Confidence: {confidence:.1%}) - {reason[:100]}...")
+                            formatted.append(f"    {etf}: Score {score:.3f} (Confidence: {confidence:.1%}) - {reason}")
                 
                 elif 'risk_metrics' in reasoning_data:
                     metrics = reasoning_data['risk_metrics']
@@ -282,7 +282,7 @@ class PortfolioManagerAgent(BaseAgent):
                             risk_level = data.get('risk_level', 'unknown')
                             volatility = data.get('volatility', 0)
                             reason = data.get('reason', 'No reasoning')
-                            formatted.append(f"    {etf}: {risk_level.upper()} Risk (Vol: {volatility:.1%}) - {reason[:100]}...")
+                            formatted.append(f"    {etf}: {risk_level.upper()} Risk (Vol: {volatility:.1%}) - {reason}")
                 
                 # Add key factors
                 key_factors = reasoning_data.get('key_factors', [])

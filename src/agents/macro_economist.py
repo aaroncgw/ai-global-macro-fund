@@ -201,6 +201,7 @@ class MacroEconomistAgent(BaseAgent):
     def _parse_structured_scores(self, response: str, universe: list) -> dict:
         """
         Parse structured ETF scores with confidence and reasoning from LLM response.
+        Enhanced to handle longer responses with extra text.
         
         Args:
             response: LLM response string
@@ -210,44 +211,64 @@ class MacroEconomistAgent(BaseAgent):
             Dictionary with ETF scores, confidence, and reasoning
         """
         try:
-            # Try to extract JSON from response with better error handling
+            # Clean the response first
+            response = response.strip()
+            
+            # Try multiple JSON extraction strategies
+            json_str = None
+            
+            # Strategy 1: Look for JSON object boundaries
             if '{' in response and '}' in response:
-                # Find JSON part
                 start = response.find('{')
                 end = response.rfind('}') + 1
                 json_str = response[start:end]
-                
-                # Try to clean up common JSON issues
+            
+            # Strategy 2: Look for JSON array boundaries (in case LLM returns array)
+            elif '[' in response and ']' in response:
+                start = response.find('[')
+                end = response.rfind(']') + 1
+                json_str = response[start:end]
+            
+            if json_str:
+                # Clean up common JSON issues
                 json_str = json_str.replace('\n', ' ').replace('\r', ' ')
                 json_str = json_str.replace('  ', ' ')  # Remove double spaces
+                json_str = json_str.replace('\t', ' ')  # Remove tabs
                 
                 # Try to parse JSON
                 try:
                     scores = json.loads(json_str)
                 except json.JSONDecodeError as json_err:
-                    # Try to fix common JSON issues
                     logger.warning(f"Initial JSON parse failed: {json_err}")
                     
-                    # Try to extract individual ETF entries
+                    # Enhanced regex-based recovery
                     import re
-                    etf_pattern = r'"([A-Z]{2,4})":\s*\{[^}]*\}'
+                    
+                    # Try to extract individual ETF entries with more flexible pattern
+                    etf_pattern = r'"([A-Z]{2,4})":\s*\{[^{}]*(?:\{[^{}]*\}[^{}]*)*\}'
                     etf_matches = re.findall(etf_pattern, json_str)
                     
                     if etf_matches:
                         # Try to build a valid JSON object
                         fixed_json = "{"
                         for etf in etf_matches:
-                            etf_entry = re.search(f'"{etf}":\\s*\\{{[^}}]*\\}}', json_str)
+                            # More flexible pattern for ETF entries
+                            etf_entry_pattern = f'"{etf}":\\s*\\{{[^{{}}]*(?:\\{{[^{{}}]*\\}}[^{{}}]*)*\\}}'
+                            etf_entry = re.search(etf_entry_pattern, json_str)
                             if etf_entry:
                                 fixed_json += etf_entry.group(0) + ","
                         fixed_json = fixed_json.rstrip(',') + "}"
                         
                         try:
                             scores = json.loads(fixed_json)
-                        except:
-                            raise json_err
+                            logger.info(f"Successfully recovered JSON using regex for {len(etf_matches)} ETFs")
+                        except json.JSONDecodeError as recovery_err:
+                            logger.warning(f"Regex recovery also failed: {recovery_err}")
+                            # Try one more approach - extract just the scores
+                            scores = self._extract_scores_fallback(json_str, universe)
                     else:
-                        raise json_err
+                        # Try to extract scores using fallback method
+                        scores = self._extract_scores_fallback(json_str, universe)
                 
                 # Validate and structure scores
                 validated_scores = {}
@@ -288,6 +309,55 @@ class MacroEconomistAgent(BaseAgent):
                 'confidence': 0.0, 
                 'reason': f'JSON parsing failed - LLM response format issue. Raw response length: {len(response)} chars'
             } for etf in universe}
+    
+    def _extract_scores_fallback(self, text: str, universe: list) -> dict:
+        """
+        Fallback method to extract scores using text patterns when JSON parsing fails.
+        
+        Args:
+            text: Text containing ETF scores
+            universe: List of ETFs to extract scores for
+            
+        Returns:
+            Dictionary with extracted scores
+        """
+        import re
+        scores = {}
+        
+        for etf in universe:
+            # Look for patterns like "SPY": {"score": 0.5, "confidence": 0.8, "reason": "..."}
+            pattern = f'"{etf}"\\s*:\\s*\\{{[^}}]*"score"\\s*:\\s*([-+]?\\d*\\.?\\d+)[^}}]*"confidence"\\s*:\\s*([-+]?\\d*\\.?\\d+)[^}}]*"reason"\\s*:\\s*"([^"]*)"'
+            match = re.search(pattern, text, re.IGNORECASE)
+            
+            if match:
+                try:
+                    score = float(match.group(1))
+                    confidence = float(match.group(2))
+                    reason = match.group(3)
+                    
+                    # Clamp values
+                    score = max(-1.0, min(1.0, score))
+                    confidence = max(0.0, min(1.0, confidence))
+                    
+                    scores[etf] = {
+                        'score': score,
+                        'confidence': confidence,
+                        'reason': reason
+                    }
+                except (ValueError, IndexError):
+                    scores[etf] = {
+                        'score': 0.0,
+                        'confidence': 0.0,
+                        'reason': 'Failed to extract score from text pattern'
+                    }
+            else:
+                scores[etf] = {
+                    'score': 0.0,
+                    'confidence': 0.0,
+                    'reason': 'No score pattern found in response'
+                }
+        
+        return scores
 
 
 # Example usage and testing

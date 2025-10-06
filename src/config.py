@@ -236,9 +236,43 @@ SIGNAL_AGENTS = [
     'GeopoliticalAnalystAgent'
 ]
 
+# ETF Category mappings for analysis grouping
+ETF_CATEGORIES = {
+    'country_region': [
+        'EWJ', 'EWG', 'EWU', 'EWA', 'EWC', 'EWZ', 'INDA', 'FXI', 'EZA', 'TUR', 'RSX', 'EWW'
+    ],
+    'currency': [
+        'UUP', 'FXE', 'FXY', 'FXB', 'FXC', 'FXA', 'FXF', 'CYB'
+    ],
+    'bonds': [
+        'TLT', 'IEF', 'BND', 'TIP', 'LQD', 'HYG', 'EMB', 'PCY'
+    ],
+    'equity_indices': [
+        'SPY', 'QQQ', 'VEU', 'VWO', 'VGK', 'VPL', 'ACWI'
+    ],
+    'commodities': [
+        'GLD', 'SLV', 'USO', 'UNG', 'DBC', 'CORN', 'WEAT', 'DBA', 'PDBC', 'GSG'
+    ]
+}
 
-# LLM Configuration for flexibility
-# Users can switch providers by editing this configuration
+# GPT Configuration
+# LLM_CONFIG = {
+#     'provider': 'openai',
+#     'model': 'gpt-4o-mini',
+#     'api_key_env': 'OPENAI_API_KEY',
+#     'base_url': 'https://api.openai.com/v1',
+#     'temperature': 0,  # Deterministic output
+#     'seed': 42,  # Fixed seed for reproducibility
+#     'max_tokens': 4000,  # Reasonable limit for structured responses
+#     'top_p': 1.0,  # Deterministic sampling
+#     'frequency_penalty': 0.0,  # No frequency penalty
+#     'presence_penalty': 0.0,  # No presence penalty
+# }
+
+# Alternative LLM configurations (commented out for reference)
+# To switch providers, uncomment the desired configuration and comment out the current one
+
+#Deepseek Configuration
 LLM_CONFIG = {
     'provider': 'deepseek',
     'model': 'deepseek-chat',
@@ -246,24 +280,11 @@ LLM_CONFIG = {
     'base_url': 'https://api.deepseek.com/v1',
     'temperature': 0,  # Deterministic output
     'seed': 42,  # Fixed seed for reproducibility
-    'max_tokens': 1500,  # Reduced for more focused responses
+    'max_tokens': 4000,  # Reduced for more focused responses
     'top_p': 1.0,  # Deterministic sampling
     'frequency_penalty': 0.0,  # No frequency penalty
     'presence_penalty': 0.0,  # No presence penalty
 }
-
-# Alternative LLM configurations (commented out for reference)
-# To switch providers, uncomment the desired configuration and comment out the current one
-
-# OpenAI Configuration
-# LLM_CONFIG = {
-#     'provider': 'openai',
-#     'model': 'gpt-4',
-#     'api_key_env': 'OPENAI_API_KEY',
-#     'base_url': 'https://api.openai.com/v1',
-#     'temperature': 0.7,
-#     'max_tokens': 4000,
-# }
 
 # Anthropic Configuration
 # LLM_CONFIG = {
@@ -274,3 +295,32 @@ LLM_CONFIG = {
 #     'temperature': 0.7,
 #     'max_tokens': 4000,
 # }
+
+# Validation function to ensure configuration is valid
+def validate_config():
+    """Validate the configuration for consistency and completeness."""
+    errors = []
+    
+    # Check ETF universe is not empty
+    if not ETF_UNIVERSE:
+        errors.append("ETF_UNIVERSE cannot be empty")
+    
+    # Check all ETFs in categories are in the universe
+    all_categorized_etfs = set()
+    for category, etfs in ETF_CATEGORIES.items():
+        all_categorized_etfs.update(etfs)
+    
+    universe_set = set(ETF_UNIVERSE)
+    if not all_categorized_etfs.issubset(universe_set):
+        missing = all_categorized_etfs - universe_set
+        errors.append(f"ETFs in categories but not in universe: {missing}")
+    
+    if errors:
+        raise ValueError(f"Configuration validation failed: {'; '.join(errors)}")
+    
+    return True
+
+# Initialize configuration validation on import
+if __name__ == "__main__":
+    validate_config()
+    print("Configuration validation passed!")

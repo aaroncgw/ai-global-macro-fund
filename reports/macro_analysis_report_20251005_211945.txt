@@ -1,0 +1,531 @@
+
+================================================================================
+🤖 AI GLOBAL MACRO FUND - COMPREHENSIVE ANALYSIS REPORT
+================================================================================
+📅 Analysis Date: today
+📊 Universe: EWJ, EWG, EWU, EWA, EWC, EWZ, INDA, FXI, EZA, TUR, RSX, EWW, UUP, FXE, FXY, FXB, FXC, FXA, FXF, CYB, TLT, IEF, BND, TIP, LQD, HYG, EMB, PCY, SPY, QQQ, VEU, VWO, VGK, VPL, ACWI, GLD, SLV, USO, UNG, DBC, CORN, WEAT, DBA, PDBC, GSG
+⏰ Generated: 2025-10-05 21:19:45
+================================================================================
+
+📈 MACRO ECONOMIC OVERVIEW
+--------------------------------------------------
+Key Economic Indicators:
+  • CPIAUCSL: {'data': {Timestamp('2024-09-01 00:00:00'): 314.851, Timestamp('2024-10-01 00:00:00'): 315.564, Timestamp('2024-11-01 00:00:00'): 316.449, Timestamp('2024-12-01 00:00:00'): 317.603, Timestamp('2025-01-01 00:00:00'): 319.086, Timestamp('2025-02-01 00:00:00'): 319.775, Timestamp('2025-03-01 00:00:00'): 319.615, Timestamp('2025-04-01 00:00:00'): 320.321, Timestamp('2025-05-01 00:00:00'): 320.58, Timestamp('2025-06-01 00:00:00'): 321.5, Timestamp('2025-07-01 00:00:00'): 322.132, Timestamp('2025-08-01 00:00:00'): 323.364}, 'latest_value': 323.364, 'periods': 12, 'indicator_name': 'CPIAUCSL'}
+  • UNRATE: {'data': {Timestamp('2024-09-01 00:00:00'): 4.1, Timestamp('2024-10-01 00:00:00'): 4.1, Timestamp('2024-11-01 00:00:00'): 4.2, Timestamp('2024-12-01 00:00:00'): 4.1, Timestamp('2025-01-01 00:00:00'): 4.0, Timestamp('2025-02-01 00:00:00'): 4.1, Timestamp('2025-03-01 00:00:00'): 4.2, Timestamp('2025-04-01 00:00:00'): 4.2, Timestamp('2025-05-01 00:00:00'): 4.2, Timestamp('2025-06-01 00:00:00'): 4.1, Timestamp('2025-07-01 00:00:00'): 4.2, Timestamp('2025-08-01 00:00:00'): 4.3}, 'latest_value': 4.3, 'periods': 12, 'indicator_name': 'UNRATE'}
+  • GDPC1: {'data': {Timestamp('2022-07-01 00:00:00'): 22125.625, Timestamp('2022-10-01 00:00:00'): 22278.345, Timestamp('2023-01-01 00:00:00'): 22439.607, Timestamp('2023-04-01 00:00:00'): 22580.499, Timestamp('2023-07-01 00:00:00'): 22840.989, Timestamp('2023-10-01 00:00:00'): 23033.78, Timestamp('2024-01-01 00:00:00'): 23082.119, Timestamp('2024-04-01 00:00:00'): 23286.508, Timestamp('2024-07-01 00:00:00'): 23478.57, Timestamp('2024-10-01 00:00:00'): 23586.542, Timestamp('2025-01-01 00:00:00'): 23548.21, Timestamp('2025-04-01 00:00:00'): 23770.976}, 'latest_value': 23770.976, 'periods': 12, 'indicator_name': 'GDPC1'}
+  • FEDFUNDS: {'data': {Timestamp('2024-10-01 00:00:00'): 4.83, Timestamp('2024-11-01 00:00:00'): 4.64, Timestamp('2024-12-01 00:00:00'): 4.48, Timestamp('2025-01-01 00:00:00'): 4.33, Timestamp('2025-02-01 00:00:00'): 4.33, Timestamp('2025-03-01 00:00:00'): 4.33, Timestamp('2025-04-01 00:00:00'): 4.33, Timestamp('2025-05-01 00:00:00'): 4.33, Timestamp('2025-06-01 00:00:00'): 4.33, Timestamp('2025-07-01 00:00:00'): 4.33, Timestamp('2025-08-01 00:00:00'): 4.33, Timestamp('2025-09-01 00:00:00'): 4.22}, 'latest_value': 4.22, 'periods': 12, 'indicator_name': 'FEDFUNDS'}
+  • VIXCLS: {'data': {Timestamp('2025-09-17 00:00:00'): 15.72, Timestamp('2025-09-18 00:00:00'): 15.7, Timestamp('2025-09-19 00:00:00'): 15.45, Timestamp('2025-09-22 00:00:00'): 16.1, Timestamp('2025-09-23 00:00:00'): 16.64, Timestamp('2025-09-24 00:00:00'): 16.18, Timestamp('2025-09-25 00:00:00'): 16.74, Timestamp('2025-09-26 00:00:00'): 15.29, Timestamp('2025-09-29 00:00:00'): 16.12, Timestamp('2025-09-30 00:00:00'): 16.28, Timestamp('2025-10-01 00:00:00'): 16.29, Timestamp('2025-10-02 00:00:00'): 16.63}, 'latest_value': 16.63, 'periods': 12, 'indicator_name': 'VIXCLS'}
+  • DGS10: {'data': {Timestamp('2025-09-17 00:00:00'): 4.06, Timestamp('2025-09-18 00:00:00'): 4.11, Timestamp('2025-09-19 00:00:00'): 4.14, Timestamp('2025-09-22 00:00:00'): 4.15, Timestamp('2025-09-23 00:00:00'): 4.12, Timestamp('2025-09-24 00:00:00'): 4.16, Timestamp('2025-09-25 00:00:00'): 4.18, Timestamp('2025-09-26 00:00:00'): 4.2, Timestamp('2025-09-29 00:00:00'): 4.15, Timestamp('2025-09-30 00:00:00'): 4.16, Timestamp('2025-10-01 00:00:00'): 4.12, Timestamp('2025-10-02 00:00:00'): 4.1}, 'latest_value': 4.1, 'periods': 12, 'indicator_name': 'DGS10'}
+
+🌍 GEOPOLITICAL NEWS SUMMARY
+--------------------------------------------------
+Total Articles Analyzed: 136
+Key News Categories:
+  • General: 10 articles
+
+🏛️ MACRO ECONOMIST ANALYSIS
+--------------------------------------------------
+ETF Scores from Macro Economist:
+  • EWJ: Score -0.200 (Confidence: 70.0%)
+    Reasoning: Japan faces deflationary pressures with CPI data missing, though GDP remains substantial at 148 trillion yen. Yen weakness (EXJPUS: 147.48) may boost exports but indicates economic challenges. Low confidence due to incomplete data.
+  • EWG: Score -0.400 (Confidence: 80.0%)
+    Reasoning: Germany shows moderate inflation (CPI: 127.78) but ECB rate at 2% suggests accommodative policy. Eurozone unemployment at 6.7% and modest growth create headwinds for German equities.
+  • EWU: Score -0.300 (Confidence: 70.0%)
+    Reasoning: UK faces elevated inflation (CPI: 136.1) with GDP of 685 billion pounds. Sterling strength (DEXUSUK: 1.34) may pressure exports. Mixed economic signals warrant caution.
+  • EWA: Score 0.100 (Confidence: 60.0%)
+    Reasoning: Australia shows moderate inflation (CPI: 130.67) with GDP of 655 billion AUD. Commodity exposure could benefit from global growth, but data limitations reduce confidence.
+  • EWC: Score 0.200 (Confidence: 70.0%)
+    Reasoning: Canada has controlled inflation (CPI: 129.18) and strong GDP of 726 billion CAD. CAD weakness (EXCAUS: 1.38) supports exports. Proximity to US economy provides stability.
+  • EWZ: Score 0.300 (Confidence: 80.0%)
+    Reasoning: Brazil shows high inflation (CPI: 168.82) but strong GDP growth to 2.7 trillion BRL. Real weakness (DEXBZUS: 5.34) boosts commodity exports. Emerging market growth potential.
+  • INDA: Score 0.600 (Confidence: 80.0%)
+    Reasoning: India demonstrates robust growth with GDP of 73 trillion INR and moderate inflation (CPI: 157.55). Rupee stability (DEXINUS: 88.65) and demographic advantages support long-term outlook.
+  • FXI: Score 0.400 (Confidence: 70.0%)
+    Reasoning: China shows controlled inflation (CPI: 115.03) and massive GDP of 32 trillion USD. Yuan management (EXCHUS: 7.17) supports stability. Strong manufacturing base benefits from global recovery.
+  • EZA: Score 0.200 (Confidence: 60.0%)
+    Reasoning: South Africa faces inflation pressures (CPI: 157.68) but benefits from commodity exposure. Emerging market growth potential offset by domestic economic challenges.
+  • TUR: Score -0.500 (Confidence: 50.0%)
+    Reasoning: Turkey faces significant economic instability with high inflation and currency volatility. Limited data availability increases risk profile for Turkish equities.
+  • RSX: Score -0.700 (Confidence: 90.0%)
+    Reasoning: Russia faces severe economic sanctions, commodity export challenges, and geopolitical risks. High uncertainty and limited economic data create substantial downside risk.
+  • EWW: Score 0.100 (Confidence: 60.0%)
+    Reasoning: Mexico shows moderate inflation (CPI: 155.16) and GDP of 8 trillion pesos. Peso stability (DEXMXUS: 18.38) and US proximity provide some support, but growth remains modest.
+  • UUP: Score 0.800 (Confidence: 90.0%)
+    Reasoning: US dollar strength supported by Fed funds at 4.22%, strong employment (PAYEMS: 159,540), and relative economic outperformance. Dollar remains global reserve currency with flight-to-quality appeal.
+  • FXE: Score -0.400 (Confidence: 80.0%)
+    Reasoning: Euro faces headwinds from ECB's accommodative policy (2% rate), Eurozone unemployment at 6.7%, and modest growth. EUR/USD at 1.1647 reflects relative weakness.
+  • FXY: Score -0.600 (Confidence: 80.0%)
+    Reasoning: Yen weakness (EXJPUS: 147.48) driven by Bank of Japan's ultra-accommodative policy and deflationary pressures. Limited prospects for currency appreciation.
+  • FXB: Score -0.300 (Confidence: 70.0%)
+    Reasoning: British pound faces challenges from elevated UK inflation and economic uncertainty. GBP/USD at 1.3404 shows relative stability but limited upside potential.
+  • FXC: Score -0.200 (Confidence: 70.0%)
+    Reasoning: Canadian dollar shows moderate weakness (EXCAUS: 1.38) but benefits from commodity exports and stable economic fundamentals. Balanced risk-reward profile.
+  • FXA: Score 0.100 (Confidence: 60.0%)
+    Reasoning: Australian dollar supported by commodity exports and moderate inflation. AUD/USD at 0.6546 reflects balanced outlook with some growth potential.
+  • FXF: Score 0.300 (Confidence: 70.0%)
+    Reasoning: Swiss franc benefits from safe-haven status, low inflation (CPI: 107.73), and CHF/USD strength at 0.7985. Switzerland's economic stability supports currency.
+  • CYB: Score 0.200 (Confidence: 50.0%)
+    Reasoning: Chinese yuan shows managed stability (EXCHUS: 7.17) with controlled inflation and massive economic scale. Government management provides stability but limits upside.
+  • TLT: Score -0.700 (Confidence: 90.0%)
+    Reasoning: Long-term treasuries face significant headwinds from elevated inflation (CPI: 323.36), Fed funds at 4.22%, and steep yield curve. Duration risk substantial in rising rate environment.
+  • IEF: Score -0.500 (Confidence: 80.0%)
+    Reasoning: Intermediate treasuries pressured by Fed tightening and inflation above target. Yield curve dynamics (T10Y2Y: 0.55) suggest limited near-term relief.
+  • BND: Score -0.400 (Confidence: 70.0%)
+    Reasoning: Aggregate bond market faces challenges from rising rates and inflation. Credit spreads (BAA10Y: 1.68%) provide some cushion but overall environment unfavorable.
+  • TIP: Score 0.400 (Confidence: 80.0%)
+    Reasoning: TIPS provide inflation protection with CPI at 323.36 and core inflation elevated. Real yield appeal increases as inflation persists above Fed target.
+  • LQD: Score -0.300 (Confidence: 70.0%)
+    Reasoning: Investment grade corporates face pressure from rising rates and economic uncertainty. Credit quality provides some protection but duration risk remains.
+  • HYG: Score -0.200 (Confidence: 60.0%)
+    Reasoning: High yield bonds offer attractive spreads (BAMLH0A0HYM2: 2.81%) but face default risk if economic growth slows. Current employment strength provides some support.
+  • EMB: Score 0.300 (Confidence: 70.0%)
+    Reasoning: Emerging market debt benefits from growth differential and yield pickup. Countries like India and Brazil show strong growth potential, though currency risk remains.
+  • PCY: Score 0.200 (Confidence: 60.0%)
+    Reasoning: Emerging market sovereign debt offers diversification and yield advantage. Growth prospects in key emerging markets support credit fundamentals.
+  • SPY: Score 0.500 (Confidence: 80.0%)
+    Reasoning: US equities supported by strong employment (UNRATE: 4.3%), robust GDP growth (23.77T vs potential 28.76T), and corporate earnings resilience. Inflation concerns partially offset by growth momentum.
+  • QQQ: Score 0.600 (Confidence: 80.0%)
+    Reasoning: Technology sector benefits from innovation cycle, productivity gains, and strong corporate balance sheets. Growth orientation aligns with current economic expansion phase.
+  • VEU: Score 0.300 (Confidence: 70.0%)
+    Reasoning: International developed markets offer diversification but face headwinds from slower growth and currency weakness relative to USD. Selective opportunities exist in stronger economies.
+  • VWO: Score 0.700 (Confidence: 80.0%)
+    Reasoning: Emerging markets show strong growth potential with countries like India (7.3T INR GDP), China (32T USD GDP), and Brazil (2.7T BRL GDP) leading. Valuation appeal and growth differential supportive.
+  • VGK: Score 0.200 (Confidence: 70.0%)
+    Reasoning: European equities face mixed environment with ECB accommodation supporting but growth challenges persisting. Selective country exposure (Germany, Switzerland) offers better prospects.
+  • VPL: Score 0.100 (Confidence: 60.0%)
+    Reasoning: Pacific region excluding Japan offers mixed opportunities. Australia and New Zealand show stability while other markets face growth challenges. Regional diversification benefits.
+  • ACWI: Score 0.400 (Confidence: 80.0%)
+    Reasoning: Global diversification balances US strength with emerging market growth potential. Current cycle favors growth-oriented allocation with inflation hedges.
+  • GLD: Score 0.800 (Confidence: 90.0%)
+    Reasoning: Gold provides strong inflation hedge with CPI at 323.36, portfolio diversification, and safe-haven appeal amid geopolitical uncertainty. Real rates environment supportive.
+  • SLV: Score 0.600 (Confidence: 80.0%)
+    Reasoning: Silver benefits from inflation hedging properties and industrial demand recovery. Precious metal characteristics combined with industrial uses provide dual appeal.
+  • USO: Score 0.500 (Confidence: 70.0%)
+    Reasoning: Oil supported by global economic recovery, supply constraints, and geopolitical tensions. WTI at $62.99 and Brent at $66.87 reflect balanced supply-demand dynamics.
+  • UNG: Score 0.300 (Confidence: 60.0%)
+    Reasoning: Natural gas faces seasonal volatility but benefits from energy transition and global supply concerns. GASREGW at 3.118 shows moderate pricing environment.
+  • DBC: Score 0.600 (Confidence: 80.0%)
+    Reasoning: Commodities broadly benefit from inflation hedging, global growth recovery, and supply chain constraints. Diversified exposure to energy, metals, and agriculture.
+  • CORN: Score 0.400 (Confidence: 70.0%)
+    Reasoning: Agricultural commodities supported by global food demand, weather uncertainties, and inflation dynamics. Essential consumption base provides stability.
+  • WEAT: Score 0.400 (Confidence: 70.0%)
+    Reasoning: Wheat exposure benefits from global food security concerns, population growth, and climate-related supply risks. Staple commodity with inelastic demand.
+  • DBA: Score 0.500 (Confidence: 70.0%)
+    Reasoning: Agriculture basket provides diversified exposure to essential food commodities. Inflation protection and demographic trends support long-term demand.
+  • PDBC: Score 0.600 (Confidence: 80.0%)
+    Reasoning: Optimal commodities allocation strategy combining energy, metals, and agriculture. Optimal inflation hedge in current macroeconomic environment.
+  • GSG: Score 0.500 (Confidence: 70.0%)
+    Reasoning: Broad commodities index benefits from global economic recovery, supply constraints, and inflation hedging properties. S&P GSCI provides comprehensive exposure.
+
+🗺️ GEOPOLITICAL ANALYST ANALYSIS
+--------------------------------------------------
+ETF Scores from Geopolitical Analyst:
+  • EWJ: Score 0.200 (Confidence: 70.0%)
+    Reasoning: Japan benefits from Takaichi's potential leadership continuity and BOJ's cautious approach to rate hikes, providing stability amid global uncertainty. Yen weakness supports export competitiveness, though demographic challenges persist.
+  • EWG: Score -0.300 (Confidence: 60.0%)
+    Reasoning: Germany faces headwinds from US policy uncertainty dragging European growth, energy dependency concerns, and ECB policy divergence from Fed. Industrial exports vulnerable to trade tensions.
+  • EWU: Score -0.200 (Confidence: 60.0%)
+    Reasoning: UK faces post-Brexit trade realignment challenges and European growth drag, though sterling stability and financial services resilience provide some support.
+  • EWA: Score 0.100 (Confidence: 50.0%)
+    Reasoning: Australia benefits from commodity exposure and China relationship, though faces headwinds from global growth uncertainty and potential trade disruptions.
+  • EWC: Score 0.300 (Confidence: 70.0%)
+    Reasoning: Canada benefits from commodity strength, US proximity avoiding trade tensions, and stable monetary policy. Energy and resource exposure aligns with current market themes.
+  • EWZ: Score -0.400 (Confidence: 70.0%)
+    Reasoning: Brazil faces emerging market volatility, commodity price sensitivity, and political uncertainty. Historical EM crises suggest vulnerability during global risk-off periods.
+  • INDA: Score 0.100 (Confidence: 60.0%)
+    Reasoning: India shows resilience with domestic growth drivers and strategic positioning amid US-China tensions, though faces emerging market currency pressures and oil dependency risks.
+  • FXI: Score -0.500 (Confidence: 80.0%)
+    Reasoning: China faces structural challenges including property sector stress, US trade tensions, and Belt and Road uncertainties. Historical patterns show Chinese assets underperform during geopolitical friction periods.
+  • EZA: Score -0.600 (Confidence: 70.0%)
+    Reasoning: South Africa faces severe emerging market stress, currency volatility, and political instability. Single article highlights apartheid echoes, suggesting deep structural challenges.
+  • TUR: Score -0.700 (Confidence: 80.0%)
+    Reasoning: Turkey faces extreme geopolitical risks from regional conflicts, currency crisis potential, and policy uncertainty. Historical EM crisis patterns suggest high vulnerability.
+  • RSX: Score -0.800 (Confidence: 90.0%)
+    Reasoning: Russia faces severe sanctions, Arctic LNG project challenges, and geopolitical isolation. Historical sanctions regimes show prolonged economic damage and asset underperformance.
+  • EWW: Score -0.300 (Confidence: 60.0%)
+    Reasoning: Mexico faces NAFTA uncertainty, US trade policy risks, and emerging market volatility, though proximity to US provides some manufacturing relocation benefits.
+  • UUP: Score 0.600 (Confidence: 80.0%)
+    Reasoning: Dollar benefits from flight-to-quality flows, Fed policy divergence, and global uncertainty. Historical crisis periods consistently show dollar strength as safe haven.
+  • FXE: Score -0.400 (Confidence: 70.0%)
+    Reasoning: Euro faces ECB policy uncertainty, European growth concerns, and energy dependency risks. Currency divergence favors dollar over euro in current environment.
+  • FXY: Score -0.200 (Confidence: 60.0%)
+    Reasoning: Yen faces BOJ policy uncertainty and potential delay in rate hikes, though traditional safe-haven status provides some support during risk-off periods.
+  • FXB: Score -0.100 (Confidence: 50.0%)
+    Reasoning: Pound shows mixed signals with PMI stability but faces Brexit aftermath and European growth drag. Moderate downside risk from policy uncertainty.
+  • FXC: Score 0.200 (Confidence: 60.0%)
+    Reasoning: Canadian dollar benefits from commodity strength and stable monetary policy, though faces headwinds from US policy spillovers.
+  • FXA: Score 0.100 (Confidence: 50.0%)
+    Reasoning: Australian dollar shows mixed outlook with China exposure risks but commodity support. Moderate positioning given global growth uncertainty.
+  • FXF: Score 0.300 (Confidence: 70.0%)
+    Reasoning: Swiss franc maintains safe-haven status amid global uncertainty, with SNB policy stability and traditional flight-to-quality characteristics.
+  • CYB: Score -0.400 (Confidence: 70.0%)
+    Reasoning: Chinese yuan faces capital outflow risks, trade tension pressures, and property sector stress. Historical currency crisis patterns suggest vulnerability.
+  • TLT: Score 0.500 (Confidence: 80.0%)
+    Reasoning: Long-term treasuries benefit from flight-to-quality flows, Fed rate cut expectations, and global uncertainty. Historical crisis periods show strong treasury performance.
+  • IEF: Score 0.400 (Confidence: 70.0%)
+    Reasoning: Intermediate treasuries provide safe-haven characteristics with less duration risk than TLT. Benefit from central bank uncertainty and risk-off sentiment.
+  • BND: Score 0.200 (Confidence: 60.0%)
+    Reasoning: Aggregate bonds show mixed outlook with treasury support but corporate credit risks. Moderate positioning given credit spread uncertainty.
+  • TIP: Score 0.100 (Confidence: 50.0%)
+    Reasoning: TIPS face mixed inflation outlook with some commodity pressure but moderating trends. Moderate positioning given inflation uncertainty.
+  • LQD: Score -0.200 (Confidence: 60.0%)
+    Reasoning: Investment grade corporates face spread widening risks from economic uncertainty and potential downgrades. Credit quality deterioration concerns.
+  • HYG: Score -0.500 (Confidence: 70.0%)
+    Reasoning: High yield bonds face significant default risk from economic slowdown, rising rates environment, and credit stress. Historical recession patterns show severe underperformance.
+  • EMB: Score -0.600 (Confidence: 80.0%)
+    Reasoning: Emerging market bonds face currency crisis risks, debt stress, and capital outflow pressures. Single EM article highlights structural vulnerabilities.
+  • PCY: Score -0.500 (Confidence: 70.0%)
+    Reasoning: Emerging market sovereign debt faces similar risks to EMB with additional currency volatility. Historical EM debt crises suggest high vulnerability.
+  • SPY: Score -0.300 (Confidence: 70.0%)
+    Reasoning: US equities face headwinds from trade tensions, policy uncertainty, and potential earnings pressure. Historical geopolitical tension periods show elevated volatility and risk premiums.
+  • QQQ: Score -0.200 (Confidence: 60.0%)
+    Reasoning: Tech-heavy index shows resilience with AI themes but faces regulatory risks and valuation concerns in uncertain environment.
+  • VEU: Score -0.400 (Confidence: 70.0%)
+    Reasoning: All-world ex-US faces European growth concerns, emerging market stress, and currency headwinds. Global diversification benefits limited in current synchronized slowdown.
+  • VWO: Score -0.600 (Confidence: 80.0%)
+    Reasoning: Emerging markets face severe headwinds from currency crises, trade disruptions, and capital outflows. Historical EM crisis patterns suggest significant underperformance.
+  • VGK: Score -0.400 (Confidence: 70.0%)
+    Reasoning: European equities face growth concerns, energy dependency, and policy uncertainty. Multiple articles highlight European vulnerability to US policy spillovers.
+  • VPL: Score 0.100 (Confidence: 60.0%)
+    Reasoning: Pacific ex-Japan shows mixed outlook with Australia/New Zealand stability but emerging Asia risks. Moderate positioning given regional diversity.
+  • ACWI: Score -0.300 (Confidence: 70.0%)
+    Reasoning: Global equities face synchronized challenges from trade tensions, policy uncertainty, and growth concerns. Limited safe havens in current environment.
+  • GLD: Score 0.700 (Confidence: 90.0%)
+    Reasoning: Gold benefits strongly from safe-haven demand, geopolitical uncertainty, and potential central bank easing. Historical crisis periods consistently show gold outperformance.
+  • SLV: Score 0.400 (Confidence: 70.0%)
+    Reasoning: Silver shows positive momentum from gold correlation and industrial demand, though more volatile than gold. Benefits from precious metal safe-haven characteristics.
+  • USO: Score -0.200 (Confidence: 60.0%)
+    Reasoning: Oil faces mixed outlook with OPEC+ uncertainty and demand concerns, though geopolitical supply risks provide some support. Moderate positioning given conflicting signals.
+  • UNG: Score -0.300 (Confidence: 60.0%)
+    Reasoning: Natural gas faces storage concerns, weather dependency, and renewable transition pressures. Limited geopolitical catalysts in current environment.
+  • DBC: Score 0.100 (Confidence: 50.0%)
+    Reasoning: Commodity basket shows mixed outlook with some agricultural strength but energy uncertainty. Moderate positioning given diverse commodity exposure.
+  • CORN: Score 0.300 (Confidence: 70.0%)
+    Reasoning: Agricultural commodities benefit from supply chain concerns, weather risks, and food security themes. Historical patterns show resilience during geopolitical tensions.
+  • WEAT: Score 0.200 (Confidence: 60.0%)
+    Reasoning: Wheat shows moderate positive outlook from agricultural supply concerns and global food demand, though less pronounced than corn.
+  • DBA: Score 0.200 (Confidence: 60.0%)
+    Reasoning: Agriculture basket benefits from food security themes and supply chain resilience, though faces weather and demand uncertainty.
+  • PDBC: Score 0.100 (Confidence: 50.0%)
+    Reasoning: Diversified commodities show mixed signals with some inflation hedge benefits but growth-sensitive components. Moderate overall positioning.
+  • GSG: Score 0.000 (Confidence: 50.0%)
+    Reasoning: Commodity index shows balanced outlook with energy headwinds offset by agricultural support. Neutral positioning given mixed commodity environment.
+
+⚠️ RISK MANAGER ASSESSMENT
+--------------------------------------------------
+Risk Assessments:
+  • EWJ: MEDIUM Risk (Volatility: 20.0%)
+    Reasoning: Moderate volatility (19.98%) with political uncertainty from new PM Takaichi's expansionist policies potentially delaying BOJ rate hikes, creating policy uncertainty for Japanese equities
+  • EWG: MEDIUM Risk (Volatility: 25.9%)
+    Reasoning: Elevated volatility (25.92%) for German equities amid European growth concerns from US policy uncertainty affecting euro-area lending and investment, with ECB rate at 2.0%
+  • EWU: MEDIUM Risk (Volatility: 22.2%)
+    Reasoning: Moderate volatility (22.23%) for UK equities with GBP/USD at 1.3404, facing headwinds from US policy uncertainty spillover to European markets
+  • EWA: MEDIUM Risk (Volatility: 25.7%)
+    Reasoning: High volatility (25.73%) for Australian equities with AUD/USD at 0.6546, exposed to commodity cycle risks and global trade tensions
+  • EWC: MEDIUM Risk (Volatility: 23.9%)
+    Reasoning: Moderate volatility (23.86%) for Canadian equities with CAD/USD at 1.3797, sensitive to commodity prices and US economic policy spillover
+  • EWZ: HIGH Risk (Volatility: 38.8%)
+    Reasoning: Very high volatility (38.75%) for Brazilian equities with BRL/USD at 5.3413, high inflation at 168.82 CPI, and emerging market sensitivity to global risk sentiment
+  • INDA: MEDIUM Risk (Volatility: 20.6%)
+    Reasoning: Moderate volatility (20.58%) for Indian equities with INR/USD at 88.65, high CPI at 157.55, but benefiting from Belt and Road infrastructure developments
+  • FXI: HIGH Risk (Volatility: 29.7%)
+    Reasoning: High volatility (29.69%) for Chinese equities with CNY/USD at 7.1727, facing trade tensions, property sector concerns, and geopolitical risks despite Belt and Road initiatives
+  • EZA: HIGH Risk (Volatility: 30.3%)
+    Reasoning: High volatility (30.34%) for South African equities with high CPI at 157.68, emerging market risks, and commodity dependency creating elevated risk profile
+  • TUR: HIGH Risk (Volatility: 35.1%)
+    Reasoning: Very high volatility (35.13%) for Turkish equities, reflecting geopolitical tensions, currency instability, and high inflation pressures in emerging Europe
+  • RSX: HIGH Risk (Volatility: 34.9%)
+    Reasoning: Very high volatility (34.87%) for Russian equities, facing severe geopolitical risks, sanctions exposure, and commodity price sensitivity creating extreme risk environment
+  • EWW: HIGH Risk (Volatility: 29.8%)
+    Reasoning: High volatility (29.76%) for Mexican equities with MXN/USD at 18.38, exposed to US trade policy uncertainty and emerging market risk factors
+  • UUP: LOW Risk (Volatility: 9.1%)
+    Reasoning: Low volatility (9.14%) for USD bullish ETF, benefiting from Fed policy divergence and safe-haven flows despite Fed Governor Miran's push for aggressive cuts
+  • FXE: MEDIUM Risk (Volatility: 8.9%)
+    Reasoning: Low volatility (8.9%) for Euro ETF but facing medium risk from ECB policy uncertainty and European growth concerns from US policy spillover effects
+  • FXY: MEDIUM Risk (Volatility: 10.1%)
+    Reasoning: Low volatility (10.11%) for Yen ETF with JPY/USD at 147.48, but facing policy uncertainty from new PM Takaichi's potential impact on BOJ rate decisions
+  • FXB: MEDIUM Risk (Volatility: 9.5%)
+    Reasoning: Low volatility (9.54%) for British Pound ETF but exposed to UK economic uncertainty and spillover from US policy impacts on European markets
+  • FXC: MEDIUM Risk (Volatility: 9.1%)
+    Reasoning: Low volatility (9.07%) for Canadian Dollar ETF, moderately risky due to commodity dependence and US economic policy spillover effects
+  • FXA: MEDIUM Risk (Volatility: 12.6%)
+    Reasoning: Moderate volatility (12.62%) for Australian Dollar ETF, exposed to commodity cycle risks and China trade relationship uncertainties
+  • FXF: LOW Risk (Volatility: 10.3%)
+    Reasoning: Low volatility (10.3%) for Swiss Franc ETF with CHF/USD at 0.7985, benefiting from safe-haven status and Swiss economic stability
+  • CYB: LOW Risk (Volatility: 6.8%)
+    Reasoning: Very low volatility (6.78%) for Chinese Yuan ETF, though facing medium-term risks from trade tensions and capital flow restrictions
+  • TLT: MEDIUM Risk (Volatility: 13.8%)
+    Reasoning: Moderate volatility (13.84%) for long-term treasuries, facing interest rate risk from Fed policy uncertainty and potential aggressive cuts despite current high yields
+  • IEF: LOW Risk (Volatility: 6.7%)
+    Reasoning: Low volatility (6.71%) for intermediate treasuries, relatively stable with moderate duration risk amid Fed policy uncertainty
+  • BND: LOW Risk (Volatility: 5.3%)
+    Reasoning: Very low volatility (5.27%) for aggregate bond ETF, diversified exposure providing stability despite interest rate uncertainty
+  • TIP: LOW Risk (Volatility: 6.1%)
+    Reasoning: Low volatility (6.11%) for TIPS, providing inflation protection with current CPI at 323.36, offering stability in uncertain inflation environment
+  • LQD: MEDIUM Risk (Volatility: 8.8%)
+    Reasoning: Low volatility (8.82%) for investment grade corporates but facing credit spread risk from economic uncertainty and potential corporate stress
+  • HYG: HIGH Risk (Volatility: 10.5%)
+    Reasoning: Moderate volatility (10.55%) for high yield bonds but high risk due to credit sensitivity to economic slowdown and high yield spread of 2.81% indicating stress
+  • EMB: HIGH Risk (Volatility: 11.1%)
+    Reasoning: Moderate volatility (11.05%) for emerging market bonds but high risk from currency volatility, political instability, and sensitivity to global risk sentiment
+  • PCY: HIGH Risk (Volatility: 15.5%)
+    Reasoning: Moderate volatility (15.47%) for emerging market sovereign debt but high risk from currency exposure, political risks, and sensitivity to Fed policy changes
+  • SPY: MEDIUM Risk (Volatility: 19.1%)
+    Reasoning: Moderate volatility (19.11%) for S&P 500, facing policy uncertainty from potential Fed rate cuts and trade tensions, but diversified US exposure provides some stability
+  • QQQ: HIGH Risk (Volatility: 27.5%)
+    Reasoning: High volatility (27.52%) for Nasdaq 100, concentrated in tech with sensitivity to interest rates and growth expectations amid policy uncertainty
+  • VEU: MEDIUM Risk (Volatility: 22.0%)
+    Reasoning: Moderate volatility (22.02%) for global ex-US equities, diversified but exposed to European growth concerns and emerging market risks
+  • VWO: HIGH Risk (Volatility: 24.3%)
+    Reasoning: High volatility (24.31%) for emerging markets, facing currency risks, political instability, and sensitivity to global trade tensions and capital flows
+  • VGK: MEDIUM Risk (Volatility: 21.8%)
+    Reasoning: Moderate volatility (21.79%) for European equities, exposed to growth concerns from US policy uncertainty affecting euro-area investment and lending
+  • VPL: MEDIUM Risk (Volatility: 19.9%)
+    Reasoning: Moderate volatility (19.92%) for Pacific equities, diversified Asian exposure but facing Japan policy uncertainty and regional trade tensions
+  • ACWI: MEDIUM Risk (Volatility: 20.8%)
+    Reasoning: Moderate volatility (20.84%) for global equities, diversified exposure balancing US stability against international risks from policy uncertainty and growth concerns
+  • GLD: MEDIUM Risk (Volatility: 17.2%)
+    Reasoning: Moderate volatility (17.19%) for gold, serving as inflation hedge with CPI at 323.36 but facing headwinds from potential Fed rate cuts and dollar strength
+  • SLV: HIGH Risk (Volatility: 31.2%)
+    Reasoning: High volatility (31.25%) for silver, more volatile than gold with industrial demand sensitivity to economic cycles amid growth uncertainty
+  • USO: HIGH Risk (Volatility: 36.0%)
+    Reasoning: Very high volatility (36.03%) for oil with WTI at $62.99, exposed to geopolitical risks, supply disruptions, and demand uncertainty from global growth concerns
+  • UNG: HIGH Risk (Volatility: 47.6%)
+    Reasoning: Extremely high volatility (47.62%) for natural gas, facing severe price swings from weather dependency, storage levels, and energy transition risks
+  • DBC: MEDIUM Risk (Volatility: 19.8%)
+    Reasoning: Moderate volatility (19.76%) for diversified commodities, balanced exposure but facing demand uncertainty from global growth concerns and trade tensions
+  • CORN: HIGH Risk (Volatility: 23.1%)
+    Reasoning: High volatility (23.08%) for corn, exposed to weather risks, trade policy impacts, and biofuel demand uncertainty amid policy changes
+  • WEAT: HIGH Risk (Volatility: 25.7%)
+    Reasoning: High volatility (25.73%) for wheat, facing supply chain disruptions, climate impacts, and export restrictions in volatile agricultural markets
+  • DBA: MEDIUM Risk (Volatility: 17.1%)
+    Reasoning: Moderate volatility (17.14%) for agriculture basket, diversified but still exposed to weather risks and global food supply chain disruptions
+  • PDBC: MEDIUM Risk (Volatility: 20.7%)
+    Reasoning: Moderate volatility (20.66%) for optimized commodities, diversified approach mitigating some single-commodity risks but still facing global demand uncertainty
+  • GSG: MEDIUM Risk (Volatility: 23.4%)
+    Reasoning: Moderate volatility (23.43%) for broad commodities, diversified exposure to energy, metals, and agriculture but sensitive to global growth outlook and trade flows
+
+💼 FINAL PORTFOLIO ALLOCATIONS
+--------------------------------------------------
+Total Portfolio Allocation: 100.0%
+
+Detailed Allocations:
+
+  📊 EWJ (HOLD 0.0%)
+     Reasoning: No allocation provided
+
+  📊 EWG (HOLD 0.0%)
+     Reasoning: No allocation provided
+
+  📊 EWU (HOLD 0.0%)
+     Reasoning: No allocation provided
+
+  📊 EWA (HOLD 0.0%)
+     Reasoning: No allocation provided
+
+  📊 EWC (BUY 3.0%)
+     Reasoning: Analyst consensus positive with macro score 0.2 (70% confidence) and geopolitical score 0.3 (70% confidence), emphasizing Canada's controlled inflation, commodity strength, and US proximity benefits. Risk assessment shows medium risk level with moderate volatility (23.86%), supporting small allocation. Score aggregation balanced with both analysts showing positive views. Risk-return trade-off reasonable for developed market diversification. Portfolio construction provides selective international equity exposure with commodity leverage. Lower conviction reflects moderate scores but stable profile. Risk management through Canada's economic stability and resource diversification. Market outlook integration supports commodity-oriented developed market with US economic ties.
+
+  📊 EWZ (HOLD 0.0%)
+     Reasoning: No allocation provided
+
+  📊 INDA (BUY 10.0%)
+     Reasoning: Analyst consensus positive with macro score 0.6 (80% confidence) and geopolitical score 0.1 (60% confidence), highlighting India's robust growth, demographic advantages, and strategic positioning. Risk assessment shows medium risk level with moderate volatility (20.58%), appropriate for selective EM exposure. Score aggregation favors macro analysis given higher confidence and stronger growth rationale. Risk-return trade-off attractive for emerging market growth participation. Portfolio construction provides EM growth diversification with relatively stable profile. Moderate conviction balanced between strong economic fundamentals and emerging market risks. Risk management through position sizing and focus on India's domestic growth drivers. Market outlook integration captures EM growth potential while avoiding higher-risk EM exposures.
+
+  📊 FXI (HOLD 0.0%)
+     Reasoning: No allocation provided
+
+  📊 EZA (HOLD 0.0%)
+     Reasoning: No allocation provided
+
+  📊 TUR (HOLD 0.0%)
+     Reasoning: No allocation provided
+
+  📊 RSX (HOLD 0.0%)
+     Reasoning: No allocation provided
+
+  📊 EWW (HOLD 0.0%)
+     Reasoning: No allocation provided
+
+  📊 UUP (BUY 25.0%)
+     Reasoning: Analyst consensus strongly positive with macro score 0.8 (90% confidence) and geopolitical score 0.6 (80% confidence), indicating robust US dollar strength from Fed policy divergence, strong employment, and flight-to-quality appeal. Risk assessment shows low volatility (9.14%) and low risk level, supporting substantial allocation. Score aggregation heavily weighted toward macro analysis given higher confidence levels. Risk-return trade-off highly favorable with strong positive scores and minimal volatility. Portfolio construction rationale centers on core defensive positioning amid global uncertainty. High conviction due to consistent positive signals across both analysts and low risk profile. Risk management enhanced by dollar's safe-haven status and reserve currency characteristics. Market outlook integration reflects current environment of policy uncertainty and risk-off sentiment favoring USD.
+
+  📊 FXE (HOLD 0.0%)
+     Reasoning: No allocation provided
+
+  📊 FXY (HOLD 0.0%)
+     Reasoning: No allocation provided
+
+  📊 FXB (HOLD 0.0%)
+     Reasoning: No allocation provided
+
+  📊 FXC (HOLD 0.0%)
+     Reasoning: No allocation provided
+
+  📊 FXA (HOLD 0.0%)
+     Reasoning: No allocation provided
+
+  📊 FXF (BUY 8.0%)
+     Reasoning: Analyst consensus positive with macro score 0.3 (70% confidence) and geopolitical score 0.3 (70% confidence), emphasizing Swiss franc's safe-haven status, economic stability, and low inflation. Risk assessment shows low risk level with low volatility (10.3%), supporting allocation. Score aggregation balanced given equal confidence levels. Risk-return trade-off favorable with positive scores and stability. Portfolio construction provides additional currency diversification and safe-haven exposure. Moderate conviction driven by consistent positive ratings and defensive characteristics. Risk management enhanced by Switzerland's economic resilience and traditional flight-to-quality role. Market outlook integration supports additional defensive currency exposure beyond USD.
+
+  📊 CYB (HOLD 0.0%)
+     Reasoning: No allocation provided
+
+  📊 TLT (HOLD 0.0%)
+     Reasoning: No allocation provided
+
+  📊 IEF (HOLD 0.0%)
+     Reasoning: No allocation provided
+
+  📊 BND (BUY 2.0%)
+     Reasoning: Analyst consensus mixed with macro score -0.4 (70% confidence) and geopolitical score 0.2 (60% confidence), reflecting bond market challenges versus safe-haven characteristics. Risk assessment shows low risk level with very low volatility (5.27%), supporting minimal allocation. Score aggregation slightly favors geopolitical view given current risk environment. Risk-return trade-off defensive with stability outweighing modest negative macro view. Portfolio construction provides ballast and diversification benefits. Low conviction reflects challenging rate environment but portfolio stabilization value. Risk management through aggregate bond diversification and low volatility characteristics. Market outlook integration provides modest fixed income exposure for portfolio balance amid uncertainty.
+
+  📊 TIP (BUY 12.0%)
+     Reasoning: Analyst consensus positive with macro score 0.4 (80% confidence) and geopolitical score 0.1 (50% confidence), emphasizing inflation protection value with elevated CPI. Risk assessment shows low risk level with low volatility (6.11%), supporting meaningful allocation. Score aggregation heavily weighted toward macro analysis given significantly higher confidence. Risk-return trade-off favorable with inflation hedge characteristics and stability. Portfolio construction provides complementary inflation protection to gold allocation. Moderate conviction driven by strong inflation fundamentals and low risk profile. Risk management enhanced by TIPS' direct inflation linkage and treasury backing. Market outlook integration reflects persistent above-target inflation environment requiring dedicated protection.
+
+  📊 LQD (HOLD 0.0%)
+     Reasoning: No allocation provided
+
+  📊 HYG (HOLD 0.0%)
+     Reasoning: No allocation provided
+
+  📊 EMB (HOLD 0.0%)
+     Reasoning: No allocation provided
+
+  📊 PCY (HOLD 0.0%)
+     Reasoning: No allocation provided
+
+  📊 SPY (HOLD 0.0%)
+     Reasoning: No allocation provided
+
+  📊 QQQ (BUY 15.0%)
+     Reasoning: Analyst consensus mixed but net positive with strong macro score 0.6 (80% confidence) offset by geopolitical score -0.2 (60% confidence), reflecting technology sector growth benefits versus regulatory risks. Risk assessment shows high risk level with elevated volatility (27.52%), requiring controlled allocation. Score aggregation weighted toward macro analysis given higher confidence and stronger reasoning. Risk-return trade-off acceptable given growth potential despite volatility. Portfolio construction provides growth exposure and innovation theme participation. Moderate conviction balanced between strong economic growth support and geopolitical headwinds. Risk management through position sizing and monitoring of tech regulation developments. Market outlook integration acknowledges growth environment benefits while respecting policy uncertainty risks.
+
+  📊 VEU (HOLD 0.0%)
+     Reasoning: No allocation provided
+
+  📊 VWO (HOLD 0.0%)
+     Reasoning: No allocation provided
+
+  📊 VGK (HOLD 0.0%)
+     Reasoning: No allocation provided
+
+  📊 VPL (HOLD 0.0%)
+     Reasoning: No allocation provided
+
+  📊 ACWI (HOLD 0.0%)
+     Reasoning: No allocation provided
+
+  📊 GLD (BUY 20.0%)
+     Reasoning: Analyst consensus extremely positive with macro score 0.8 (90% confidence) and geopolitical score 0.7 (90% confidence), highlighting gold's strong inflation hedge properties, safe-haven demand, and portfolio diversification benefits. Risk assessment shows medium risk level with moderate volatility (17.19%), acceptable for substantial allocation. Score aggregation favors both analysts equally given high confidence levels. Risk-return trade-off excellent with highest combined positive scores across all ETFs. Portfolio construction provides critical inflation protection and geopolitical hedge. High conviction driven by unanimous strong positive ratings and current high inflation environment (CPI 323.36). Risk management supported by gold's historical crisis outperformance and negative correlation with risk assets. Market outlook integration reflects persistent inflation concerns and ongoing geopolitical tensions.
+
+  📊 SLV (HOLD 0.0%)
+     Reasoning: No allocation provided
+
+  📊 USO (HOLD 0.0%)
+     Reasoning: No allocation provided
+
+  📊 UNG (HOLD 0.0%)
+     Reasoning: No allocation provided
+
+  📊 DBC (BUY 5.0%)
+     Reasoning: Analyst consensus positive with macro score 0.6 (80% confidence) and geopolitical score 0.1 (50% confidence), highlighting commodities' inflation hedging, global growth recovery benefits, and supply constraints. Risk assessment shows medium risk level with moderate volatility (19.76%), appropriate for smaller allocation. Score aggregation favors macro analysis given higher confidence and stronger inflation hedge rationale. Risk-return trade-off acceptable for diversified commodity exposure. Portfolio construction provides broad commodity inflation protection. Lower conviction reflects mixed geopolitical outlook but strong macro fundamentals. Risk management through diversified commodity basket reducing single-commodity risks. Market outlook integration supports commodities as inflation hedge amid supply chain constraints.
+
+  📊 CORN (HOLD 0.0%)
+     Reasoning: No allocation provided
+
+  📊 WEAT (HOLD 0.0%)
+     Reasoning: No allocation provided
+
+  📊 DBA (HOLD 0.0%)
+     Reasoning: No allocation provided
+
+  📊 PDBC (HOLD 0.0%)
+     Reasoning: No allocation provided
+
+  📊 GSG (HOLD 0.0%)
+     Reasoning: No allocation provided
+
+📋 PORTFOLIO SUMMARY
+--------------------------------------------------
+Active Positions: 9
+  • Buy: EWC, INDA, UUP, FXF, BND, TIP, QQQ, GLD, DBC
+Hold Positions: 36
+  • Hold: EWJ, EWG, EWU, EWA, EWZ, FXI, EZA, TUR, RSX, EWW, FXE, FXY, FXB, FXC, FXA, CYB, TLT, IEF, LQD, HYG, EMB, PCY, SPY, VEU, VWO, VGK, VPL, ACWI, SLV, USO, UNG, CORN, WEAT, DBA, PDBC, GSG
+
+🤖 AGENT REASONING SUMMARY
+--------------------------------------------------
+
+Macro Economist:
+  • macro_scores: {'EWJ': {'score': -0.2, 'confidence': 0.7, 'reason': 'Japan faces deflationary pressures with CPI data missing, though GDP remains substantial at 148 trillion yen. Yen weakness (EXJPUS: 147.48) may boost exports but indicates economic challenges. Low confidence due to incomplete data.'}, 'EWG': {'score': -0.4, 'confidence': 0.8, 'reason': 'Germany shows moderate inflation (CPI: 127.78) but ECB rate at 2% suggests accommodative policy. Eurozone unemployment at 6.7% and modest growth create headwinds for German equities.'}, 'EWU': {'score': -0.3, 'confidence': 0.7, 'reason': 'UK faces elevated inflation (CPI: 136.1) with GDP of 685 billion pounds. Sterling strength (DEXUSUK: 1.34) may pressure exports. Mixed economic signals warrant caution.'}, 'EWA': {'score': 0.1, 'confidence': 0.6, 'reason': 'Australia shows moderate inflation (CPI: 130.67) with GDP of 655 billion AUD. Commodity exposure could benefit from global growth, but data limitations reduce confidence.'}, 'EWC': {'score': 0.2, 'confidence': 0.7, 'reason': 'Canada has controlled inflation (CPI: 129.18) and strong GDP of 726 billion CAD. CAD weakness (EXCAUS: 1.38) supports exports. Proximity to US economy provides stability.'}, 'EWZ': {'score': 0.3, 'confidence': 0.8, 'reason': 'Brazil shows high inflation (CPI: 168.82) but strong GDP growth to 2.7 trillion BRL. Real weakness (DEXBZUS: 5.34) boosts commodity exports. Emerging market growth potential.'}, 'INDA': {'score': 0.6, 'confidence': 0.8, 'reason': 'India demonstrates robust growth with GDP of 73 trillion INR and moderate inflation (CPI: 157.55). Rupee stability (DEXINUS: 88.65) and demographic advantages support long-term outlook.'}, 'FXI': {'score': 0.4, 'confidence': 0.7, 'reason': 'China shows controlled inflation (CPI: 115.03) and massive GDP of 32 trillion USD. Yuan management (EXCHUS: 7.17) supports stability. Strong manufacturing base benefits from global recovery.'}, 'EZA': {'score': 0.2, 'confidence': 0.6, 'reason': 'South Africa faces inflation pressures (CPI: 157.68) but benefits from commodity exposure. Emerging market growth potential offset by domestic economic challenges.'}, 'TUR': {'score': -0.5, 'confidence': 0.5, 'reason': 'Turkey faces significant economic instability with high inflation and currency volatility. Limited data availability increases risk profile for Turkish equities.'}, 'RSX': {'score': -0.7, 'confidence': 0.9, 'reason': 'Russia faces severe economic sanctions, commodity export challenges, and geopolitical risks. High uncertainty and limited economic data create substantial downside risk.'}, 'EWW': {'score': 0.1, 'confidence': 0.6, 'reason': 'Mexico shows moderate inflation (CPI: 155.16) and GDP of 8 trillion pesos. Peso stability (DEXMXUS: 18.38) and US proximity provide some support, but growth remains modest.'}, 'UUP': {'score': 0.8, 'confidence': 0.9, 'reason': 'US dollar strength supported by Fed funds at 4.22%, strong employment (PAYEMS: 159,540), and relative economic outperformance. Dollar remains global reserve currency with flight-to-quality appeal.'}, 'FXE': {'score': -0.4, 'confidence': 0.8, 'reason': "Euro faces headwinds from ECB's accommodative policy (2% rate), Eurozone unemployment at 6.7%, and modest growth. EUR/USD at 1.1647 reflects relative weakness."}, 'FXY': {'score': -0.6, 'confidence': 0.8, 'reason': "Yen weakness (EXJPUS: 147.48) driven by Bank of Japan's ultra-accommodative policy and deflationary pressures. Limited prospects for currency appreciation."}, 'FXB': {'score': -0.3, 'confidence': 0.7, 'reason': 'British pound faces challenges from elevated UK inflation and economic uncertainty. GBP/USD at 1.3404 shows relative stability but limited upside potential.'}, 'FXC': {'score': -0.2, 'confidence': 0.7, 'reason': 'Canadian dollar shows moderate weakness (EXCAUS: 1.38) but benefits from commodity exports and stable economic fundamentals. Balanced risk-reward profile.'}, 'FXA': {'score': 0.1, 'confidence': 0.6, 'reason': 'Australian dollar supported by commodity exports and moderate inflation. AUD/USD at 0.6546 reflects balanced outlook with some growth potential.'}, 'FXF': {'score': 0.3, 'confidence': 0.7, 'reason': "Swiss franc benefits from safe-haven status, low inflation (CPI: 107.73), and CHF/USD strength at 0.7985. Switzerland's economic stability supports currency."}, 'CYB': {'score': 0.2, 'confidence': 0.5, 'reason': 'Chinese yuan shows managed stability (EXCHUS: 7.17) with controlled inflation and massive economic scale. Government management provides stability but limits upside.'}, 'TLT': {'score': -0.7, 'confidence': 0.9, 'reason': 'Long-term treasuries face significant headwinds from elevated inflation (CPI: 323.36), Fed funds at 4.22%, and steep yield curve. Duration risk substantial in rising rate environment.'}, 'IEF': {'score': -0.5, 'confidence': 0.8, 'reason': 'Intermediate treasuries pressured by Fed tightening and inflation above target. Yield curve dynamics (T10Y2Y: 0.55) suggest limited near-term relief.'}, 'BND': {'score': -0.4, 'confidence': 0.7, 'reason': 'Aggregate bond market faces challenges from rising rates and inflation. Credit spreads (BAA10Y: 1.68%) provide some cushion but overall environment unfavorable.'}, 'TIP': {'score': 0.4, 'confidence': 0.8, 'reason': 'TIPS provide inflation protection with CPI at 323.36 and core inflation elevated. Real yield appeal increases as inflation persists above Fed target.'}, 'LQD': {'score': -0.3, 'confidence': 0.7, 'reason': 'Investment grade corporates face pressure from rising rates and economic uncertainty. Credit quality provides some protection but duration risk remains.'}, 'HYG': {'score': -0.2, 'confidence': 0.6, 'reason': 'High yield bonds offer attractive spreads (BAMLH0A0HYM2: 2.81%) but face default risk if economic growth slows. Current employment strength provides some support.'}, 'EMB': {'score': 0.3, 'confidence': 0.7, 'reason': 'Emerging market debt benefits from growth differential and yield pickup. Countries like India and Brazil show strong growth potential, though currency risk remains.'}, 'PCY': {'score': 0.2, 'confidence': 0.6, 'reason': 'Emerging market sovereign debt offers diversification and yield advantage. Growth prospects in key emerging markets support credit fundamentals.'}, 'SPY': {'score': 0.5, 'confidence': 0.8, 'reason': 'US equities supported by strong employment (UNRATE: 4.3%), robust GDP growth (23.77T vs potential 28.76T), and corporate earnings resilience. Inflation concerns partially offset by growth momentum.'}, 'QQQ': {'score': 0.6, 'confidence': 0.8, 'reason': 'Technology sector benefits from innovation cycle, productivity gains, and strong corporate balance sheets. Growth orientation aligns with current economic expansion phase.'}, 'VEU': {'score': 0.3, 'confidence': 0.7, 'reason': 'International developed markets offer diversification but face headwinds from slower growth and currency weakness relative to USD. Selective opportunities exist in stronger economies.'}, 'VWO': {'score': 0.7, 'confidence': 0.8, 'reason': 'Emerging markets show strong growth potential with countries like India (7.3T INR GDP), China (32T USD GDP), and Brazil (2.7T BRL GDP) leading. Valuation appeal and growth differential supportive.'}, 'VGK': {'score': 0.2, 'confidence': 0.7, 'reason': 'European equities face mixed environment with ECB accommodation supporting but growth challenges persisting. Selective country exposure (Germany, Switzerland) offers better prospects.'}, 'VPL': {'score': 0.1, 'confidence': 0.6, 'reason': 'Pacific region excluding Japan offers mixed opportunities. Australia and New Zealand show stability while other markets face growth challenges. Regional diversification benefits.'}, 'ACWI': {'score': 0.4, 'confidence': 0.8, 'reason': 'Global diversification balances US strength with emerging market growth potential. Current cycle favors growth-oriented allocation with inflation hedges.'}, 'GLD': {'score': 0.8, 'confidence': 0.9, 'reason': 'Gold provides strong inflation hedge with CPI at 323.36, portfolio diversification, and safe-haven appeal amid geopolitical uncertainty. Real rates environment supportive.'}, 'SLV': {'score': 0.6, 'confidence': 0.8, 'reason': 'Silver benefits from inflation hedging properties and industrial demand recovery. Precious metal characteristics combined with industrial uses provide dual appeal.'}, 'USO': {'score': 0.5, 'confidence': 0.7, 'reason': 'Oil supported by global economic recovery, supply constraints, and geopolitical tensions. WTI at $62.99 and Brent at $66.87 reflect balanced supply-demand dynamics.'}, 'UNG': {'score': 0.3, 'confidence': 0.6, 'reason': 'Natural gas faces seasonal volatility but benefits from energy transition and global supply concerns. GASREGW at 3.118 shows moderate pricing environment.'}, 'DBC': {'score': 0.6, 'confidence': 0.8, 'reason': 'Commodities broadly benefit from inflation hedging, global growth recovery, and supply chain constraints. Diversified exposure to energy, metals, and agriculture.'}, 'CORN': {'score': 0.4, 'confidence': 0.7, 'reason': 'Agricultural commodities supported by global food demand, weather uncertainties, and inflation dynamics. Essential consumption base provides stability.'}, 'WEAT': {'score': 0.4, 'confidence': 0.7, 'reason': 'Wheat exposure benefits from global food security concerns, population growth, and climate-related supply risks. Staple commodity with inelastic demand.'}, 'DBA': {'score': 0.5, 'confidence': 0.7, 'reason': 'Agriculture basket provides diversified exposure to essential food commodities. Inflation protection and demographic trends support long-term demand.'}, 'PDBC': {'score': 0.6, 'confidence': 0.8, 'reason': 'Optimal commodities allocation strategy combining energy, metals, and agriculture. Optimal inflation hedge in current macroeconomic environment.'}, 'GSG': {'score': 0.5, 'confidence': 0.7, 'reason': 'Broad commodities index benefits from global economic recovery, supply constraints, and inflation hedging properties. S&P GSCI provides comprehensive exposure.'}}
+  • reasoning: Macro economist analysis based on 102 indicators and 45 ETFs
+  • key_factors: ['CPIAUCSL', 'CPILFESL', 'PCEPI', 'PCEPILFE', 'PPIFIS', 'UNRATE', 'PAYEMS', 'UNEMPLOY', 'CIVPART', 'AHETPI', 'ICSA', 'U6RATE', 'GDPC1', 'GDPPOT', 'INDPRO', 'RSXFS', 'HOUST', 'PERMIT', 'FEDFUNDS', 'DGS2', 'DGS5', 'DGS10', 'DGS30', 'T10Y2Y', 'T10Y3M', 'MORTGAGE30US', 'M2SL', 'TOTRESNS', 'DRTSCIS', 'BOPGSTB', 'EXUSEU', 'EXJPUS', 'EXCAUS', 'EXCHUS', 'DEXUSUK', 'DCOILWTICO', 'DCOILBRENTEU', 'GASREGW', 'UMCSENT', 'VIXCLS', 'NAPM', 'USSLIND', 'BAMLH0A0HYM2', 'BAA10Y', 'NFCI', 'CSUSHPISA', 'MORTGAGE15US', 'GFDEBTN', 'FYFSD', 'CHNCPIALLMINMEI', 'CHNUNEMPMEI', 'CHNGDPNQDSMEI', 'CHNGDPRAPCHG', 'CHNMKTMKTDMINMEI', 'CP0000EZ19M086NEST', 'LRHUTTTTEZM156S', 'CLVMNACSCAB1GQEA19', 'EA19GDPDEFQISMEI', 'ECBDFR', 'DEUCPIALLMINMEI', 'DEUUNEMPMEI', 'DEUPEPAC', 'DEUMKTMKTDMINMEI', 'GBRCPIALLMINMEI', 'GBRUNEMPQDSMEI', 'GBRGDPNQDSMEI', 'BOGMBASE', 'JPNCPIALLMINMEI', 'JPNUNEMPMEI', 'JPNGDPNQDSMEI', 'JPNPEPAC', 'JPNMKTMKTDMINMEI', 'CANCPIALLMINMEI', 'CANUNEMPMEI', 'CANGDPNQDSMEI', 'CANMKTMKTDMINMEI', 'AUSCPIALLQINMEI', 'AUSUNEMPQDSMEI', 'AUSGDPNQDSMEI', 'BRACPIALLMINMEI', 'BRAUNEMPMEI', 'BRAGDPNQDSMEI', 'INDCPIALLMINMEI', 'INDGDPNQDSMEI', 'MEXCPIALLMINMEI', 'MEXUNEMPMEI', 'MEXGDPNQDSMEI', 'ZAFCPIALLMINMEI', 'ZAFUNEMPMEI', 'KORCPIALLMINMEI', 'KORUNEMPQDSMEI', 'KORGDPNQDSMEI', 'CHECPIALLMINMEI', 'CHEUNEMPQDSMEI', 'OECD', 'OECD360', 'DEXBZUS', 'DEXINUS', 'DEXMXUS', 'DEXSZUS', 'DEXKOUS', 'DEXUSAL']
+
+Geopolitical Analyst:
+  • geo_scores: {'EWJ': {'score': 0.2, 'confidence': 0.7, 'reason': "Japan benefits from Takaichi's potential leadership continuity and BOJ's cautious approach to rate hikes, providing stability amid global uncertainty. Yen weakness supports export competitiveness, though demographic challenges persist."}, 'EWG': {'score': -0.3, 'confidence': 0.6, 'reason': 'Germany faces headwinds from US policy uncertainty dragging European growth, energy dependency concerns, and ECB policy divergence from Fed. Industrial exports vulnerable to trade tensions.'}, 'EWU': {'score': -0.2, 'confidence': 0.6, 'reason': 'UK faces post-Brexit trade realignment challenges and European growth drag, though sterling stability and financial services resilience provide some support.'}, 'EWA': {'score': 0.1, 'confidence': 0.5, 'reason': 'Australia benefits from commodity exposure and China relationship, though faces headwinds from global growth uncertainty and potential trade disruptions.'}, 'EWC': {'score': 0.3, 'confidence': 0.7, 'reason': 'Canada benefits from commodity strength, US proximity avoiding trade tensions, and stable monetary policy. Energy and resource exposure aligns with current market themes.'}, 'EWZ': {'score': -0.4, 'confidence': 0.7, 'reason': 'Brazil faces emerging market volatility, commodity price sensitivity, and political uncertainty. Historical EM crises suggest vulnerability during global risk-off periods.'}, 'INDA': {'score': 0.1, 'confidence': 0.6, 'reason': 'India shows resilience with domestic growth drivers and strategic positioning amid US-China tensions, though faces emerging market currency pressures and oil dependency risks.'}, 'FXI': {'score': -0.5, 'confidence': 0.8, 'reason': 'China faces structural challenges including property sector stress, US trade tensions, and Belt and Road uncertainties. Historical patterns show Chinese assets underperform during geopolitical friction periods.'}, 'EZA': {'score': -0.6, 'confidence': 0.7, 'reason': 'South Africa faces severe emerging market stress, currency volatility, and political instability. Single article highlights apartheid echoes, suggesting deep structural challenges.'}, 'TUR': {'score': -0.7, 'confidence': 0.8, 'reason': 'Turkey faces extreme geopolitical risks from regional conflicts, currency crisis potential, and policy uncertainty. Historical EM crisis patterns suggest high vulnerability.'}, 'RSX': {'score': -0.8, 'confidence': 0.9, 'reason': 'Russia faces severe sanctions, Arctic LNG project challenges, and geopolitical isolation. Historical sanctions regimes show prolonged economic damage and asset underperformance.'}, 'EWW': {'score': -0.3, 'confidence': 0.6, 'reason': 'Mexico faces NAFTA uncertainty, US trade policy risks, and emerging market volatility, though proximity to US provides some manufacturing relocation benefits.'}, 'UUP': {'score': 0.6, 'confidence': 0.8, 'reason': 'Dollar benefits from flight-to-quality flows, Fed policy divergence, and global uncertainty. Historical crisis periods consistently show dollar strength as safe haven.'}, 'FXE': {'score': -0.4, 'confidence': 0.7, 'reason': 'Euro faces ECB policy uncertainty, European growth concerns, and energy dependency risks. Currency divergence favors dollar over euro in current environment.'}, 'FXY': {'score': -0.2, 'confidence': 0.6, 'reason': 'Yen faces BOJ policy uncertainty and potential delay in rate hikes, though traditional safe-haven status provides some support during risk-off periods.'}, 'FXB': {'score': -0.1, 'confidence': 0.5, 'reason': 'Pound shows mixed signals with PMI stability but faces Brexit aftermath and European growth drag. Moderate downside risk from policy uncertainty.'}, 'FXC': {'score': 0.2, 'confidence': 0.6, 'reason': 'Canadian dollar benefits from commodity strength and stable monetary policy, though faces headwinds from US policy spillovers.'}, 'FXA': {'score': 0.1, 'confidence': 0.5, 'reason': 'Australian dollar shows mixed outlook with China exposure risks but commodity support. Moderate positioning given global growth uncertainty.'}, 'FXF': {'score': 0.3, 'confidence': 0.7, 'reason': 'Swiss franc maintains safe-haven status amid global uncertainty, with SNB policy stability and traditional flight-to-quality characteristics.'}, 'CYB': {'score': -0.4, 'confidence': 0.7, 'reason': 'Chinese yuan faces capital outflow risks, trade tension pressures, and property sector stress. Historical currency crisis patterns suggest vulnerability.'}, 'TLT': {'score': 0.5, 'confidence': 0.8, 'reason': 'Long-term treasuries benefit from flight-to-quality flows, Fed rate cut expectations, and global uncertainty. Historical crisis periods show strong treasury performance.'}, 'IEF': {'score': 0.4, 'confidence': 0.7, 'reason': 'Intermediate treasuries provide safe-haven characteristics with less duration risk than TLT. Benefit from central bank uncertainty and risk-off sentiment.'}, 'BND': {'score': 0.2, 'confidence': 0.6, 'reason': 'Aggregate bonds show mixed outlook with treasury support but corporate credit risks. Moderate positioning given credit spread uncertainty.'}, 'TIP': {'score': 0.1, 'confidence': 0.5, 'reason': 'TIPS face mixed inflation outlook with some commodity pressure but moderating trends. Moderate positioning given inflation uncertainty.'}, 'LQD': {'score': -0.2, 'confidence': 0.6, 'reason': 'Investment grade corporates face spread widening risks from economic uncertainty and potential downgrades. Credit quality deterioration concerns.'}, 'HYG': {'score': -0.5, 'confidence': 0.7, 'reason': 'High yield bonds face significant default risk from economic slowdown, rising rates environment, and credit stress. Historical recession patterns show severe underperformance.'}, 'EMB': {'score': -0.6, 'confidence': 0.8, 'reason': 'Emerging market bonds face currency crisis risks, debt stress, and capital outflow pressures. Single EM article highlights structural vulnerabilities.'}, 'PCY': {'score': -0.5, 'confidence': 0.7, 'reason': 'Emerging market sovereign debt faces similar risks to EMB with additional currency volatility. Historical EM debt crises suggest high vulnerability.'}, 'SPY': {'score': -0.3, 'confidence': 0.7, 'reason': 'US equities face headwinds from trade tensions, policy uncertainty, and potential earnings pressure. Historical geopolitical tension periods show elevated volatility and risk premiums.'}, 'QQQ': {'score': -0.2, 'confidence': 0.6, 'reason': 'Tech-heavy index shows resilience with AI themes but faces regulatory risks and valuation concerns in uncertain environment.'}, 'VEU': {'score': -0.4, 'confidence': 0.7, 'reason': 'All-world ex-US faces European growth concerns, emerging market stress, and currency headwinds. Global diversification benefits limited in current synchronized slowdown.'}, 'VWO': {'score': -0.6, 'confidence': 0.8, 'reason': 'Emerging markets face severe headwinds from currency crises, trade disruptions, and capital outflows. Historical EM crisis patterns suggest significant underperformance.'}, 'VGK': {'score': -0.4, 'confidence': 0.7, 'reason': 'European equities face growth concerns, energy dependency, and policy uncertainty. Multiple articles highlight European vulnerability to US policy spillovers.'}, 'VPL': {'score': 0.1, 'confidence': 0.6, 'reason': 'Pacific ex-Japan shows mixed outlook with Australia/New Zealand stability but emerging Asia risks. Moderate positioning given regional diversity.'}, 'ACWI': {'score': -0.3, 'confidence': 0.7, 'reason': 'Global equities face synchronized challenges from trade tensions, policy uncertainty, and growth concerns. Limited safe havens in current environment.'}, 'GLD': {'score': 0.7, 'confidence': 0.9, 'reason': 'Gold benefits strongly from safe-haven demand, geopolitical uncertainty, and potential central bank easing. Historical crisis periods consistently show gold outperformance.'}, 'SLV': {'score': 0.4, 'confidence': 0.7, 'reason': 'Silver shows positive momentum from gold correlation and industrial demand, though more volatile than gold. Benefits from precious metal safe-haven characteristics.'}, 'USO': {'score': -0.2, 'confidence': 0.6, 'reason': 'Oil faces mixed outlook with OPEC+ uncertainty and demand concerns, though geopolitical supply risks provide some support. Moderate positioning given conflicting signals.'}, 'UNG': {'score': -0.3, 'confidence': 0.6, 'reason': 'Natural gas faces storage concerns, weather dependency, and renewable transition pressures. Limited geopolitical catalysts in current environment.'}, 'DBC': {'score': 0.1, 'confidence': 0.5, 'reason': 'Commodity basket shows mixed outlook with some agricultural strength but energy uncertainty. Moderate positioning given diverse commodity exposure.'}, 'CORN': {'score': 0.3, 'confidence': 0.7, 'reason': 'Agricultural commodities benefit from supply chain concerns, weather risks, and food security themes. Historical patterns show resilience during geopolitical tensions.'}, 'WEAT': {'score': 0.2, 'confidence': 0.6, 'reason': 'Wheat shows moderate positive outlook from agricultural supply concerns and global food demand, though less pronounced than corn.'}, 'DBA': {'score': 0.2, 'confidence': 0.6, 'reason': 'Agriculture basket benefits from food security themes and supply chain resilience, though faces weather and demand uncertainty.'}, 'PDBC': {'score': 0.1, 'confidence': 0.5, 'reason': 'Diversified commodities show mixed signals with some inflation hedge benefits but growth-sensitive components. Moderate overall positioning.'}, 'GSG': {'score': 0.0, 'confidence': 0.5, 'reason': 'Commodity index shows balanced outlook with energy headwinds offset by agricultural support. Neutral positioning given mixed commodity environment.'}}
+  • reasoning: Geopolitical analysis based on 136 news articles and 45 ETFs
+  • key_factors: ['Trump Tariffs, GDP Rattle Markets, ETFs Bleed: Cry', 'Investors eye UAE as Belt and Road real estate gat', 'CMC TO ACQUIRE CONCRETE PIPE & PRECAST, LLC']
+
+Risk Manager:
+  • risk_metrics: {'EWJ': {'risk_level': 'medium', 'volatility': 0.1998, 'reason': "Moderate volatility (19.98%) with political uncertainty from new PM Takaichi's expansionist policies potentially delaying BOJ rate hikes, creating policy uncertainty for Japanese equities"}, 'EWG': {'risk_level': 'medium', 'volatility': 0.2592, 'reason': 'Elevated volatility (25.92%) for German equities amid European growth concerns from US policy uncertainty affecting euro-area lending and investment, with ECB rate at 2.0%'}, 'EWU': {'risk_level': 'medium', 'volatility': 0.2223, 'reason': 'Moderate volatility (22.23%) for UK equities with GBP/USD at 1.3404, facing headwinds from US policy uncertainty spillover to European markets'}, 'EWA': {'risk_level': 'medium', 'volatility': 0.2573, 'reason': 'High volatility (25.73%) for Australian equities with AUD/USD at 0.6546, exposed to commodity cycle risks and global trade tensions'}, 'EWC': {'risk_level': 'medium', 'volatility': 0.2386, 'reason': 'Moderate volatility (23.86%) for Canadian equities with CAD/USD at 1.3797, sensitive to commodity prices and US economic policy spillover'}, 'EWZ': {'risk_level': 'high', 'volatility': 0.3875, 'reason': 'Very high volatility (38.75%) for Brazilian equities with BRL/USD at 5.3413, high inflation at 168.82 CPI, and emerging market sensitivity to global risk sentiment'}, 'INDA': {'risk_level': 'medium', 'volatility': 0.2058, 'reason': 'Moderate volatility (20.58%) for Indian equities with INR/USD at 88.65, high CPI at 157.55, but benefiting from Belt and Road infrastructure developments'}, 'FXI': {'risk_level': 'high', 'volatility': 0.2969, 'reason': 'High volatility (29.69%) for Chinese equities with CNY/USD at 7.1727, facing trade tensions, property sector concerns, and geopolitical risks despite Belt and Road initiatives'}, 'EZA': {'risk_level': 'high', 'volatility': 0.3034, 'reason': 'High volatility (30.34%) for South African equities with high CPI at 157.68, emerging market risks, and commodity dependency creating elevated risk profile'}, 'TUR': {'risk_level': 'high', 'volatility': 0.3513, 'reason': 'Very high volatility (35.13%) for Turkish equities, reflecting geopolitical tensions, currency instability, and high inflation pressures in emerging Europe'}, 'RSX': {'risk_level': 'high', 'volatility': 0.3487, 'reason': 'Very high volatility (34.87%) for Russian equities, facing severe geopolitical risks, sanctions exposure, and commodity price sensitivity creating extreme risk environment'}, 'EWW': {'risk_level': 'high', 'volatility': 0.2976, 'reason': 'High volatility (29.76%) for Mexican equities with MXN/USD at 18.38, exposed to US trade policy uncertainty and emerging market risk factors'}, 'UUP': {'risk_level': 'low', 'volatility': 0.0914, 'reason': "Low volatility (9.14%) for USD bullish ETF, benefiting from Fed policy divergence and safe-haven flows despite Fed Governor Miran's push for aggressive cuts"}, 'FXE': {'risk_level': 'medium', 'volatility': 0.089, 'reason': 'Low volatility (8.9%) for Euro ETF but facing medium risk from ECB policy uncertainty and European growth concerns from US policy spillover effects'}, 'FXY': {'risk_level': 'medium', 'volatility': 0.1011, 'reason': "Low volatility (10.11%) for Yen ETF with JPY/USD at 147.48, but facing policy uncertainty from new PM Takaichi's potential impact on BOJ rate decisions"}, 'FXB': {'risk_level': 'medium', 'volatility': 0.0954, 'reason': 'Low volatility (9.54%) for British Pound ETF but exposed to UK economic uncertainty and spillover from US policy impacts on European markets'}, 'FXC': {'risk_level': 'medium', 'volatility': 0.0907, 'reason': 'Low volatility (9.07%) for Canadian Dollar ETF, moderately risky due to commodity dependence and US economic policy spillover effects'}, 'FXA': {'risk_level': 'medium', 'volatility': 0.1262, 'reason': 'Moderate volatility (12.62%) for Australian Dollar ETF, exposed to commodity cycle risks and China trade relationship uncertainties'}, 'FXF': {'risk_level': 'low', 'volatility': 0.103, 'reason': 'Low volatility (10.3%) for Swiss Franc ETF with CHF/USD at 0.7985, benefiting from safe-haven status and Swiss economic stability'}, 'CYB': {'risk_level': 'low', 'volatility': 0.0678, 'reason': 'Very low volatility (6.78%) for Chinese Yuan ETF, though facing medium-term risks from trade tensions and capital flow restrictions'}, 'TLT': {'risk_level': 'medium', 'volatility': 0.1384, 'reason': 'Moderate volatility (13.84%) for long-term treasuries, facing interest rate risk from Fed policy uncertainty and potential aggressive cuts despite current high yields'}, 'IEF': {'risk_level': 'low', 'volatility': 0.0671, 'reason': 'Low volatility (6.71%) for intermediate treasuries, relatively stable with moderate duration risk amid Fed policy uncertainty'}, 'BND': {'risk_level': 'low', 'volatility': 0.0527, 'reason': 'Very low volatility (5.27%) for aggregate bond ETF, diversified exposure providing stability despite interest rate uncertainty'}, 'TIP': {'risk_level': 'low', 'volatility': 0.0611, 'reason': 'Low volatility (6.11%) for TIPS, providing inflation protection with current CPI at 323.36, offering stability in uncertain inflation environment'}, 'LQD': {'risk_level': 'medium', 'volatility': 0.0882, 'reason': 'Low volatility (8.82%) for investment grade corporates but facing credit spread risk from economic uncertainty and potential corporate stress'}, 'HYG': {'risk_level': 'high', 'volatility': 0.1055, 'reason': 'Moderate volatility (10.55%) for high yield bonds but high risk due to credit sensitivity to economic slowdown and high yield spread of 2.81% indicating stress'}, 'EMB': {'risk_level': 'high', 'volatility': 0.1105, 'reason': 'Moderate volatility (11.05%) for emerging market bonds but high risk from currency volatility, political instability, and sensitivity to global risk sentiment'}, 'PCY': {'risk_level': 'high', 'volatility': 0.1547, 'reason': 'Moderate volatility (15.47%) for emerging market sovereign debt but high risk from currency exposure, political risks, and sensitivity to Fed policy changes'}, 'SPY': {'risk_level': 'medium', 'volatility': 0.1911, 'reason': 'Moderate volatility (19.11%) for S&P 500, facing policy uncertainty from potential Fed rate cuts and trade tensions, but diversified US exposure provides some stability'}, 'QQQ': {'risk_level': 'high', 'volatility': 0.2752, 'reason': 'High volatility (27.52%) for Nasdaq 100, concentrated in tech with sensitivity to interest rates and growth expectations amid policy uncertainty'}, 'VEU': {'risk_level': 'medium', 'volatility': 0.2202, 'reason': 'Moderate volatility (22.02%) for global ex-US equities, diversified but exposed to European growth concerns and emerging market risks'}, 'VWO': {'risk_level': 'high', 'volatility': 0.2431, 'reason': 'High volatility (24.31%) for emerging markets, facing currency risks, political instability, and sensitivity to global trade tensions and capital flows'}, 'VGK': {'risk_level': 'medium', 'volatility': 0.2179, 'reason': 'Moderate volatility (21.79%) for European equities, exposed to growth concerns from US policy uncertainty affecting euro-area investment and lending'}, 'VPL': {'risk_level': 'medium', 'volatility': 0.1992, 'reason': 'Moderate volatility (19.92%) for Pacific equities, diversified Asian exposure but facing Japan policy uncertainty and regional trade tensions'}, 'ACWI': {'risk_level': 'medium', 'volatility': 0.2084, 'reason': 'Moderate volatility (20.84%) for global equities, diversified exposure balancing US stability against international risks from policy uncertainty and growth concerns'}, 'GLD': {'risk_level': 'medium', 'volatility': 0.1719, 'reason': 'Moderate volatility (17.19%) for gold, serving as inflation hedge with CPI at 323.36 but facing headwinds from potential Fed rate cuts and dollar strength'}, 'SLV': {'risk_level': 'high', 'volatility': 0.3125, 'reason': 'High volatility (31.25%) for silver, more volatile than gold with industrial demand sensitivity to economic cycles amid growth uncertainty'}, 'USO': {'risk_level': 'high', 'volatility': 0.3603, 'reason': 'Very high volatility (36.03%) for oil with WTI at $62.99, exposed to geopolitical risks, supply disruptions, and demand uncertainty from global growth concerns'}, 'UNG': {'risk_level': 'high', 'volatility': 0.4762, 'reason': 'Extremely high volatility (47.62%) for natural gas, facing severe price swings from weather dependency, storage levels, and energy transition risks'}, 'DBC': {'risk_level': 'medium', 'volatility': 0.1976, 'reason': 'Moderate volatility (19.76%) for diversified commodities, balanced exposure but facing demand uncertainty from global growth concerns and trade tensions'}, 'CORN': {'risk_level': 'high', 'volatility': 0.2308, 'reason': 'High volatility (23.08%) for corn, exposed to weather risks, trade policy impacts, and biofuel demand uncertainty amid policy changes'}, 'WEAT': {'risk_level': 'high', 'volatility': 0.2573, 'reason': 'High volatility (25.73%) for wheat, facing supply chain disruptions, climate impacts, and export restrictions in volatile agricultural markets'}, 'DBA': {'risk_level': 'medium', 'volatility': 0.1714, 'reason': 'Moderate volatility (17.14%) for agriculture basket, diversified but still exposed to weather risks and global food supply chain disruptions'}, 'PDBC': {'risk_level': 'medium', 'volatility': 0.2066, 'reason': 'Moderate volatility (20.66%) for optimized commodities, diversified approach mitigating some single-commodity risks but still facing global demand uncertainty'}, 'GSG': {'risk_level': 'medium', 'volatility': 0.2343, 'reason': 'Moderate volatility (23.43%) for broad commodities, diversified exposure to energy, metals, and agriculture but sensitive to global growth outlook and trade flows'}}
+  • reasoning: Independent risk assessment based on macro data, ETF data, and 136 news articles for 45 ETFs
+  • key_factors: ['macro_risks', 'geopolitical_risks', 'volatility', 'news_impact']
+
+Portfolio Manager:
+  • final_allocations: {'EWJ': {'action': 'hold', 'allocation': 0.0, 'reason': 'No allocation provided'}, 'EWG': {'action': 'hold', 'allocation': 0.0, 'reason': 'No allocation provided'}, 'EWU': {'action': 'hold', 'allocation': 0.0, 'reason': 'No allocation provided'}, 'EWA': {'action': 'hold', 'allocation': 0.0, 'reason': 'No allocation provided'}, 'EWC': {'action': 'buy', 'allocation': 0.029999999999999992, 'reason': "Analyst consensus positive with macro score 0.2 (70% confidence) and geopolitical score 0.3 (70% confidence), emphasizing Canada's controlled inflation, commodity strength, and US proximity benefits. Risk assessment shows medium risk level with moderate volatility (23.86%), supporting small allocation. Score aggregation balanced with both analysts showing positive views. Risk-return trade-off reasonable for developed market diversification. Portfolio construction provides selective international equity exposure with commodity leverage. Lower conviction reflects moderate scores but stable profile. Risk management through Canada's economic stability and resource diversification. Market outlook integration supports commodity-oriented developed market with US economic ties."}, 'EWZ': {'action': 'hold', 'allocation': 0.0, 'reason': 'No allocation provided'}, 'INDA': {'action': 'buy', 'allocation': 0.09999999999999998, 'reason': "Analyst consensus positive with macro score 0.6 (80% confidence) and geopolitical score 0.1 (60% confidence), highlighting India's robust growth, demographic advantages, and strategic positioning. Risk assessment shows medium risk level with moderate volatility (20.58%), appropriate for selective EM exposure. Score aggregation favors macro analysis given higher confidence and stronger growth rationale. Risk-return trade-off attractive for emerging market growth participation. Portfolio construction provides EM growth diversification with relatively stable profile. Moderate conviction balanced between strong economic fundamentals and emerging market risks. Risk management through position sizing and focus on India's domestic growth drivers. Market outlook integration captures EM growth potential while avoiding higher-risk EM exposures."}, 'FXI': {'action': 'hold', 'allocation': 0.0, 'reason': 'No allocation provided'}, 'EZA': {'action': 'hold', 'allocation': 0.0, 'reason': 'No allocation provided'}, 'TUR': {'action': 'hold', 'allocation': 0.0, 'reason': 'No allocation provided'}, 'RSX': {'action': 'hold', 'allocation': 0.0, 'reason': 'No allocation provided'}, 'EWW': {'action': 'hold', 'allocation': 0.0, 'reason': 'No allocation provided'}, 'UUP': {'action': 'buy', 'allocation': 0.24999999999999994, 'reason': "Analyst consensus strongly positive with macro score 0.8 (90% confidence) and geopolitical score 0.6 (80% confidence), indicating robust US dollar strength from Fed policy divergence, strong employment, and flight-to-quality appeal. Risk assessment shows low volatility (9.14%) and low risk level, supporting substantial allocation. Score aggregation heavily weighted toward macro analysis given higher confidence levels. Risk-return trade-off highly favorable with strong positive scores and minimal volatility. Portfolio construction rationale centers on core defensive positioning amid global uncertainty. High conviction due to consistent positive signals across both analysts and low risk profile. Risk management enhanced by dollar's safe-haven status and reserve currency characteristics. Market outlook integration reflects current environment of policy uncertainty and risk-off sentiment favoring USD."}, 'FXE': {'action': 'hold', 'allocation': 0.0, 'reason': 'No allocation provided'}, 'FXY': {'action': 'hold', 'allocation': 0.0, 'reason': 'No allocation provided'}, 'FXB': {'action': 'hold', 'allocation': 0.0, 'reason': 'No allocation provided'}, 'FXC': {'action': 'hold', 'allocation': 0.0, 'reason': 'No allocation provided'}, 'FXA': {'action': 'hold', 'allocation': 0.0, 'reason': 'No allocation provided'}, 'FXF': {'action': 'buy', 'allocation': 0.07999999999999999, 'reason': "Analyst consensus positive with macro score 0.3 (70% confidence) and geopolitical score 0.3 (70% confidence), emphasizing Swiss franc's safe-haven status, economic stability, and low inflation. Risk assessment shows low risk level with low volatility (10.3%), supporting allocation. Score aggregation balanced given equal confidence levels. Risk-return trade-off favorable with positive scores and stability. Portfolio construction provides additional currency diversification and safe-haven exposure. Moderate conviction driven by consistent positive ratings and defensive characteristics. Risk management enhanced by Switzerland's economic resilience and traditional flight-to-quality role. Market outlook integration supports additional defensive currency exposure beyond USD."}, 'CYB': {'action': 'hold', 'allocation': 0.0, 'reason': 'No allocation provided'}, 'TLT': {'action': 'hold', 'allocation': 0.0, 'reason': 'No allocation provided'}, 'IEF': {'action': 'hold', 'allocation': 0.0, 'reason': 'No allocation provided'}, 'BND': {'action': 'buy', 'allocation': 0.019999999999999997, 'reason': 'Analyst consensus mixed with macro score -0.4 (70% confidence) and geopolitical score 0.2 (60% confidence), reflecting bond market challenges versus safe-haven characteristics. Risk assessment shows low risk level with very low volatility (5.27%), supporting minimal allocation. Score aggregation slightly favors geopolitical view given current risk environment. Risk-return trade-off defensive with stability outweighing modest negative macro view. Portfolio construction provides ballast and diversification benefits. Low conviction reflects challenging rate environment but portfolio stabilization value. Risk management through aggregate bond diversification and low volatility characteristics. Market outlook integration provides modest fixed income exposure for portfolio balance amid uncertainty.'}, 'TIP': {'action': 'buy', 'allocation': 0.11999999999999997, 'reason': "Analyst consensus positive with macro score 0.4 (80% confidence) and geopolitical score 0.1 (50% confidence), emphasizing inflation protection value with elevated CPI. Risk assessment shows low risk level with low volatility (6.11%), supporting meaningful allocation. Score aggregation heavily weighted toward macro analysis given significantly higher confidence. Risk-return trade-off favorable with inflation hedge characteristics and stability. Portfolio construction provides complementary inflation protection to gold allocation. Moderate conviction driven by strong inflation fundamentals and low risk profile. Risk management enhanced by TIPS' direct inflation linkage and treasury backing. Market outlook integration reflects persistent above-target inflation environment requiring dedicated protection."}, 'LQD': {'action': 'hold', 'allocation': 0.0, 'reason': 'No allocation provided'}, 'HYG': {'action': 'hold', 'allocation': 0.0, 'reason': 'No allocation provided'}, 'EMB': {'action': 'hold', 'allocation': 0.0, 'reason': 'No allocation provided'}, 'PCY': {'action': 'hold', 'allocation': 0.0, 'reason': 'No allocation provided'}, 'SPY': {'action': 'hold', 'allocation': 0.0, 'reason': 'No allocation provided'}, 'QQQ': {'action': 'buy', 'allocation': 0.14999999999999997, 'reason': 'Analyst consensus mixed but net positive with strong macro score 0.6 (80% confidence) offset by geopolitical score -0.2 (60% confidence), reflecting technology sector growth benefits versus regulatory risks. Risk assessment shows high risk level with elevated volatility (27.52%), requiring controlled allocation. Score aggregation weighted toward macro analysis given higher confidence and stronger reasoning. Risk-return trade-off acceptable given growth potential despite volatility. Portfolio construction provides growth exposure and innovation theme participation. Moderate conviction balanced between strong economic growth support and geopolitical headwinds. Risk management through position sizing and monitoring of tech regulation developments. Market outlook integration acknowledges growth environment benefits while respecting policy uncertainty risks.'}, 'VEU': {'action': 'hold', 'allocation': 0.0, 'reason': 'No allocation provided'}, 'VWO': {'action': 'hold', 'allocation': 0.0, 'reason': 'No allocation provided'}, 'VGK': {'action': 'hold', 'allocation': 0.0, 'reason': 'No allocation provided'}, 'VPL': {'action': 'hold', 'allocation': 0.0, 'reason': 'No allocation provided'}, 'ACWI': {'action': 'hold', 'allocation': 0.0, 'reason': 'No allocation provided'}, 'GLD': {'action': 'buy', 'allocation': 0.19999999999999996, 'reason': "Analyst consensus extremely positive with macro score 0.8 (90% confidence) and geopolitical score 0.7 (90% confidence), highlighting gold's strong inflation hedge properties, safe-haven demand, and portfolio diversification benefits. Risk assessment shows medium risk level with moderate volatility (17.19%), acceptable for substantial allocation. Score aggregation favors both analysts equally given high confidence levels. Risk-return trade-off excellent with highest combined positive scores across all ETFs. Portfolio construction provides critical inflation protection and geopolitical hedge. High conviction driven by unanimous strong positive ratings and current high inflation environment (CPI 323.36). Risk management supported by gold's historical crisis outperformance and negative correlation with risk assets. Market outlook integration reflects persistent inflation concerns and ongoing geopolitical tensions."}, 'SLV': {'action': 'hold', 'allocation': 0.0, 'reason': 'No allocation provided'}, 'USO': {'action': 'hold', 'allocation': 0.0, 'reason': 'No allocation provided'}, 'UNG': {'action': 'hold', 'allocation': 0.0, 'reason': 'No allocation provided'}, 'DBC': {'action': 'buy', 'allocation': 0.04999999999999999, 'reason': "Analyst consensus positive with macro score 0.6 (80% confidence) and geopolitical score 0.1 (50% confidence), highlighting commodities' inflation hedging, global growth recovery benefits, and supply constraints. Risk assessment shows medium risk level with moderate volatility (19.76%), appropriate for smaller allocation. Score aggregation favors macro analysis given higher confidence and stronger inflation hedge rationale. Risk-return trade-off acceptable for diversified commodity exposure. Portfolio construction provides broad commodity inflation protection. Lower conviction reflects mixed geopolitical outlook but strong macro fundamentals. Risk management through diversified commodity basket reducing single-commodity risks. Market outlook integration supports commodities as inflation hedge amid supply chain constraints."}, 'CORN': {'action': 'hold', 'allocation': 0.0, 'reason': 'No allocation provided'}, 'WEAT': {'action': 'hold', 'allocation': 0.0, 'reason': 'No allocation provided'}, 'DBA': {'action': 'hold', 'allocation': 0.0, 'reason': 'No allocation provided'}, 'PDBC': {'action': 'hold', 'allocation': 0.0, 'reason': 'No allocation provided'}, 'GSG': {'action': 'hold', 'allocation': 0.0, 'reason': 'No allocation provided'}}
+  • reasoning: LLM-driven portfolio synthesis aggregating macro and geopolitical analyst scores and risk metrics for 45 ETFs
+  • synthesis_method: LLM synthesis with score aggregation and risk consideration
+  • performance_metrics: {'total_allocation': 0.9999999999999998, 'number_of_positions': 9, 'buy_positions': 9, 'hold_positions': 36, 'sell_positions': 0}
+
+🎯 FINAL RECOMMENDATIONS
+--------------------------------------------------
+Based on comprehensive analysis by all agents:
+  ⏸️ EWJ: HOLD - Cautious approach due to risk factors
+  ⏸️ EWG: HOLD - Cautious approach due to risk factors
+  ⏸️ EWU: HOLD - Cautious approach due to risk factors
+  ⏸️ EWA: HOLD - Cautious approach due to risk factors
+  ✅ EWC: BUY 3.0% - Strong conviction based on macro and geopolitical factors
+  ⏸️ EWZ: HOLD - Cautious approach due to risk factors
+  ✅ INDA: BUY 10.0% - Strong conviction based on macro and geopolitical factors
+  ⏸️ FXI: HOLD - Cautious approach due to risk factors
+  ⏸️ EZA: HOLD - Cautious approach due to risk factors
+  ⏸️ TUR: HOLD - Cautious approach due to risk factors
+  ⏸️ RSX: HOLD - Cautious approach due to risk factors
+  ⏸️ EWW: HOLD - Cautious approach due to risk factors
+  ✅ UUP: BUY 25.0% - Strong conviction based on macro and geopolitical factors
+  ⏸️ FXE: HOLD - Cautious approach due to risk factors
+  ⏸️ FXY: HOLD - Cautious approach due to risk factors
+  ⏸️ FXB: HOLD - Cautious approach due to risk factors
+  ⏸️ FXC: HOLD - Cautious approach due to risk factors
+  ⏸️ FXA: HOLD - Cautious approach due to risk factors
+  ✅ FXF: BUY 8.0% - Strong conviction based on macro and geopolitical factors
+  ⏸️ CYB: HOLD - Cautious approach due to risk factors
+  ⏸️ TLT: HOLD - Cautious approach due to risk factors
+  ⏸️ IEF: HOLD - Cautious approach due to risk factors
+  ✅ BND: BUY 2.0% - Strong conviction based on macro and geopolitical factors
+  ✅ TIP: BUY 12.0% - Strong conviction based on macro and geopolitical factors
+  ⏸️ LQD: HOLD - Cautious approach due to risk factors
+  ⏸️ HYG: HOLD - Cautious approach due to risk factors
+  ⏸️ EMB: HOLD - Cautious approach due to risk factors
+  ⏸️ PCY: HOLD - Cautious approach due to risk factors
+  ⏸️ SPY: HOLD - Cautious approach due to risk factors
+  ✅ QQQ: BUY 15.0% - Strong conviction based on macro and geopolitical factors
+  ⏸️ VEU: HOLD - Cautious approach due to risk factors
+  ⏸️ VWO: HOLD - Cautious approach due to risk factors
+  ⏸️ VGK: HOLD - Cautious approach due to risk factors
+  ⏸️ VPL: HOLD - Cautious approach due to risk factors
+  ⏸️ ACWI: HOLD - Cautious approach due to risk factors
+  ✅ GLD: BUY 20.0% - Strong conviction based on macro and geopolitical factors
+  ⏸️ SLV: HOLD - Cautious approach due to risk factors
+  ⏸️ USO: HOLD - Cautious approach due to risk factors
+  ⏸️ UNG: HOLD - Cautious approach due to risk factors
+  ✅ DBC: BUY 5.0% - Strong conviction based on macro and geopolitical factors
+  ⏸️ CORN: HOLD - Cautious approach due to risk factors
+  ⏸️ WEAT: HOLD - Cautious approach due to risk factors
+  ⏸️ DBA: HOLD - Cautious approach due to risk factors
+  ⏸️ PDBC: HOLD - Cautious approach due to risk factors
+  ⏸️ GSG: HOLD - Cautious approach due to risk factors
+
+================================================================================
+✅ ANALYSIS COMPLETED SUCCESSFULLY
+================================================================================

@@ -34,6 +34,7 @@ class MacroEconomistAgent(BaseAgent):
     def analyze(self, state: dict) -> dict:
         """
         Analyze macroeconomic data and score ETFs with confidence and reasoning.
+        Now processes ETFs one by one for more consistent scoring.
         
         Args:
             state: LangGraph state dictionary containing:
@@ -50,18 +51,33 @@ class MacroEconomistAgent(BaseAgent):
             etf_data = state.get('etf_data', pd.DataFrame())
             universe = state.get('universe', [])
             
-            # Use the comprehensive analysis framework (now includes all requirements)
-            prompt = self._create_macro_analysis_prompt(macro_data, etf_data, universe)
+            # Process each ETF individually for more consistent scoring
+            macro_scores = {}
             
-            # Get LLM response with JSON format
-            response = self.llm(prompt, response_format='json_object')
-            
-            # Debug: Log response length and first 200 chars
-            logger.debug(f"LLM response length: {len(response)} chars")
-            logger.debug(f"LLM response preview: {response[:200]}...")
-            
-            # Parse the structured response
-            macro_scores = self._parse_structured_scores(response, universe)
+            for etf in universe:
+                try:
+                    logger.info(f"Processing {etf} for macro economist analysis...")
+                    
+                    # Create individual ETF analysis prompt
+                    prompt = self._create_individual_etf_macro_prompt(macro_data, etf_data, etf)
+                    
+                    # Get LLM response with JSON format
+                    response = self.llm(prompt, response_format='json_object')
+                    
+                    # Parse the structured response for this single ETF
+                    etf_score = self._parse_single_etf_score(response, etf)
+                    macro_scores[etf] = etf_score
+                    
+                    logger.debug(f"Completed macro analysis for {etf}: score={etf_score.get('score', 0.0)}")
+                    
+                except Exception as etf_error:
+                    logger.error(f"Failed to analyze {etf}: {etf_error}")
+                    # Provide neutral score for failed ETF
+                    macro_scores[etf] = {
+                        'score': 0.0,
+                        'confidence': 0.0,
+                        'reason': f'Analysis failed for {etf}: {str(etf_error)}'
+                    }
             
             # Store macro scores in state
             state['macro_scores'] = macro_scores
@@ -70,12 +86,12 @@ class MacroEconomistAgent(BaseAgent):
             state['agent_reasoning'] = state.get('agent_reasoning', {})
             state['agent_reasoning']['macro_economist'] = {
                 'macro_scores': macro_scores,
-                'reasoning': f"Macro economist analysis based on {len(macro_data)} indicators and {len(universe)} ETFs",
+                'reasoning': f"Macro economist analysis completed for {len(universe)} ETFs (processed individually)",
                 'key_factors': list(macro_data.keys()) if macro_data else ['No macro data available'],
                 'timestamp': pd.Timestamp.now().isoformat()
             }
             
-            logger.info(f"Macro economist analysis completed for {len(universe)} ETFs")
+            logger.info(f"Macro economist analysis completed for {len(universe)} ETFs (individual processing)")
             return state
             
         except Exception as e:
@@ -85,67 +101,6 @@ class MacroEconomistAgent(BaseAgent):
             state['macro_scores'] = neutral_scores
             return state
     
-    def _create_macro_analysis_prompt(self, macro_data: dict, etf_data: pd.DataFrame, universe: list) -> str:
-        """
-        Create a prompt for macroeconomic analysis.
-        
-        Args:
-            macro_data: Dictionary of macro economic indicators
-            etf_data: DataFrame with ETF price data
-            universe: List of ETFs to analyze
-            
-        Returns:
-            Formatted prompt string
-        """
-        # Calculate ETF returns for analysis (use full 25-year dataset)
-        etf_returns = etf_data.pct_change().dropna() if etf_data is not None and not etf_data.empty else pd.DataFrame()
-        
-        # Format macro indicators
-        macro_summary = self._format_macro_indicators(macro_data)
-        
-        # Format ETF returns
-        etf_summary = self._format_etf_returns(etf_returns, universe)
-        
-        prompt = f"""
-        As a macro economist, analyze the following data and score each ETF from -1 (strong sell) to 1 (strong buy):
-        
-        MACRO ECONOMIC DATA:
-        {macro_summary}
-        
-        ETF RETURNS (25-year historical analysis):
-        {etf_summary}
-        
-        ANALYSIS FRAMEWORK & REQUIREMENTS:
-        1. Inflation Impact: How does current inflation affect bonds (TLT, IEF) vs commodities (GLD, SLV)?
-        2. Interest Rate Environment: Impact on bond ETFs vs equity ETFs
-        3. Economic Growth: Which regions/sectors benefit from current growth trends?
-        4. Currency Strength: Impact on international ETFs (EWJ, EWG, etc.)
-        5. Economic Cycle Position: Where are we in the cycle and what assets perform best?
-        
-        For each ETF, provide:
-        - Score from -1.0 (strong sell) to 1.0 (strong buy)
-        - Confidence level from 0.0 (no confidence) to 1.0 (high confidence)
-        - Detailed reasoning based on macro factors above
-        - Focus on {DEFAULT_HORIZON} horizon
-        
-        ETFs TO SCORE: {', '.join(universe)}
-        
-        EXAMPLES OF EXPECTED OUTPUT:
-        Example 1 - High inflation environment:
-        {{"SPY": {{"score": -0.5, "confidence": 0.8, "reason": "Elevated inflation erodes real equity returns and compresses margins"}}, "TLT": {{"score": 0.7, "confidence": 0.9, "reason": "Bonds provide inflation hedge and benefit from flight-to-quality"}}}}
-        
-        Example 2 - Strong economic growth:
-        {{"SPY": {{"score": 0.6, "confidence": 0.7, "reason": "Robust GDP growth and employment support equity valuations"}}, "TLT": {{"score": -0.3, "confidence": 0.6, "reason": "Strong growth reduces safe-haven demand for bonds"}}}}
-        
-        Example 3 - Recessionary signals:
-        {{"SPY": {{"score": -0.8, "confidence": 0.9, "reason": "Rising unemployment and contracting GDP signal equity weakness"}}, "TLT": {{"score": 0.9, "confidence": 0.8, "reason": "Recession fears drive flight-to-quality into treasuries"}}}}
-        
-        CRITICAL: Output only valid JSON dict with no extra text, explanations, or formatting:
-        {{"ETF": {{"score": -1 to 1, "confidence": 0-1, "reason": "detailed explanation"}}}}
-        
-        Do not include any text before or after the JSON. Return only the JSON object.
-        """
-        return prompt
     
     def _format_macro_indicators(self, macro_data: dict) -> str:
         """Format macro indicators for the prompt."""
@@ -163,52 +118,103 @@ class MacroEconomistAgent(BaseAgent):
         
         return '\n'.join(formatted) if formatted else "No macro indicators available"
     
-    def _format_etf_returns(self, etf_returns: pd.DataFrame, universe: list) -> str:
-        """Format ETF returns for the prompt."""
-        if etf_returns.empty:
-            return "No ETF returns data available"
-        
-        formatted = []
-        for etf in universe:
-            if etf in etf_returns.columns:
-                returns = etf_returns[etf].dropna()
-                if not returns.empty:
-                    # Safely extract scalar values
-                    try:
-                        recent_return = returns.iloc[-1]
-                        if hasattr(recent_return, 'item'):
-                            recent_return = recent_return.item()
-                        recent_return = float(recent_return)
-                    except (ValueError, TypeError, IndexError):
-                        recent_return = 0.0
-                    
-                    try:
-                        avg_return = returns.mean()
-                        if hasattr(avg_return, 'item'):
-                            avg_return = avg_return.item()
-                        avg_return = float(avg_return)
-                    except (ValueError, TypeError):
-                        avg_return = 0.0
-                    
-                    formatted.append(f"- {etf}: Recent: {recent_return:.3f}, Avg: {avg_return:.3f}")
-                else:
-                    formatted.append(f"- {etf}: No returns data")
-            else:
-                formatted.append(f"- {etf}: Not in data")
-        
-        return '\n'.join(formatted) if formatted else "No ETF returns data available"
     
-    def _parse_structured_scores(self, response: str, universe: list) -> dict:
+    
+    
+    def _create_individual_etf_macro_prompt(self, macro_data: dict, etf_data: pd.DataFrame, etf: str) -> str:
         """
-        Parse structured ETF scores with confidence and reasoning from LLM response.
-        Enhanced to handle longer responses with extra text.
+        Create a prompt for individual ETF macroeconomic analysis.
+        
+        Args:
+            macro_data: Dictionary of macro economic indicators
+            etf_data: DataFrame with ETF price data
+            etf: Single ETF symbol to analyze
+            
+        Returns:
+            Formatted prompt string for single ETF analysis
+        """
+        # Calculate ETF returns for this specific ETF
+        etf_returns = None
+        if etf_data is not None and not etf_data.empty and etf in etf_data.columns:
+            etf_returns = etf_data[etf].pct_change().dropna()
+        
+        # Format macro indicators
+        macro_summary = self._format_macro_indicators(macro_data)
+        
+        # Format ETF-specific data
+        etf_summary = self._format_individual_etf_data(etf_returns, etf)
+        
+        prompt = f"""
+        As a macro economist, analyze the following data and score ONLY the ETF {etf} from -1 (strong sell) to 1 (strong buy).
+        
+        MACRO ECONOMIC DATA:
+        {macro_summary}
+        
+        {etf} SPECIFIC DATA:
+        {etf_summary}
+        
+        ANALYSIS FRAMEWORK & REQUIREMENTS FOR {etf}:
+        1. Inflation Impact: How does current inflation affect {etf} specifically?
+        2. Interest Rate Environment: Impact on {etf} based on its asset class
+        3. Economic Growth: How does current growth affect {etf}?
+        4. Currency Strength: Impact on {etf} if it's international/currency-focused
+        5. Economic Cycle Position: Where are we in the cycle and how does it affect {etf}?
+        
+        For {etf}, provide:
+        - Score from -1.0 (strong sell) to 1.0 (strong buy)
+        - Confidence level from 0.0 (no confidence) to 1.0 (high confidence)
+        - Detailed reasoning based on macro factors above
+        - Focus on {DEFAULT_HORIZON} horizon
+        
+        CRITICAL: Output only valid JSON dict with no extra text, explanations, or formatting:
+        {{"{etf}": {{"score": -1 to 1, "confidence": 0-1, "reason": "detailed explanation"}}}}
+        
+        Do not include any text before or after the JSON. Return only the JSON object.
+        """
+        return prompt
+    
+    def _format_individual_etf_data(self, etf_returns: pd.Series, etf: str) -> str:
+        """Format individual ETF data for the prompt."""
+        if etf_returns is None or etf_returns.empty:
+            return f"No {etf} returns data available"
+        
+        try:
+            # Safely extract scalar values
+            recent_return = etf_returns.iloc[-1]
+            if hasattr(recent_return, 'item'):
+                recent_return = recent_return.item()
+            recent_return = float(recent_return)
+        except (ValueError, TypeError, IndexError):
+            recent_return = 0.0
+        
+        try:
+            avg_return = etf_returns.mean()
+            if hasattr(avg_return, 'item'):
+                avg_return = avg_return.item()
+            avg_return = float(avg_return)
+        except (ValueError, TypeError):
+            avg_return = 0.0
+        
+        try:
+            volatility = etf_returns.std() * (252 ** 0.5)  # Annualized volatility
+            if hasattr(volatility, 'item'):
+                volatility = volatility.item()
+            volatility = float(volatility)
+        except (ValueError, TypeError):
+            volatility = 0.0
+        
+        return f"- {etf}: Recent Return: {recent_return:.3f}, Avg Return: {avg_return:.3f}, Volatility: {volatility:.3f}"
+    
+    def _parse_single_etf_score(self, response: str, etf: str) -> dict:
+        """
+        Parse structured ETF score for a single ETF from LLM response.
         
         Args:
             response: LLM response string
-            universe: List of ETFs to score
+            etf: ETF symbol that was analyzed
             
         Returns:
-            Dictionary with ETF scores, confidence, and reasoning
+            Dictionary with ETF score, confidence, and reasoning
         """
         try:
             # Clean the response first
@@ -223,56 +229,16 @@ class MacroEconomistAgent(BaseAgent):
                 end = response.rfind('}') + 1
                 json_str = response[start:end]
             
-            # Strategy 2: Look for JSON array boundaries (in case LLM returns array)
-            elif '[' in response and ']' in response:
-                start = response.find('[')
-                end = response.rfind(']') + 1
-                json_str = response[start:end]
-            
             if json_str:
                 # Clean up common JSON issues
                 json_str = json_str.replace('\n', ' ').replace('\r', ' ')
                 json_str = json_str.replace('  ', ' ')  # Remove double spaces
                 json_str = json_str.replace('\t', ' ')  # Remove tabs
                 
-                # Try to parse JSON
                 try:
                     scores = json.loads(json_str)
-                except json.JSONDecodeError as json_err:
-                    logger.warning(f"Initial JSON parse failed: {json_err}")
                     
-                    # Enhanced regex-based recovery
-                    import re
-                    
-                    # Try to extract individual ETF entries with more flexible pattern
-                    etf_pattern = r'"([A-Z]{2,4})":\s*\{[^{}]*(?:\{[^{}]*\}[^{}]*)*\}'
-                    etf_matches = re.findall(etf_pattern, json_str)
-                    
-                    if etf_matches:
-                        # Try to build a valid JSON object
-                        fixed_json = "{"
-                        for etf in etf_matches:
-                            # More flexible pattern for ETF entries
-                            etf_entry_pattern = f'"{etf}":\\s*\\{{[^{{}}]*(?:\\{{[^{{}}]*\\}}[^{{}}]*)*\\}}'
-                            etf_entry = re.search(etf_entry_pattern, json_str)
-                            if etf_entry:
-                                fixed_json += etf_entry.group(0) + ","
-                        fixed_json = fixed_json.rstrip(',') + "}"
-                        
-                        try:
-                            scores = json.loads(fixed_json)
-                            logger.info(f"Successfully recovered JSON using regex for {len(etf_matches)} ETFs")
-                        except json.JSONDecodeError as recovery_err:
-                            logger.warning(f"Regex recovery also failed: {recovery_err}")
-                            # Try one more approach - extract just the scores
-                            scores = self._extract_scores_fallback(json_str, universe)
-                    else:
-                        # Try to extract scores using fallback method
-                        scores = self._extract_scores_fallback(json_str, universe)
-                
-                # Validate and structure scores
-                validated_scores = {}
-                for etf in universe:
+                    # Validate and structure score for this ETF
                     if etf in scores and isinstance(scores[etf], dict):
                         etf_data = scores[etf]
                         score = float(etf_data.get('score', 0.0))
@@ -283,81 +249,83 @@ class MacroEconomistAgent(BaseAgent):
                         score = max(-1.0, min(1.0, score))
                         confidence = max(0.0, min(1.0, confidence))
                         
-                        validated_scores[etf] = {
+                        return {
                             'score': score,
                             'confidence': confidence,
                             'reason': reason
                         }
                     else:
-                        # Default values for missing ETFs
-                        validated_scores[etf] = {
+                        # ETF not found in response
+                        return {
                             'score': 0.0,
                             'confidence': 0.0,
-                            'reason': 'No analysis available'
+                            'reason': f'ETF {etf} not found in LLM response'
                         }
-                
-                return validated_scores
+                        
+                except json.JSONDecodeError as json_err:
+                    logger.warning(f"JSON parse failed for {etf}: {json_err}")
+                    # Try fallback extraction
+                    return self._extract_single_etf_score_fallback(response, etf)
             else:
-                logger.warning("No JSON found in LLM response")
-                return {etf: {'score': 0.0, 'confidence': 0.0, 'reason': 'No JSON response'} for etf in universe}
-                
-        except (json.JSONDecodeError, ValueError, KeyError) as e:
-            logger.error(f"Failed to parse structured scores from response: {e}")
-            # Provide more helpful fallback reasoning
-            return {etf: {
-                'score': 0.0, 
-                'confidence': 0.0, 
-                'reason': f'JSON parsing failed - LLM response format issue. Raw response length: {len(response)} chars'
-            } for etf in universe}
-    
-    def _extract_scores_fallback(self, text: str, universe: list) -> dict:
-        """
-        Fallback method to extract scores using text patterns when JSON parsing fails.
-        
-        Args:
-            text: Text containing ETF scores
-            universe: List of ETFs to extract scores for
-            
-        Returns:
-            Dictionary with extracted scores
-        """
-        import re
-        scores = {}
-        
-        for etf in universe:
-            # Look for patterns like "SPY": {"score": 0.5, "confidence": 0.8, "reason": "..."}
-            pattern = f'"{etf}"\\s*:\\s*\\{{[^}}]*"score"\\s*:\\s*([-+]?\\d*\\.?\\d+)[^}}]*"confidence"\\s*:\\s*([-+]?\\d*\\.?\\d+)[^}}]*"reason"\\s*:\\s*"([^"]*)"'
-            match = re.search(pattern, text, re.IGNORECASE)
-            
-            if match:
-                try:
-                    score = float(match.group(1))
-                    confidence = float(match.group(2))
-                    reason = match.group(3)
-                    
-                    # Clamp values
-                    score = max(-1.0, min(1.0, score))
-                    confidence = max(0.0, min(1.0, confidence))
-                    
-                    scores[etf] = {
-                        'score': score,
-                        'confidence': confidence,
-                        'reason': reason
-                    }
-                except (ValueError, IndexError):
-                    scores[etf] = {
-                        'score': 0.0,
-                        'confidence': 0.0,
-                        'reason': 'Failed to extract score from text pattern'
-                    }
-            else:
-                scores[etf] = {
+                logger.warning(f"No JSON found in LLM response for {etf}")
+                return {
                     'score': 0.0,
                     'confidence': 0.0,
-                    'reason': 'No score pattern found in response'
+                    'reason': f'No JSON response for {etf}'
                 }
+                
+        except Exception as e:
+            logger.error(f"Failed to parse score for {etf}: {e}")
+            return {
+                'score': 0.0,
+                'confidence': 0.0,
+                'reason': f'Parse error for {etf}: {str(e)}'
+            }
+    
+    def _extract_single_etf_score_fallback(self, text: str, etf: str) -> dict:
+        """
+        Fallback method to extract score for a single ETF using text patterns.
         
-        return scores
+        Args:
+            text: Text containing ETF score
+            etf: ETF symbol to extract score for
+            
+        Returns:
+            Dictionary with extracted score
+        """
+        import re
+        
+        # Look for patterns like "SPY": {"score": 0.5, "confidence": 0.8, "reason": "..."}
+        pattern = f'"{etf}"\\s*:\\s*\\{{[^}}]*"score"\\s*:\\s*([-+]?\\d*\\.?\\d+)[^}}]*"confidence"\\s*:\\s*([-+]?\\d*\\.?\\d+)[^}}]*"reason"\\s*:\\s*"([^"]*)"'
+        match = re.search(pattern, text, re.IGNORECASE)
+        
+        if match:
+            try:
+                score = float(match.group(1))
+                confidence = float(match.group(2))
+                reason = match.group(3)
+                
+                # Clamp values
+                score = max(-1.0, min(1.0, score))
+                confidence = max(0.0, min(1.0, confidence))
+                
+                return {
+                    'score': score,
+                    'confidence': confidence,
+                    'reason': reason
+                }
+            except (ValueError, IndexError):
+                return {
+                    'score': 0.0,
+                    'confidence': 0.0,
+                    'reason': f'Failed to extract score for {etf} from text pattern'
+                }
+        else:
+            return {
+                'score': 0.0,
+                'confidence': 0.0,
+                'reason': f'No score pattern found for {etf} in response'
+            }
 
 
 # Example usage and testing

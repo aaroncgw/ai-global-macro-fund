@@ -93,9 +93,9 @@ response = self.llm(prompt, response_format='json_object')
 ```
 
 #### JSON Output Requirements:
-- **MUST** be valid JSON
-- **MUST** include all ETFs in universe
-- **MUST** follow exact format specified in examples
+- **MUST** be valid JSON for individual ETF analysis
+- **MUST** process each ETF individually in the analyze method
+- **MUST** follow exact format specified in examples for single ETF
 - **MUST** use `response_format='json_object'`
 
 ### 5. Error Handling Rules
@@ -471,7 +471,8 @@ def _parse_response(self, response: str, universe: list) -> dict:
 ### 1. State Management
 - **NEVER** modify input state directly
 - **ALWAYS** return updated state dictionary
-- **ALWAYS** include all ETFs in universe in output
+- **ALWAYS** process each ETF individually in the analyze method
+- **ALWAYS** include results for all ETFs in universe in output
 
 ### 2. Error Handling
 - **ALWAYS** handle exceptions gracefully

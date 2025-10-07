@@ -6,7 +6,7 @@ This module provides comprehensive data fetching capabilities for:
 - Batch ETF price/return data via yfinance
 - Geopolitical and financial news via Finlight.me API
 
-The fetcher is designed for batch processing of all ETFs simultaneously
+The fetcher is designed for efficient data retrieval for both individual and batch ETF processing
 and is generic to handle additions via configuration list.
 """
 

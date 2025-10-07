@@ -47,6 +47,7 @@ class RiskManager(BaseAgent):
     def assess(self, state: dict) -> dict:
         """
         Assess risks for ETFs using macro data, ETF data, and news for text-based risk understanding.
+        Now processes ETFs one by one for more consistent risk assessment.
         
         Args:
             state: LangGraph state dictionary containing:
@@ -86,88 +87,43 @@ class RiskManager(BaseAgent):
             else:
                 etf_volatilities = {etf: 0.0 for etf in universe}
             
-            # Create risk assessment prompt with news input
-            prompt = f"""
-            Independent of analyst scores, assess risks for each ETF in {universe} using macro data, ETF data, and geopolitical/financial news for text-based insights.
+            # Process each ETF individually for more consistent risk assessment
+            risk_metrics = {}
             
-            MACRO ECONOMIC DATA:
-            {self._format_macro_data(macro_data)}
-            
-            ETF PERFORMANCE DATA:
-            {self._format_etf_performance(etf_data, universe)}
-            
-            CALCULATED VOLATILITIES (Annualized):
-            {json.dumps(etf_volatilities, indent=2, default=str)}
-            
-            GEOPOLITICAL AND FINANCIAL NEWS:
-            {self._format_news_for_risk_assessment(news)}
-            
-            RISK ASSESSMENT REQUIREMENTS:
-            1. For each ETF, determine risk level: "low", "medium", or "high"
-            2. Use the provided volatility calculations (already calculated from historical data)
-            3. Provide detailed reasoning for risk assessment based on macro factors, news impact, and volatility
-            
-            RISK LEVEL CRITERIA:
-            - LOW: Stable, diversified, low volatility, strong fundamentals
-            - MEDIUM: Moderate volatility, some concentration risk, mixed fundamentals
-            - HIGH: High volatility, concentrated exposure, weak fundamentals, high correlation
-            
-            MACRO RISK FACTORS TO CONSIDER:
-            - Inflation impact on bonds vs commodities
-            - Interest rate sensitivity
-            - Currency volatility and competitive devaluations
-            - Regional economic stability
-            - Trade tensions and geopolitical conflicts
-            - Central bank policy differences
-            - Commodity supply disruptions
-            - Safe haven flows during uncertainty
-            
-            NEWS-BASED RISK FACTORS:
-            - Geopolitical tensions affecting specific regions
-            - Trade wars and tariff impacts
-            - Currency wars and competitive devaluations
-            - Central bank policy changes
-            - Commodity supply disruptions
-            - Political instability
-            - Economic sanctions
-            - Market sentiment shifts
-            
-            PRICE-RELATED RISK FACTORS:
-            - Historical volatility patterns and trends
-            - Price momentum and technical indicators
-            - Volume patterns and liquidity risks
-            - Drawdown analysis and maximum loss potential
-            - Correlation with market indices and other assets
-            - Price impact of large trades
-            
-            EXAMPLES OF EXPECTED OUTPUT:
-            Example 1 - High volatility ETF with geopolitical risks:
-            {{"SPY": {{"risk_level": "high", "volatility": 0.25, "reason": "Elevated volatility (25%) combined with trade war tensions and policy uncertainty creates high risk profile"}}, "TLT": {{"risk_level": "medium", "volatility": 0.15, "reason": "Moderate volatility but duration risk from rising rates offsets safe-haven benefits"}}}}
-            
-            Example 2 - Stable market environment:
-            {{"SPY": {{"risk_level": "low", "volatility": 0.12, "reason": "Low volatility with stable economic growth and accommodative policy"}}, "TLT": {{"risk_level": "medium", "volatility": 0.08, "reason": "Low volatility but interest rate sensitivity remains a concern"}}}}
-            
-            Example 3 - Crisis period:
-            {{"SPY": {{"risk_level": "high", "volatility": 0.35, "reason": "Crisis-level volatility with multiple risk factors: recession fears, geopolitical tensions, and credit stress"}}, "TLT": {{"risk_level": "low", "volatility": 0.20, "reason": "Higher volatility but strong safe-haven demand during crisis provides downside protection"}}}}
-            
-            CRITICAL: Output only valid JSON dict with no extra text, explanations, or formatting:
-            {{"ETF": {{"risk_level": "low/medium/high", "volatility": float, "reason": "detailed explanation"}}}}
-            
-            Do not include any text before or after the JSON. Return only the JSON object.
-            """
-            
-            # Get LLM response with JSON format
-            try:
-                response = self.llm(prompt, response_format='json_object')
-            except Exception as e:
-                logger.error(f"LLM call failed: {e}")
-                # Return neutral risk metrics on error
-                neutral_metrics = {etf: {'risk_level': 'medium', 'volatility': etf_volatilities.get(etf, 0.0), 'reason': f'LLM call failed: {str(e)}'} for etf in universe}
-                state['risk_metrics'] = neutral_metrics
-                return state
-            
-            # Parse the structured response
-            risk_metrics = self._parse_risk_metrics(response, universe, etf_volatilities)
+            for etf in universe:
+                try:
+                    logger.info(f"Processing {etf} for risk assessment...")
+                    
+                    # Create individual ETF risk assessment prompt
+                    prompt = self._create_individual_etf_risk_prompt(macro_data, etf_data, news, etf, etf_volatilities.get(etf, 0.0))
+                    
+                    # Get LLM response with JSON format
+                    try:
+                        response = self.llm(prompt, response_format='json_object')
+                    except Exception as e:
+                        logger.error(f"LLM call failed for {etf}: {e}")
+                        # Provide neutral risk metrics for failed ETF
+                        risk_metrics[etf] = {
+                            'risk_level': 'medium',
+                            'volatility': etf_volatilities.get(etf, 0.0),
+                            'reason': f'LLM call failed for {etf}: {str(e)}'
+                        }
+                        continue
+                    
+                    # Parse the structured response for this single ETF
+                    etf_risk = self._parse_single_etf_risk(response, etf, etf_volatilities.get(etf, 0.0))
+                    risk_metrics[etf] = etf_risk
+                    
+                    logger.debug(f"Completed risk assessment for {etf}: risk_level={etf_risk.get('risk_level', 'unknown')}")
+                    
+                except Exception as etf_error:
+                    logger.error(f"Failed to assess risk for {etf}: {etf_error}")
+                    # Provide neutral risk metrics for failed ETF
+                    risk_metrics[etf] = {
+                        'risk_level': 'medium',
+                        'volatility': etf_volatilities.get(etf, 0.0),
+                        'reason': f'Risk assessment failed for {etf}: {str(etf_error)}'
+                    }
             
             # Store risk metrics in state
             state['risk_metrics'] = risk_metrics
@@ -176,12 +132,12 @@ class RiskManager(BaseAgent):
             state['agent_reasoning'] = state.get('agent_reasoning', {})
             state['agent_reasoning']['risk_manager'] = {
                 'risk_metrics': risk_metrics,
-                'reasoning': f"Independent risk assessment based on macro data, ETF data, and {len(news)} news articles for {len(universe)} ETFs",
+                'reasoning': f"Independent risk assessment completed for {len(universe)} ETFs (processed individually)",
                 'key_factors': ['macro_risks', 'geopolitical_risks', 'volatility', 'news_impact'],
                 'timestamp': pd.Timestamp.now().isoformat()
             }
             
-            logger.info(f"Risk assessment completed for {len(universe)} ETFs")
+            logger.info(f"Risk assessment completed for {len(universe)} ETFs (individual processing)")
             return state
             
         except Exception as e:
@@ -372,6 +328,240 @@ class RiskManager(BaseAgent):
         except (json.JSONDecodeError, ValueError, KeyError) as e:
             logger.error(f"Failed to parse risk metrics from response: {e}")
             return {etf: {'risk_level': 'medium', 'volatility': etf_volatilities.get(etf, 0.0), 'reason': f'Parse error: {str(e)}'} for etf in universe}
+    
+    def _create_individual_etf_risk_prompt(self, macro_data: dict, etf_data: pd.DataFrame, news: list, etf: str, volatility: float) -> str:
+        """
+        Create a prompt for individual ETF risk assessment.
+        
+        Args:
+            macro_data: Macro economic indicators
+            etf_data: ETF price data
+            news: Geopolitical and financial news
+            etf: Single ETF symbol to assess
+            volatility: Calculated volatility for this ETF
+            
+        Returns:
+            Formatted prompt string for single ETF risk assessment
+        """
+        # Format data for this specific ETF
+        macro_summary = self._format_macro_data(macro_data)
+        etf_performance = self._format_individual_etf_performance(etf_data, etf)
+        news_summary = self._format_news_for_risk_assessment(news)
+        
+        prompt = f"""
+        Independent of analyst scores, assess risks for ONLY the ETF {etf} using macro data, ETF data, and geopolitical/financial news for text-based insights.
+        
+        MACRO ECONOMIC DATA:
+        {macro_summary}
+        
+        {etf} PERFORMANCE DATA:
+        {etf_performance}
+        
+        CALCULATED VOLATILITY (Annualized) for {etf}: {volatility:.4f}
+        
+        GEOPOLITICAL AND FINANCIAL NEWS:
+        {news_summary}
+        
+        RISK ASSESSMENT REQUIREMENTS FOR {etf}:
+        1. For {etf}, determine risk level: "low", "medium", or "high"
+        2. Use the provided volatility calculation ({volatility:.4f}) for {etf}
+        3. Provide detailed reasoning for risk assessment based on macro factors, news impact, and volatility
+        
+        RISK LEVEL CRITERIA FOR {etf}:
+        - LOW: {etf} is stable, diversified, low volatility, strong fundamentals
+        - MEDIUM: {etf} has moderate volatility, some concentration risk, mixed fundamentals
+        - HIGH: {etf} has high volatility, concentrated exposure, weak fundamentals, high correlation
+        
+        MACRO RISK FACTORS TO CONSIDER FOR {etf}:
+        - Inflation impact on {etf} based on its asset class
+        - Interest rate sensitivity of {etf}
+        - Currency volatility affecting {etf}
+        - Regional economic stability affecting {etf}
+        - Trade tensions and geopolitical conflicts affecting {etf}
+        - Central bank policy differences affecting {etf}
+        - Commodity supply disruptions affecting {etf}
+        - Safe haven flows affecting {etf}
+        
+        NEWS-BASED RISK FACTORS FOR {etf}:
+        - Geopolitical tensions affecting {etf} specifically
+        - Trade wars and tariff impacts on {etf}
+        - Currency wars affecting {etf}
+        - Central bank policy changes affecting {etf}
+        - Commodity supply disruptions affecting {etf}
+        - Political instability affecting {etf}
+        - Economic sanctions affecting {etf}
+        - Market sentiment shifts affecting {etf}
+        
+        PRICE-RELATED RISK FACTORS FOR {etf}:
+        - Historical volatility patterns for {etf} (current: {volatility:.4f})
+        - Price momentum and technical indicators for {etf}
+        - Volume patterns and liquidity risks for {etf}
+        - Drawdown analysis for {etf}
+        - Correlation with market indices and other assets
+        - Price impact of large trades on {etf}
+        
+        EXAMPLES OF EXPECTED OUTPUT:
+        Example 1 - High volatility ETF with geopolitical risks:
+        {{"{etf}": {{"risk_level": "high", "volatility": {volatility:.4f}, "reason": "Elevated volatility ({volatility:.1%}) combined with trade war tensions and policy uncertainty creates high risk profile for {etf}"}}}}
+        
+        Example 2 - Stable market environment:
+        {{"{etf}": {{"risk_level": "low", "volatility": {volatility:.4f}, "reason": "Low volatility ({volatility:.1%}) with stable economic growth and accommodative policy supports {etf}"}}}}
+        
+        Example 3 - Crisis period:
+        {{"{etf}": {{"risk_level": "high", "volatility": {volatility:.4f}, "reason": "Crisis-level volatility ({volatility:.1%}) with multiple risk factors: recession fears, geopolitical tensions, and credit stress affecting {etf}"}}}}
+        
+        CRITICAL: Output only valid JSON dict with no extra text, explanations, or formatting:
+        {{"{etf}": {{"risk_level": "low/medium/high", "volatility": {volatility:.4f}, "reason": "detailed explanation"}}}}
+        
+        Do not include any text before or after the JSON. Return only the JSON object.
+        """
+        return prompt
+    
+    def _format_individual_etf_performance(self, etf_data: pd.DataFrame, etf: str) -> str:
+        """Format individual ETF performance data for the prompt."""
+        if etf_data.empty or etf not in etf_data.columns:
+            return f"No {etf} performance data available"
+        
+        returns = etf_data[etf].pct_change().dropna()
+        if returns.empty:
+            return f"No {etf} returns data available"
+        
+        try:
+            # Calculate volatility (annualized)
+            volatility = returns.std() * (252 ** 0.5)
+            # Calculate recent performance
+            recent_return = returns.tail(5).mean() * 252  # Annualized
+            # Calculate max drawdown
+            cumulative = (1 + returns).cumprod()
+            running_max = cumulative.expanding().max()
+            drawdown = (cumulative - running_max) / running_max
+            max_drawdown = drawdown.min()
+            
+            return f"- {etf}: Vol={volatility:.3f}, Recent={recent_return:.3f}, MaxDD={max_drawdown:.3f}"
+        except Exception as e:
+            return f"- {etf}: Error calculating metrics - {str(e)}"
+    
+    def _parse_single_etf_risk(self, response: str, etf: str, volatility: float) -> dict:
+        """
+        Parse structured risk metrics for a single ETF from LLM response.
+        
+        Args:
+            response: LLM response string
+            etf: ETF symbol that was assessed
+            volatility: Calculated volatility for this ETF
+            
+        Returns:
+            Dictionary with risk metrics
+        """
+        try:
+            # Clean the response first
+            response = response.strip()
+            
+            # Try multiple JSON extraction strategies
+            json_str = None
+            
+            # Strategy 1: Look for JSON object boundaries
+            if '{' in response and '}' in response:
+                start = response.find('{')
+                end = response.rfind('}') + 1
+                json_str = response[start:end]
+            
+            if json_str:
+                # Clean up common JSON issues
+                json_str = json_str.replace('\n', ' ').replace('\r', ' ')
+                json_str = json_str.replace('  ', ' ')  # Remove double spaces
+                json_str = json_str.replace('\t', ' ')  # Remove tabs
+                
+                try:
+                    metrics = json.loads(json_str)
+                    
+                    # Validate and structure metrics for this ETF
+                    if etf in metrics and isinstance(metrics[etf], dict):
+                        etf_data = metrics[etf]
+                        risk_level = str(etf_data.get('risk_level', 'medium')).lower()
+                        reason = str(etf_data.get('reason', 'No reasoning provided'))
+                        
+                        # Validate risk level
+                        if risk_level not in ['low', 'medium', 'high']:
+                            risk_level = 'medium'
+                        
+                        return {
+                            'risk_level': risk_level,
+                            'volatility': volatility,  # Use calculated volatility
+                            'reason': reason
+                        }
+                    else:
+                        # ETF not found in response
+                        return {
+                            'risk_level': 'medium',
+                            'volatility': volatility,
+                            'reason': f'ETF {etf} not found in LLM response'
+                        }
+                        
+                except json.JSONDecodeError as json_err:
+                    logger.warning(f"JSON parse failed for {etf}: {json_err}")
+                    # Try fallback extraction
+                    return self._extract_single_etf_risk_fallback(response, etf, volatility)
+            else:
+                logger.warning(f"No JSON found in LLM response for {etf}")
+                return {
+                    'risk_level': 'medium',
+                    'volatility': volatility,
+                    'reason': f'No JSON response for {etf}'
+                }
+                
+        except Exception as e:
+            logger.error(f"Failed to parse risk metrics for {etf}: {e}")
+            return {
+                'risk_level': 'medium',
+                'volatility': volatility,
+                'reason': f'Parse error for {etf}: {str(e)}'
+            }
+    
+    def _extract_single_etf_risk_fallback(self, text: str, etf: str, volatility: float) -> dict:
+        """
+        Fallback method to extract risk metrics for a single ETF using text patterns.
+        
+        Args:
+            text: Text containing ETF risk metrics
+            etf: ETF symbol to extract risk metrics for
+            volatility: Calculated volatility for this ETF
+            
+        Returns:
+            Dictionary with extracted risk metrics
+        """
+        import re
+        
+        # Look for patterns like "SPY": {"risk_level": "high", "volatility": 0.25, "reason": "..."}
+        pattern = f'"{etf}"\\s*:\\s*\\{{[^}}]*"risk_level"\\s*:\\s*"([^"]*)"[^}}]*"reason"\\s*:\\s*"([^"]*)"'
+        match = re.search(pattern, text, re.IGNORECASE)
+        
+        if match:
+            try:
+                risk_level = match.group(1).lower()
+                reason = match.group(2)
+                
+                # Validate risk level
+                if risk_level not in ['low', 'medium', 'high']:
+                    risk_level = 'medium'
+                
+                return {
+                    'risk_level': risk_level,
+                    'volatility': volatility,  # Use calculated volatility
+                    'reason': reason
+                }
+            except (ValueError, IndexError):
+                return {
+                    'risk_level': 'medium',
+                    'volatility': volatility,
+                    'reason': f'Failed to extract risk metrics for {etf} from text pattern'
+                }
+        else:
+            return {
+                'risk_level': 'medium',
+                'volatility': volatility,
+                'reason': f'No risk pattern found for {etf} in response'
+            }
 
 
 # Example usage and testing

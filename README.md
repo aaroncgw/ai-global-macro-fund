@@ -146,13 +146,14 @@ poetry run python src/main.py --universe SPY EWJ EWG FXI GLD TLT
 
 **Key Responsibilities**:
 - Analyzes FRED economic indicators (CPI, unemployment, Fed funds rate, GDP)
+- Processes each ETF individually for consistent and precise scoring
 - Scores ETFs based on macro trends and economic cycles
 - Considers inflation impact on bonds vs commodities
 - Evaluates interest rate environment effects
-- Provides confidence levels and detailed reasoning
+- Provides confidence levels and detailed reasoning for each ETF
 
 **Input**: Macro economic data, ETF price data
-**Output**: ETF scores from -1 (strong sell) to 1 (strong buy) with confidence and reasoning
+**Output**: Individual ETF scores from -1 (strong sell) to 1 (strong buy) with confidence and reasoning
 
 ### 2. Geopolitical Analyst Agent (`src/agents/geopolitical_analyst.py`)
 
@@ -160,27 +161,29 @@ poetry run python src/main.py --universe SPY EWJ EWG FXI GLD TLT
 
 **Key Responsibilities**:
 - Analyzes geopolitical news and events from Finlight.me
+- Processes each ETF individually for focused geopolitical assessment
 - Evaluates regional risks and opportunities
 - Considers currency and trade impacts
-- Scores country-specific and regional ETFs
-- Provides confidence levels and detailed reasoning
+- Scores country-specific and regional ETFs with detailed reasoning
+- Provides confidence levels for each individual ETF analysis
 
 **Input**: News data, geopolitical events
-**Output**: ETF scores based on geopolitical factors with confidence and reasoning
+**Output**: Individual ETF scores based on geopolitical factors with confidence and reasoning
 
 ### 3. Risk Manager Agent (`src/agents/risk_manager.py`)
 
 **Purpose**: Combines analyst scores and adjusts for risk factors and volatility.
 
 **Key Responsibilities**:
+- Processes each ETF individually for comprehensive risk assessment
 - Combines macro and geopolitical analyst scores
 - Adjusts scores based on risk factors and volatility
-- Assesses risk levels (low/medium/high) for each ETF
-- Provides risk-adjusted scores with detailed reasoning
+- Assesses risk levels (low/medium/high) for each ETF individually
+- Provides risk-adjusted scores with detailed reasoning for each ETF
 - Considers correlation and concentration risks
 
 **Input**: Macro scores, geopolitical scores, ETF data, macro data
-**Output**: Risk-adjusted scores with risk levels and reasoning
+**Output**: Individual risk assessments with risk levels and detailed reasoning
 
 ### 4. Portfolio Manager Agent (`src/agents/portfolio_manager.py`)
 
@@ -215,12 +218,12 @@ The system follows a streamlined LangGraph workflow:
    ├── ETF price data (yfinance)
    └── Geopolitical news (Finlight.me)
 
-2. Analysis Phase
-   ├── Macro Economist → Scores ETFs based on macro trends
-   └── Geopolitical Analyst → Scores ETFs based on geo risks
+2. Analysis Phase (Individual ETF Processing)
+   ├── Macro Economist → Processes each ETF individually for consistent scoring
+   └── Geopolitical Analyst → Analyzes each ETF separately for precise geo risk assessment
 
-3. Risk Management Phase
-   └── Risk Manager → Combines scores and adjusts for risk factors
+3. Risk Management Phase (Individual ETF Processing)
+   └── Risk Manager → Assesses risk for each ETF individually with detailed reasoning
 
 4. Portfolio Management Phase
    └── Portfolio Manager → LLM-driven synthesis with position limits
@@ -231,6 +234,16 @@ The system follows a streamlined LangGraph workflow:
    ├── Risk assessments and confidence levels
    └── Detailed report saved to reports/ folder
 ```
+
+### 🎯 Individual ETF Processing Benefits
+
+The system now processes each ETF individually rather than in batches, providing several key advantages:
+
+- **Improved Consistency**: Reduces randomness in LLM responses by focusing on one ETF at a time
+- **Enhanced Precision**: Each ETF receives dedicated analysis with tailored prompts and reasoning
+- **Better Error Handling**: Individual failures don't affect the entire analysis batch
+- **Detailed Reasoning**: More comprehensive and focused analysis for each ETF
+- **Reproducible Results**: More consistent outputs across multiple runs
 
 ## 📊 Data Sources
 
